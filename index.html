@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Appel EPS</title>
+<style>
+  :root{
+    --ink:#12202b;
+    --ink-soft:#4b5c66;
+    --paper:#f6f4ef;
+    --line:#d9d3c6;
+    --track:#e8622c;
+    --track-dark:#c94f1f;
+    --present:#2f7a4f;
+    --present-bg:#e3f2e8;
+    --absent:#b5342a;
+    --absent-bg:#fbe6e3;
+    --dispense:#b8860f;
+    --dispense-bg:#fbf1da;
+    --card:#ffffff;
+    --radius:14px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:76px;
+  }
+  header.top{
+    position:sticky;top:0;z-index:20;
+    background:var(--ink);
+    color:#fff;
+    padding:14px 16px 12px;
+  }
+  header.top .brand{
+    display:flex;align-items:center;gap:10px;
+  }
+  header.top .whistle{
+    width:26px;height:26px;flex:none;
+  }
+  header.top h1{
+    font-size:1.15rem;margin:0;letter-spacing:.2px;font-weight:700;
+  }
+  header.top .sub{
+    font-size:.72rem;color:#c7cfd4;margin-top:2px;font-weight:500;letter-spacing:.3px;text-transform:uppercase;
+  }
+  nav.tabs{
+    display:flex;
+    background:var(--ink);
+    padding:0 8px;
+    position:sticky;top:64px;z-index:19;
+    border-bottom:2px solid #223341;
+  }
+  nav.tabs button{
+    flex:1;
+    background:none;border:none;color:#9fb0ba;
+    font-size:.86rem;font-weight:700;
+    padding:10px 4px 12px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    letter-spacing:.2px;
+  }
+  nav.tabs button.active{
+    color:#fff;
+    border-bottom:3px solid var(--track);
+  }
+  main{max-width:640px;margin:0 auto;padding:14px 12px 24px;}
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+    margin-bottom:12px;
+  }
+  .card h2{font-size:1rem;margin:0 0 10px;}
+  .row{display:flex;gap:8px;align-items:center;}
+  .row.wrap{flex-wrap:wrap;}
+  .grow{flex:1;min-width:0;}
+
+  label.field-label{
+    display:block;font-size:.72rem;font-weight:700;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;
+  }
+  select,input[type=text],input[type=date],input[type=file],textarea{
+    width:100%;
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:10px 11px;
+    font-size:.95rem;
+    background:#fff;
+    color:var(--ink);
+    font-family:inherit;
+  }
+  textarea{resize:vertical;min-height:90px;}
+  button{
+    font-family:inherit;
+    cursor:pointer;
+  }
+  .btn{
+    border:none;border-radius:10px;
+    padding:10px 16px;
+    font-weight:700;font-size:.88rem;
+    background:var(--ink);color:#fff;
+    display:inline-flex;align-items:center;gap:6px;justify-content:center;
+  }
+  .btn.primary{background:var(--track);}
+  .btn.primary:active{background:var(--track-dark);}
+  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
+  .btn.danger{background:var(--absent);}
+  .btn.small{padding:6px 10px;font-size:.78rem;border-radius:8px;}
+  .btn:disabled{opacity:.4;}
+  .btn-block{width:100%;}
+
+  .empty{
+    text-align:center;color:var(--ink-soft);
+    padding:26px 10px;font-size:.9rem;
+  }
+  .empty b{display:block;color:var(--ink);font-size:.98rem;margin-bottom:4px;}
+
+  /* Classes tab */
+  .class-card{margin-bottom:10px;}
+  .class-card summary{
+    list-style:none;cursor:pointer;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .class-card summary::-webkit-details-marker{display:none;}
+  .class-card summary .name{font-weight:700;font-size:1.02rem;}
+  .class-card summary .count{font-size:.78rem;color:var(--ink-soft);font-weight:600;}
+  .student-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 0;border-top:1px solid var(--line);
+    font-size:.9rem;
+  }
+  .student-row:first-of-type{border-top:none;margin-top:8px;}
+  .icon-btn{
+    background:none;border:none;color:var(--ink-soft);
+    padding:4px 6px;font-size:.85rem;
+  }
+
+  /* Appel tab */
+  .status-pill{
+    font-size:.68rem;font-weight:800;letter-spacing:.3px;
+    padding:3px 9px;border-radius:20px;text-transform:uppercase;
+  }
+  .status-pill.present{background:var(--present-bg);color:var(--present);}
+  .status-pill.absent{background:var(--absent-bg);color:var(--absent);}
+  .status-pill.pending{background:#eee;color:#888;}
+
+  .mic-wrap{text-align:center;padding:6px 0 4px;}
+  .mic-btn{
+    width:84px;height:84px;border-radius:50%;
+    border:none;background:var(--track);color:#fff;
+    font-size:1.8rem;
+    box-shadow:0 4px 14px rgba(232,98,44,.35);
+  }
+  .mic-btn.listening{
+    background:var(--absent);
+    animation:pulse 1.2s infinite;
+  }
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(181,52,42,.5);}
+    70%{box-shadow:0 0 0 18px rgba(181,52,42,0);}
+    100%{box-shadow:0 0 0 0 rgba(181,52,42,0);}
+  }
+  .mic-caption{font-size:.78rem;color:var(--ink-soft);margin-top:8px;min-height:16px;}
+  .transcript{
+    font-size:.8rem;color:var(--ink-soft);font-style:italic;
+    min-height:18px;text-align:center;margin-top:2px;word-break:break-word;
+  }
+
+  .roster-item{
+    border-top:1px solid var(--line);
+    padding:10px 0;
+  }
+  .roster-item:first-child{border-top:none;}
+  .roster-item.just-matched{background:var(--present-bg);border-radius:8px;}
+  .roster-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .roster-name{font-weight:700;font-size:.95rem;}
+  .roster-actions{display:flex;gap:6px;}
+  .toggle-btn{
+    border:1.5px solid var(--line);background:#fff;border-radius:8px;
+    padding:5px 10px;font-size:.76rem;font-weight:700;color:var(--ink-soft);
+  }
+  .toggle-btn.on-present{background:var(--present);color:#fff;border-color:var(--present);}
+  .toggle-btn.on-absent{background:var(--absent);color:#fff;border-color:var(--absent);}
+  .extra-row{
+    display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;
+  }
+  .chip{
+    border:1.5px solid var(--line);border-radius:20px;
+    padding:4px 10px;font-size:.72rem;font-weight:700;color:var(--ink-soft);background:#fff;
+  }
+  .chip.on.dispense{background:var(--dispense-bg);color:var(--dispense);border-color:var(--dispense);}
+  .chip.on.oubli{background:var(--absent-bg);color:var(--absent);border-color:var(--absent);}
+  .chip.icon-chip{font-size:1.05rem;padding:5px 12px;line-height:1;}
+  .chip.icon-chip[data-field="dispense"]{color:var(--absent);border-color:var(--absent);}
+  .chip.icon-chip[data-field="dispense"].on{background:var(--absent);color:#fff;}
+
+  .summary-box{
+    background:#fff;border:1.5px dashed var(--line);border-radius:12px;
+    padding:12px;margin-top:10px;font-size:.88rem;
+  }
+  .summary-box .abs-name{
+    display:inline-block;background:var(--absent-bg);color:var(--absent);
+    padding:3px 9px;border-radius:20px;font-weight:700;font-size:.78rem;margin:3px 4px 0 0;
+  }
+
+  .session-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:9px 0;border-top:1px solid var(--line);font-size:.86rem;
+  }
+  .session-item:first-child{border-top:none;}
+
+  /* Suivi */
+  table.stats{
+    width:100%;border-collapse:collapse;font-size:.82rem;
+  }
+  table.stats th,table.stats td{
+    padding:7px 6px;text-align:center;border-bottom:1px solid var(--line);
+  }
+  table.stats th{font-size:.68rem;text-transform:uppercase;color:var(--ink-soft);letter-spacing:.3px;}
+  table.stats td.name-cell{text-align:left;font-weight:700;}
+  table.stats td.warn{color:var(--absent);font-weight:800;}
+
+  .activite-card{border-left:4px solid var(--track);}
+  .toast{
+    position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:10px 18px;border-radius:30px;
+    font-size:.85rem;font-weight:600;z-index:50;opacity:0;pointer-events:none;
+    transition:opacity .25s;
+  }
+  .toast.show{opacity:1;}
+  .hint{font-size:.76rem;color:var(--ink-soft);margin-top:4px;}
+  .close-x{background:none;border:none;color:var(--ink-soft);font-size:1rem;padding:2px 6px;}
+
+  .sub.status-ok{color:#8fd6a8;}
+  .sub.status-error{color:#f0a99e;}
+  .sub.status-sync{color:#f0cf9e;}
+  .sub.status-none{color:#c7cfd4;}
+  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;}
+  .status-dot.ok{background:#8fd6a8;}
+  .status-dot.error{background:#f0a99e;}
+  .status-dot.sync{background:#f0cf9e;}
+  .status-dot.none{background:#8b98a1;}
+  code.inline{background:#efe9dc;border-radius:5px;padding:1px 6px;font-size:.82rem;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <svg class="whistle" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="11" stroke="#e8622c" stroke-width="2"/>
+      <path d="M8 12h8M12 8v8" stroke="#e8622c" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <h1>Appel EPS</h1>
+      <div class="sub" id="headerSub">Prêt</div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn" data-view="classes">Classes</button>
+  <button class="tab-btn active" data-view="appel">Appel</button>
+  <button class="tab-btn" data-view="suivi">Suivi</button>
+  <button class="tab-btn" data-view="reglages">Réglages</button>
+</nav>
+
+<main>
+
+  <!-- ===================== CLASSES ===================== -->
+  <section id="view-classes" class="view">
+    <div class="card">
+      <h2>Importer une classe (CSV)</h2>
+      <label class="field-label" for="csvClassName">Nom de la classe</label>
+      <div class="row" style="margin-bottom:8px;">
+        <input type="text" id="csvClassName" class="grow" placeholder="ex : 5e A">
+      </div>
+      <label class="field-label" for="csvFile">Fichier CSV (colonnes : prenom, nom — 1 par ligne)</label>
+      <input type="file" id="csvFile" accept=".csv,text/csv">
+      <div class="hint">Une ligne d'en-tête est détectée et ignorée automatiquement si présente. Séparateur : virgule ou point-virgule.</div>
+      <button class="btn primary btn-block" id="btnImportCsv" style="margin-top:10px;">Importer</button>
+    </div>
+
+    <div class="card">
+      <h2>Ajouter un élève manuellement</h2>
+      <div class="row wrap" style="margin-bottom:8px;">
+        <div class="grow" style="min-width:120px;">
+          <label class="field-label">Classe</label>
+          <select id="manualClassSelect"></select>
+        </div>
+      </div>
+      <div class="row wrap">
+        <div class="grow" style="min-width:100px;">
+          <label class="field-label">Prénom</label>
+          <input type="text" id="manualPrenom">
+        </div>
+        <div class="grow" style="min-width:100px;">
+          <label class="field-label">Nom</label>
+          <input type="text" id="manualNom">
+        </div>
+      </div>
+      <button class="btn ghost btn-block" id="btnAddStudent" style="margin-top:10px;">Ajouter l'élève</button>
+    </div>
+
+    <div id="classesList"></div>
+  </section>
+
+  <!-- ===================== APPEL ===================== -->
+  <section id="view-appel" class="view active">
+
+    <div class="card" id="appelSetupCard">
+      <h2>Nouvel appel</h2>
+      <div class="row wrap" style="margin-bottom:10px;">
+        <div class="grow" style="min-width:130px;">
+          <label class="field-label">Classe</label>
+          <select id="appelClassSelect"></select>
+        </div>
+        <div class="grow" style="min-width:130px;">
+          <label class="field-label">Date</label>
+          <input type="date" id="appelDate">
+        </div>
+      </div>
+      <button class="btn primary btn-block" id="btnStartAppel">+ Créer l'appel</button>
+      <div class="hint" id="appelActiviteHint"></div>
+    </div>
+
+    <div class="card" id="appelLiveCard" style="display:none;">
+      <div class="row" style="justify-content:space-between;">
+        <h2 id="appelLiveTitle" style="margin:0;"></h2>
+        <button class="close-x" id="btnCloseAppel">✕</button>
+      </div>
+
+      <div id="micZone" class="mic-wrap"></div>
+
+      <div class="row wrap" style="margin:10px 0 4px;gap:8px;">
+        <button class="btn ghost small" id="btnMarkAllPresent">Tout présent</button>
+        <button class="btn ghost small" id="btnResetAppel">Réinitialiser</button>
+      </div>
+
+      <div id="rosterList"></div>
+
+      <button class="btn primary btn-block" id="btnFinishAppel" style="margin-top:12px;">Terminer l'appel</button>
+      <div id="appelSummary"></div>
+    </div>
+
+    <div class="card">
+      <h2>Appels précédents</h2>
+      <div id="pastSessions"><div class="empty">Aucun appel enregistré pour l'instant.</div></div>
+    </div>
+  </section>
+
+  <!-- ===================== SUIVI ===================== -->
+  <section id="view-suivi" class="view">
+    <div class="card">
+      <h2>Activités (max. 5 par classe)</h2>
+      <div class="row wrap" style="margin-bottom:8px;">
+        <div class="grow" style="min-width:120px;">
+          <label class="field-label">Classe</label>
+          <select id="suiviClassSelect"></select>
+        </div>
+      </div>
+      <div id="activitesForClass"></div>
+
+      <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px;">
+        <label class="field-label">Nom de l'activité</label>
+        <input type="text" id="newActiviteNom" placeholder="ex : Badminton" style="margin-bottom:8px;">
+        <div class="row wrap">
+          <div class="grow" style="min-width:110px;">
+            <label class="field-label">Début</label>
+            <input type="date" id="newActiviteDebut">
+          </div>
+          <div class="grow" style="min-width:110px;">
+            <label class="field-label">Fin</label>
+            <input type="date" id="newActiviteFin">
+          </div>
+        </div>
+        <button class="btn ghost btn-block" id="btnAddActivite" style="margin-top:10px;">Ajouter l'activité</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Statistiques par activité</h2>
+      <label class="field-label">Activité</label>
+      <select id="statsActiviteSelect" style="margin-bottom:10px;"></select>
+      <div id="statsTableWrap"><div class="empty">Choisis une activité pour voir les statistiques.</div></div>
+    </div>
+  </section>
+
+  <!-- ===================== REGLAGES ===================== -->
+  <section id="view-reglages" class="view">
+    <div class="card">
+      <h2>Google Sheet comme base de données</h2>
+      <p class="hint" style="margin-bottom:10px;">
+        Toutes les données (classes, appels, activités, suivi) sont lues et écrites dans ton Google Sheet
+        via une petite passerelle Apps Script que tu déploies une fois. Voir le guide fourni à côté de ce fichier.
+      </p>
+      <label class="field-label" for="sheetsUrl">URL de l'application web Apps Script</label>
+      <input type="text" id="sheetsUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" style="margin-bottom:8px;">
+      <label class="field-label" for="sheetsToken">Jeton secret (facultatif, doit correspondre à TOKEN dans le script)</label>
+      <input type="text" id="sheetsToken" placeholder="ex : monclasse2026" style="margin-bottom:10px;">
+      <div class="row wrap">
+        <button class="btn primary grow" id="btnSaveConfig">Enregistrer et se connecter</button>
+        <button class="btn ghost grow" id="btnSyncNow">Synchroniser maintenant</button>
+      </div>
+      <div class="hint" id="reglagesStatus" style="margin-top:10px;"></div>
+    </div>
+    <div class="card">
+      <h2>Bon à savoir</h2>
+      <div class="hint">
+        • Sans URL configurée, l'application fonctionne quand même, en local sur cet appareil.<br>
+        • Si le Sheet est injoignable (pas de réseau), les dernières données synchronisées restent affichées et modifiables ; la synchronisation reprend automatiquement au prochain changement.<br>
+        • Le jeton n'est qu'une protection basique : toute personne avec le lien de l'application web et le jeton peut lire/écrire les données.
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------------------------------------------------------
+   STATE
+--------------------------------------------------------------- */
+let DATA = {
+  classes: {},      // classId -> {id,name,students:[{id,prenom,nom}]}
+  seances: {},       // seanceId -> {id,classId,date,activiteId,status:'open'|'done',students:{studentId:{presence,dispense,pratiquant,oubli}}}
+  activites: {}      // activiteId -> {id,classId,nom,debut,fin}
+};
+let currentAppelId = null;
+let recognizing = false;
+let recognizer = null;
+let lastMatchedStudentId = null;
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const uid = (p) => p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* ---------------------------------------------------------------
+   STORAGE — Google Sheet (source de vérité) + cache local (secours hors-ligne)
+--------------------------------------------------------------- */
+let CONFIG = { url:'', token:'' };
+
+async function loadConfig(){
+  try{
+    const r = await window.storage.get('sheets-config');
+    if(r) CONFIG = Object.assign({url:'',token:''}, JSON.parse(r.value));
+  }catch(e){}
+}
+async function saveConfigToStorage(){
+  try{ await window.storage.set('sheets-config', JSON.stringify(CONFIG), false); }catch(e){}
+}
+async function loadCache(){
+  try{
+    const r = await window.storage.get('data-cache');
+    if(r){
+      const c = JSON.parse(r.value);
+      DATA.classes = c.classes||{};
+      DATA.activites = c.activites||{};
+      DATA.seances = c.seances||{};
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+async function saveCache(){
+  try{
+    await window.storage.set('data-cache', JSON.stringify({
+      classes: DATA.classes, activites: DATA.activites, seances: DATA.seances
+    }), false);
+  }catch(e){}
+}
+
+function setSyncStatus(kind, msg){
+  const el = $('#headerSub');
+  el.className = 'sub status-'+kind;
+  el.innerHTML = '<span class="status-dot '+kind+'"></span>'+msg;
+  const rs = $('#reglagesStatus');
+  if(rs) rs.textContent = msg;
+}
+
+async function fetchFromSheet(){
+  const u = new URL(CONFIG.url);
+  u.searchParams.set('action','load');
+  if(CONFIG.token) u.searchParams.set('token', CONFIG.token);
+  const res = await fetch(u.toString());
+  const json = await res.json();
+  if(json.error) throw new Error(json.error);
+  return json;
+}
+async function pushToSheet(){
+  const payload = {
+    action:'save',
+    token: CONFIG.token||'',
+    data: { classes: DATA.classes, activites: DATA.activites, seances: DATA.seances }
+  };
+  const res = await fetch(CONFIG.url, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  });
+  const json = await res.json();
+  if(json.error) throw new Error(json.error);
+}
+
+async function loadAll(){
+  await loadConfig();
+  if(!CONFIG.url){
+    await loadCache();
+    setSyncStatus('none', 'Non connecté à un Google Sheet (onglet Réglages)');
+    return;
+  }
+  setSyncStatus('sync', 'Connexion au Google Sheet…');
+  try{
+    const remote = await fetchFromSheet();
+    DATA.classes = remote.classes||{};
+    DATA.activites = remote.activites||{};
+    DATA.seances = remote.seances||{};
+    await saveCache();
+    setSyncStatus('ok', 'Synchronisé avec Google Sheets');
+  }catch(err){
+    console.warn(err);
+    const had = await loadCache();
+    setSyncStatus('error', had ? 'Hors ligne — dernières données locales affichées' : ('Connexion au Sheet impossible : '+err.message));
+  }
+}
+
+let saveTimer=null;
+function saveAll(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    await saveCache();
+    if(!CONFIG.url) return;
+    setSyncStatus('sync', 'Synchronisation…');
+    try{
+      await pushToSheet();
+      setSyncStatus('ok', 'Synchronisé avec Google Sheets');
+    }catch(err){
+      console.warn(err);
+      setSyncStatus('error', 'Échec de synchronisation ('+err.message+') — nouvel essai au prochain changement');
+    }
+  }, 500);
+}
+
+function renderReglagesTab(){
+  $('#sheetsUrl').value = CONFIG.url||'';
+  $('#sheetsToken').value = CONFIG.token||'';
+}
+$('#btnSaveConfig').addEventListener('click', async ()=>{
+  CONFIG.url = $('#sheetsUrl').value.trim();
+  CONFIG.token = $('#sheetsToken').value.trim();
+  await saveConfigToStorage();
+  toast('Réglages enregistrés');
+  await loadAll();
+  renderClasses(); renderAppelTab(); renderSuiviTab();
+});
+$('#btnSyncNow').addEventListener('click', async ()=>{
+  if(!CONFIG.url){ toast('Renseigne d\'abord une URL'); return; }
+  setSyncStatus('sync','Synchronisation manuelle…');
+  try{
+    const remote = await fetchFromSheet();
+    DATA.classes = remote.classes||{};
+    DATA.activites = remote.activites||{};
+    DATA.seances = remote.seances||{};
+    await saveCache();
+    setSyncStatus('ok','Synchronisé avec Google Sheets');
+    renderClasses(); renderAppelTab(); renderSuiviTab();
+    toast('Données rechargées depuis le Sheet');
+  }catch(err){
+    setSyncStatus('error', 'Échec : '+err.message);
+  }
+});
+
+/* ---------------------------------------------------------------
+   HELPERS
+--------------------------------------------------------------- */
+function normalize(str){
+  return (str||'').toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s-]/g,'').trim();
+}
+function toast(msg){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function todayISO(){
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+}
+function fmtDate(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return d+'/'+m+'/'+y;
+}
+function classList(){
+  return Object.values(DATA.classes).sort((a,b)=>a.name.localeCompare(b.name,'fr'));
+}
+function studentsOf(classId){
+  const c = DATA.classes[classId];
+  return c ? c.students.slice().sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')) : [];
+}
+function activitesOf(classId){
+  return Object.values(DATA.activites).filter(a=>a.classId===classId)
+    .sort((a,b)=>a.debut.localeCompare(b.debut));
+}
+function activiteActiveOn(classId, dateISO){
+  return activitesOf(classId).find(a => dateISO>=a.debut && dateISO<=a.fin);
+}
+
+/* ---------------------------------------------------------------
+   TAB NAVIGATION
+--------------------------------------------------------------- */
+$$('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    $$('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    $$('.view').forEach(v=>v.classList.remove('active'));
+    $('#view-'+btn.dataset.view).classList.add('active');
+    if(btn.dataset.view==='classes') renderClasses();
+    if(btn.dataset.view==='appel') renderAppelTab();
+    if(btn.dataset.view==='suivi') renderSuiviTab();
+    if(btn.dataset.view==='reglages') renderReglagesTab();
+  });
+});
+
+/* ---------------------------------------------------------------
+   CLASSES TAB
+--------------------------------------------------------------- */
+function refreshClassSelects(){
+  const opts = classList().map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  ['#manualClassSelect','#appelClassSelect','#suiviClassSelect'].forEach(sel=>{
+    const el = $(sel);
+    const prev = el.value;
+    el.innerHTML = opts || '<option value="">— aucune classe —</option>';
+    if(prev && DATA.classes[prev]) el.value = prev;
+  });
+}
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function renderClasses(){
+  refreshClassSelects();
+  const wrap = $('#classesList');
+  const classes = classList();
+  const speechOk = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  if(classes.length===0){
+    wrap.innerHTML = `<div class="empty"><b>Aucune classe importée</b>Importe un fichier CSV ci-dessus pour commencer.</div>`;
+    return;
+  }
+  wrap.innerHTML = classes.map(c=>{
+    const students = studentsOf(c.id);
+    const rows = students.map(s=>{
+      const oral = s.oral||[];
+      const chips = oral.map((o,idx)=>`<span class="chip on" style="border-color:#2b5b8c;color:#2b5b8c;background:#eaf2fb;">🔊 ${escapeHtml(o)} <button class="icon-btn" style="padding:0 0 0 4px;font-size:.9rem;" data-del-oral="${idx}" data-sid="${s.id}" data-class="${c.id}">✕</button></span>`).join('');
+      return `
+      <div class="student-row" data-sid="${s.id}" style="flex-direction:column;align-items:stretch;gap:6px;">
+        <div class="row" style="justify-content:space-between;">
+          <span>${escapeHtml(s.prenom)} ${escapeHtml(s.nom||'')}</span>
+          <button class="icon-btn" data-del-student="${s.id}" data-class="${c.id}">Suppr.</button>
+        </div>
+        <div class="row wrap" style="gap:6px;">
+          ${speechOk ? `<button class="icon-btn" style="border:1.5px solid var(--line);border-radius:8px;" data-rec-oral="${s.id}" data-class="${c.id}">🎤 Enregistrer la prononciation</button>` : ''}
+          ${chips}
+          ${(!oral.length) ? '<span class="hint" style="margin:0;">Aucune prononciation enregistrée — la reconnaissance utilisera l\'orthographe (moins fiable).</span>' : ''}
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty">Aucun élève.</div>';
+    return `
+    <details class="card class-card">
+      <summary>
+        <span class="name">${escapeHtml(c.name)}</span>
+        <span class="count">${students.length} élève(s) · <button class="icon-btn" data-del-class="${c.id}">supprimer la classe</button></span>
+      </summary>
+      ${rows}
+    </details>`;
+  }).join('');
+
+  wrap.querySelectorAll('[data-del-student]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const cid = btn.dataset.class, sid = btn.dataset.delStudent;
+      DATA.classes[cid].students = DATA.classes[cid].students.filter(s=>s.id!==sid);
+      saveAll(); renderClasses();
+    });
+  });
+  wrap.querySelectorAll('[data-del-class]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      if(!confirm('Supprimer cette classe et ses élèves ?')) return;
+      delete DATA.classes[btn.dataset.delClass];
+      saveAll(); renderClasses();
+    });
+  });
+  wrap.querySelectorAll('[data-del-oral]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const cid = btn.dataset.class, sid = btn.dataset.sid, idx = parseInt(btn.dataset.delOral,10);
+      const s = DATA.classes[cid].students.find(x=>x.id===sid);
+      if(s && s.oral) s.oral.splice(idx,1);
+      saveAll(); renderClasses();
+    });
+  });
+  wrap.querySelectorAll('[data-rec-oral]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      recordOralSample(btn.dataset.recOral, btn.dataset.class, btn);
+    });
+  });
+}
+
+function recordOralSample(studentId, classId, btnEl){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return;
+  const rec = new SR();
+  rec.lang = 'fr-FR';
+  rec.continuous = false;
+  rec.interimResults = false;
+  const originalLabel = btnEl.textContent;
+  btnEl.textContent = '🎙️ Parle maintenant…';
+  btnEl.disabled = true;
+  let done = false;
+  const finish = ()=>{ btnEl.textContent = originalLabel; btnEl.disabled = false; };
+  rec.onresult = (e)=>{
+    done = true;
+    const transcript = normalize(e.results[0][0].transcript);
+    if(transcript){
+      const s = DATA.classes[classId].students.find(x=>x.id===studentId);
+      if(s){
+        s.oral = s.oral||[];
+        if(!s.oral.includes(transcript)) s.oral.push(transcript);
+        saveAll();
+      }
+    }
+    finish();
+    renderClasses();
+  };
+  rec.onerror = (e)=>{
+    if(!done){ finish(); if(e.error!=='no-speech') toast('Erreur micro : '+e.error); }
+  };
+  rec.onend = ()=>{ if(!done) finish(); };
+  try{ rec.start(); }catch(err){ finish(); toast('Impossible de démarrer le micro'); }
+}
+
+function parseCsv(text){
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  if(lines.length===0) return [];
+  const sep = lines[0].includes(';') ? ';' : ',';
+  let start = 0;
+  const firstCols = lines[0].split(sep).map(c=>normalize(c));
+  if(firstCols.some(c=>c.includes('prenom')||c.includes('nom')||c.includes('classe'))) start = 1;
+  const out = [];
+  for(let i=start;i<lines.length;i++){
+    const cols = lines[i].split(sep).map(c=>c.trim().replace(/^"|"$/g,''));
+    if(cols.length===0 || !cols[0]) continue;
+    out.push({ prenom: cols[0]||'', nom: cols[1]||'', oral: [] });
+  }
+  return out;
+}
+
+$('#btnImportCsv').addEventListener('click', ()=>{
+  const nameInput = $('#csvClassName');
+  const fileInput = $('#csvFile');
+  const name = nameInput.value.trim();
+  if(!name){ toast('Indique un nom de classe'); return; }
+  const file = fileInput.files[0];
+  if(!file){ toast('Choisis un fichier CSV'); return; }
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const rows = parseCsv(ev.target.result);
+    if(rows.length===0){ toast('CSV vide ou illisible'); return; }
+    let cls = Object.values(DATA.classes).find(c=>normalize(c.name)===normalize(name));
+    if(!cls){
+      cls = { id: uid('cls'), name, students: [] };
+      DATA.classes[cls.id] = cls;
+    }
+    rows.forEach(r=>{
+      cls.students.push({ id: uid('stu'), prenom: r.prenom, nom: r.nom, oral: [] });
+    });
+    saveAll();
+    nameInput.value=''; fileInput.value='';
+    toast(rows.length+' élève(s) importé(s) dans '+name);
+    renderClasses();
+  };
+  reader.readAsText(file, 'UTF-8');
+});
+
+$('#btnAddStudent').addEventListener('click', ()=>{
+  const cid = $('#manualClassSelect').value;
+  const prenom = $('#manualPrenom').value.trim();
+  const nom = $('#manualNom').value.trim();
+  if(!cid){ toast('Crée ou importe d\'abord une classe'); return; }
+  if(!prenom){ toast('Indique un prénom'); return; }
+  DATA.classes[cid].students.push({ id: uid('stu'), prenom, nom, oral: [] });
+  $('#manualPrenom').value=''; $('#manualNom').value='';
+  saveAll(); renderClasses();
+  toast('Élève ajouté');
+});
+
+/* ---------------------------------------------------------------
+   APPEL TAB
+--------------------------------------------------------------- */
+let UI_STATE = { lastClassId: '' };
+async function loadUiState(){
+  try{
+    const r = await window.storage.get('ui-state');
+    if(r) UI_STATE = Object.assign({lastClassId:''}, JSON.parse(r.value));
+  }catch(e){}
+}
+async function saveUiState(){
+  try{ await window.storage.set('ui-state', JSON.stringify(UI_STATE), false); }catch(e){}
+}
+
+function renderAppelTab(){
+  refreshClassSelects();
+  if(!$('#appelDate').value) $('#appelDate').value = todayISO();
+  const sel = $('#appelClassSelect');
+  if(!sel.value && UI_STATE.lastClassId && DATA.classes[UI_STATE.lastClassId]){
+    sel.value = UI_STATE.lastClassId;
+  }
+  updateActiviteHint();
+  renderPastSessions();
+  if(currentAppelId && DATA.seances[currentAppelId]){
+    openAppelCard(currentAppelId);
+  }
+}
+$('#appelClassSelect').addEventListener('change', ()=>{
+  UI_STATE.lastClassId = $('#appelClassSelect').value;
+  saveUiState();
+  updateActiviteHint();
+  renderPastSessions();
+});
+$('#appelDate').addEventListener('change', updateActiviteHint);
+function updateActiviteHint(){
+  const cid = $('#appelClassSelect').value;
+  const date = $('#appelDate').value;
+  const hint = $('#appelActiviteHint');
+  if(!cid){ hint.textContent=''; return; }
+  const act = activiteActiveOn(cid, date);
+  hint.textContent = act ? ('Activité en cours : '+act.nom+' — le suivi (dispensé / oubli) sera proposé pendant l\'appel.') : 'Aucune activité active à cette date (l\'appel restera simple présence/absence).';
+}
+
+$('#btnStartAppel').addEventListener('click', ()=>{
+  const cid = $('#appelClassSelect').value;
+  const date = $('#appelDate').value || todayISO();
+  if(!cid){ toast('Sélectionne une classe'); return; }
+  const students = studentsOf(cid);
+  if(students.length===0){ toast('Cette classe n\'a pas d\'élèves'); return; }
+  const act = activiteActiveOn(cid, date);
+  const seance = {
+    id: uid('seance'), classId: cid, date, activiteId: act?act.id:null,
+    status: 'open', students: {}
+  };
+  students.forEach(s=>{
+    seance.students[s.id] = { presence:'pending', dispense:false, pratiquant:false, oubli:false };
+  });
+  DATA.seances[seance.id] = seance;
+  saveAll();
+  openAppelCard(seance.id);
+});
+
+function openAppelCard(seanceId){
+  currentAppelId = seanceId;
+  const seance = DATA.seances[seanceId];
+  const cls = DATA.classes[seance.classId];
+  $('#appelSetupCard').style.display='none';
+  $('#appelLiveCard').style.display='block';
+  $('#appelLiveTitle').textContent = cls.name+' · '+fmtDate(seance.date);
+  renderMicZone();
+  renderRoster();
+  renderAppelSummary();
+}
+$('#btnCloseAppel').addEventListener('click', ()=>{
+  stopRecognition();
+  currentAppelId = null;
+  $('#appelSetupCard').style.display='block';
+  $('#appelLiveCard').style.display='none';
+  renderPastSessions();
+});
+
+function renderMicZone(){
+  const zone = $('#micZone');
+  const supported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+  if(!supported){
+    zone.innerHTML = `<div class="hint" style="text-align:center;">
+      La reconnaissance vocale n'est pas disponible sur ce navigateur.<br>Utilise les boutons Présent / Absent sur chaque élève.
+    </div>`;
+    return;
+  }
+  zone.innerHTML = `
+    <button class="mic-btn" id="btnMic">🎤</button>
+    <div class="mic-caption" id="micCaption">Appuie et parle : dis les prénoms des élèves présents.</div>
+    <div class="transcript" id="micTranscript"></div>
+  `;
+  $('#btnMic').addEventListener('click', toggleRecognition);
+}
+
+function toggleRecognition(){
+  if(recognizing){ stopRecognition(); return; }
+  startRecognition();
+}
+function startRecognition(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return;
+  recognizer = new SR();
+  recognizer.lang = 'fr-FR';
+  recognizer.continuous = true;
+  recognizer.interimResults = true;
+  recognizer.onresult = (e)=>{
+    let finalText='', interimText='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const t = e.results[i][0].transcript;
+      if(e.results[i].isFinal) finalText += ' '+t; else interimText += ' '+t;
+    }
+    const capt = $('#micTranscript');
+    if(capt) capt.textContent = (finalText+' '+interimText).trim();
+    if(finalText.trim()) processSpokenText(finalText);
+  };
+  recognizer.onerror = (e)=>{
+    if(e.error==='no-speech') return;
+    toast('Erreur micro : '+e.error);
+    stopRecognition();
+  };
+  recognizer.onend = ()=>{
+    if(recognizing){
+      try{ recognizer.start(); }catch(err){ recognizing=false; updateMicUi(); }
+    }
+  };
+  try{
+    recognizer.start();
+    recognizing = true;
+    updateMicUi();
+  }catch(err){ toast('Impossible de démarrer le micro'); }
+}
+function stopRecognition(){
+  recognizing = false;
+  if(recognizer){ try{ recognizer.stop(); }catch(e){} }
+  updateMicUi();
+}
+function updateMicUi(){
+  const btn = $('#btnMic');
+  const cap = $('#micCaption');
+  if(!btn) return;
+  btn.classList.toggle('listening', recognizing);
+  btn.textContent = recognizing ? '⏸' : '🎤';
+  if(cap) cap.textContent = recognizing ? 'Écoute en cours… dis les prénoms au fur et à mesure.' : 'Appuie et parle : dis les prénoms des élèves présents.';
+}
+
+/* ---- Correspondance floue (tolère les variantes d'orthographe des prénoms) ---- */
+function levenshtein(a, b){
+  const la = a.length, lb = b.length;
+  if(la===0) return lb;
+  if(lb===0) return la;
+  let prev = new Array(lb+1);
+  let cur = new Array(lb+1);
+  for(let j=0;j<=lb;j++) prev[j]=j;
+  for(let i=1;i<=la;i++){
+    cur[0]=i;
+    for(let j=1;j<=lb;j++){
+      const cost = a[i-1]===b[j-1] ? 0 : 1;
+      cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost);
+    }
+    [prev,cur] = [cur,prev];
+  }
+  return prev[lb];
+}
+function fuzzyThreshold(len){
+  if(len<=3) return 1;
+  if(len<=6) return 2;
+  return 3;
+}
+function namesMatch(gram, target){
+  if(!gram || !target) return false;
+  if(gram===target) return true;
+  if(target.length>=3 && gram.includes(target)) return true;
+  if(Math.abs(gram.length-target.length)<=3){
+    if(levenshtein(gram,target) <= fuzzyThreshold(target.length)) return true;
+  }
+  return false;
+}
+function getDuplicatePrenoms(classId){
+  const counts = {};
+  studentsOf(classId).forEach(s=>{
+    const np = normalize(s.prenom);
+    counts[np] = (counts[np]||0)+1;
+  });
+  return new Set(Object.keys(counts).filter(k=>counts[k]>1));
+}
+
+function processSpokenText(text){
+  const seance = DATA.seances[currentAppelId];
+  if(!seance) return;
+  const words = normalize(text).split(/\s+/).filter(Boolean);
+  const students = studentsOf(seance.classId);
+  const dupPrenoms = getDuplicatePrenoms(seance.classId);
+  // fenêtres de 1 à 3 mots pour capter prénom+nom même si dits ensemble
+  const grams = [];
+  for(let i=0;i<words.length;i++){
+    grams.push(words[i]);
+    if(i+1<words.length) grams.push(words[i]+' '+words[i+1]);
+    if(i+2<words.length) grams.push(words[i]+' '+words[i+1]+' '+words[i+2]);
+  }
+  let matchedAny = false;
+  const pending = ()=>students.filter(s=>seance.students[s.id].presence!=='present');
+
+  // Passe 0 : prononciation enregistrée, correspondance exacte — la plus fiable,
+  // fonctionne même pour des prénoms proches (Mathis / Matisse) car propre à chaque élève
+  // (comparaison "compacte" : les espaces sont ignorés pour absorber les découpages
+  // différents d'un même mot par la reconnaissance, ex. "nathin gael" / "nathingael")
+  const compact = (s)=>s.replace(/\s+/g,'');
+  pending().forEach(s=>{
+    const entry = seance.students[s.id];
+    if(entry.presence==='present') return;
+    const oral = s.oral||[];
+    if(oral.length===0) return;
+    const oralCompact = oral.map(compact);
+    if(grams.some(g=>oral.includes(g) || oralCompact.includes(compact(g)))){
+      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
+    }
+  });
+
+  // Passe 0b : prononciation enregistrée, tolérance sur les lettres (proportionnelle à la
+  // longueur), en comparaison compacte — seulement si la correspondance est unique parmi
+  // les élèves pas encore présents (pas d'ambiguïté)
+  pending().forEach(s=>{
+    const entry = seance.students[s.id];
+    if(entry.presence==='present') return;
+    const oral = s.oral||[];
+    if(oral.length===0) return;
+    const oralCompact = oral.map(compact);
+    const isClose = (g)=>{
+      const gc = compact(g);
+      return oralCompact.some(o => Math.abs(gc.length-o.length)<=3 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
+    };
+    const candidateGrams = grams.filter(isClose);
+    if(candidateGrams.length===0) return;
+    // vérifie qu'aucun autre élève en attente n'est aussi proche de ce même gram
+    const ambiguous = pending().some(other=>{
+      if(other.id===s.id) return false;
+      const oOral = (other.oral||[]).map(compact);
+      if(oOral.length===0) return false;
+      return candidateGrams.some(g=>{
+        const gc = compact(g);
+        return oOral.some(o => Math.abs(gc.length-o.length)<=3 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
+      });
+    });
+    if(!ambiguous){
+      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
+    }
+  });
+
+  // Passe 1 : nom complet (prénom + nom) — fiable, résout aussi les doublons,
+  // utilisée pour les élèves sans prononciation enregistrée
+  pending().forEach(s=>{
+    const entry = seance.students[s.id];
+    if(entry.presence==='present') return;
+    if((s.oral||[]).length>0) return; // déjà couvert par passe 0/0b
+    const full = (normalize(s.prenom)+' '+normalize(s.nom)).trim();
+    if(!normalize(s.nom)) return;
+    if(grams.some(g=>namesMatch(g, full))){
+      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
+    }
+  });
+
+  // Passe 2 : nom de famille seul — utile quand le prénom est en doublon
+  pending().forEach(s=>{
+    const entry = seance.students[s.id];
+    if(entry.presence==='present') return;
+    if((s.oral||[]).length>0) return;
+    const nn = normalize(s.nom);
+    if(nn.length<2) return;
+    if(grams.some(g=>namesMatch(g, nn))){
+      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
+    }
+  });
+
+  // Passe 3 : prénom seul, tolérant aux variantes — seulement pour les élèves sans
+  // prononciation enregistrée, et seulement si ce prénom n'est pas en doublon
+  const stillPendingPrenoms = {};
+  pending().forEach(s=>{
+    const np = normalize(s.prenom);
+    stillPendingPrenoms[np] = (stillPendingPrenoms[np]||0)+1;
+  });
+  pending().forEach(s=>{
+    const entry = seance.students[s.id];
+    if(entry.presence==='present') return;
+    if((s.oral||[]).length>0) return;
+    const np = normalize(s.prenom);
+    if(stillPendingPrenoms[np]>1) return; // doublon non résolu : on attend le nom
+    if(grams.some(g=>namesMatch(g, np))){
+      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
+    }
+  });
+
+  if(matchedAny){
+    saveAll();
+    renderRoster();
+    renderAppelSummary();
+    if(navigator.vibrate) navigator.vibrate(40);
+  }
+}
+
+function renderRoster(){
+  const seance = DATA.seances[currentAppelId];
+  if(!seance) return;
+  const students = studentsOf(seance.classId);
+  const act = seance.activiteId ? DATA.activites[seance.activiteId] : null;
+  const dupPrenoms = getDuplicatePrenoms(seance.classId);
+  $('#rosterList').innerHTML = students.map(s=>{
+    const entry = seance.students[s.id] || {presence:'pending',dispense:false,pratiquant:false,oubli:false};
+    const justMatched = s.id===lastMatchedStudentId && entry.presence==='present';
+    const isDup = dupPrenoms.has(normalize(s.prenom)) && entry.presence!=='present';
+    const dupBadge = isDup ? '<span class="chip on oubli" style="margin-left:6px;">⚠ prénom en doublon — dis le nom</span>' : '';
+    const oralBadge = (s.oral&&s.oral.length) ? '<span title="Prononciation enregistrée" style="margin-left:6px;">🔊</span>' : '';
+    const extra = (entry.presence==='present') ? `
+      <div class="extra-row">
+        <button class="chip icon-chip ${entry.dispense?'on dispense':''}" data-sid="${s.id}" data-field="dispense" title="Dispensé">✚</button>
+        <button class="chip icon-chip ${entry.oubli?'on oubli':''}" data-sid="${s.id}" data-field="oubli" title="Affaires oubliées">👟</button>
+      </div>` : '';
+    return `
+    <div class="roster-item ${justMatched?'just-matched':''}" data-row="${s.id}">
+      <div class="roster-top">
+        <span class="roster-name">${escapeHtml(s.prenom)} ${escapeHtml(s.nom||'')}${oralBadge}${dupBadge}</span>
+        <div class="roster-actions">
+          <button class="toggle-btn ${entry.presence==='present'?'on-present':''}" data-sid="${s.id}" data-field="presence" data-val="present">Présent</button>
+          <button class="toggle-btn ${entry.presence==='absent'?'on-absent':''}" data-sid="${s.id}" data-field="presence" data-val="absent">Absent</button>
+        </div>
+      </div>
+      ${extra}
+    </div>`;
+  }).join('');
+
+  $('#rosterList').querySelectorAll('[data-field="presence"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const sid = btn.dataset.sid, val = btn.dataset.val;
+      const entry = seance.students[sid];
+      entry.presence = (entry.presence===val) ? 'pending' : val;
+      saveAll(); renderRoster(); renderAppelSummary();
+    });
+  });
+  $('#rosterList').querySelectorAll('[data-field]:not([data-field="presence"])').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const sid = btn.dataset.sid, field = btn.dataset.field;
+      const entry = seance.students[sid];
+      entry[field] = !entry[field];
+      saveAll(); renderRoster();
+    });
+  });
+}
+
+
+$('#btnMarkAllPresent').addEventListener('click', ()=>{
+  const seance = DATA.seances[currentAppelId];
+  if(!seance) return;
+  Object.values(seance.students).forEach(e=>{ if(e.presence==='pending') e.presence='present'; });
+  saveAll(); renderRoster(); renderAppelSummary();
+});
+$('#btnResetAppel').addEventListener('click', ()=>{
+  const seance = DATA.seances[currentAppelId];
+  if(!seance) return;
+  if(!confirm('Réinitialiser les statuts de cet appel ?')) return;
+  Object.values(seance.students).forEach(e=>{ e.presence='pending'; e.dispense=false; e.pratiquant=false; e.oubli=false; });
+  saveAll(); renderRoster(); renderAppelSummary();
+});
+
+function renderAppelSummary(){
+  const seance = DATA.seances[currentAppelId];
+  if(!seance) return;
+  const students = studentsOf(seance.classId);
+  const total = students.length;
+  const presentCount = students.filter(s=>seance.students[s.id].presence==='present').length;
+  const absents = students.filter(s=>seance.students[s.id].presence!=='present');
+  $('#appelSummary').innerHTML = `
+    <div class="summary-box">
+      <b>${presentCount} / ${total}</b> présent(s) marqué(s).
+      ${absents.length ? '<div style="margin-top:6px;">Non appelés / absents : '+absents.map(s=>`<span class="abs-name">${escapeHtml(s.prenom)}</span>`).join('')+'</div>' : '<div style="margin-top:6px;">Tout le monde a été appelé.</div>'}
+    </div>`;
+}
+
+$('#btnFinishAppel').addEventListener('click', ()=>{
+  const seance = DATA.seances[currentAppelId];
+  if(!seance) return;
+  const students = studentsOf(seance.classId);
+  students.forEach(s=>{
+    if(seance.students[s.id].presence==='pending') seance.students[s.id].presence='absent';
+  });
+  seance.status = 'done';
+  stopRecognition();
+  saveAll();
+  renderRoster();
+  renderAppelSummary();
+  toast('Appel terminé et enregistré');
+});
+
+function renderPastSessions(){
+  const cid = $('#appelClassSelect').value;
+  const wrap = $('#pastSessions');
+  let sessions = Object.values(DATA.seances);
+  if(cid) sessions = sessions.filter(s=>s.classId===cid);
+  sessions.sort((a,b)=>b.date.localeCompare(a.date));
+  if(sessions.length===0){
+    wrap.innerHTML = '<div class="empty">Aucun appel enregistré pour l\'instant.</div>';
+    return;
+  }
+  wrap.innerHTML = sessions.slice(0,30).map(s=>{
+    const cls = DATA.classes[s.classId];
+    if(!cls) return '';
+    const total = cls.students.length;
+    const present = Object.values(s.students).filter(e=>e.presence==='present').length;
+    return `<div class="session-item">
+      <span>${escapeHtml(cls.name)} · ${fmtDate(s.date)} ${s.status==='open'?'(en cours)':''}</span>
+      <span>
+        <span class="status-pill present">${present}/${total}</span>
+        <button class="icon-btn" data-open-seance="${s.id}">ouvrir</button>
+        <button class="icon-btn" data-del-seance="${s.id}">suppr.</button>
+      </span>
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('[data-open-seance]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const sid = btn.dataset.openSeance;
+      const s = DATA.seances[sid];
+      $('#appelClassSelect').value = s.classId;
+      $('#appelDate').value = s.date;
+      openAppelCard(sid);
+    });
+  });
+  wrap.querySelectorAll('[data-del-seance]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(!confirm('Supprimer cet appel ?')) return;
+      delete DATA.seances[btn.dataset.delSeance];
+      saveAll(); renderPastSessions();
+    });
+  });
+}
+
+/* ---------------------------------------------------------------
+   SUIVI TAB
+--------------------------------------------------------------- */
+function renderSuiviTab(){
+  refreshClassSelects();
+  renderActivitesForClass();
+  refreshStatsActiviteSelect();
+}
+$('#suiviClassSelect').addEventListener('change', ()=>{
+  renderActivitesForClass();
+  refreshStatsActiviteSelect();
+});
+
+function renderActivitesForClass(){
+  const cid = $('#suiviClassSelect').value;
+  const wrap = $('#activitesForClass');
+  if(!cid){ wrap.innerHTML=''; return; }
+  const acts = activitesOf(cid);
+  if(acts.length===0){
+    wrap.innerHTML = '<div class="empty">Aucune activité définie pour cette classe.</div>';
+  }else{
+    wrap.innerHTML = acts.map(a=>`
+      <div class="card activite-card" style="margin-bottom:8px;padding:10px 12px;">
+        <div class="row" style="justify-content:space-between;">
+          <b>${escapeHtml(a.nom)}</b>
+          <button class="icon-btn" data-del-act="${a.id}">supprimer</button>
+        </div>
+        <div class="hint">${fmtDate(a.debut)} → ${fmtDate(a.fin)}</div>
+      </div>`).join('');
+    wrap.querySelectorAll('[data-del-act]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(!confirm('Supprimer cette activité ? (les données déjà enregistrées restent liées)')) return;
+        delete DATA.activites[btn.dataset.delAct];
+        saveAll(); renderActivitesForClass(); refreshStatsActiviteSelect();
+      });
+    });
+  }
+}
+
+$('#btnAddActivite').addEventListener('click', ()=>{
+  const cid = $('#suiviClassSelect').value;
+  const nom = $('#newActiviteNom').value.trim();
+  const debut = $('#newActiviteDebut').value;
+  const fin = $('#newActiviteFin').value;
+  if(!cid){ toast('Sélectionne une classe'); return; }
+  const existing = activitesOf(cid);
+  if(existing.length>=5){ toast('Maximum 5 activités par classe'); return; }
+  if(!nom){ toast('Indique un nom d\'activité'); return; }
+  if(!debut || !fin || debut>fin){ toast('Dates de début/fin invalides'); return; }
+  const act = { id: uid('act'), classId: cid, nom, debut, fin };
+  DATA.activites[act.id] = act;
+  $('#newActiviteNom').value=''; $('#newActiviteDebut').value=''; $('#newActiviteFin').value='';
+  saveAll();
+  renderActivitesForClass();
+  refreshStatsActiviteSelect();
+  toast('Activité ajoutée');
+});
+
+function refreshStatsActiviteSelect(){
+  const cid = $('#suiviClassSelect').value;
+  const sel = $('#statsActiviteSelect');
+  const acts = cid ? activitesOf(cid) : Object.values(DATA.activites);
+  sel.innerHTML = acts.length
+    ? acts.map(a=>`<option value="${a.id}">${escapeHtml(a.nom)} (${fmtDate(a.debut)} – ${fmtDate(a.fin)})</option>`).join('')
+    : '<option value="">— aucune activité —</option>';
+  renderStatsTable();
+}
+$('#statsActiviteSelect').addEventListener('change', renderStatsTable);
+
+function renderStatsTable(){
+  const actId = $('#statsActiviteSelect').value;
+  const wrap = $('#statsTableWrap');
+  if(!actId || !DATA.activites[actId]){
+    wrap.innerHTML = '<div class="empty">Choisis une activité pour voir les statistiques.</div>';
+    return;
+  }
+  const act = DATA.activites[actId];
+  const students = studentsOf(act.classId);
+  const seances = Object.values(DATA.seances).filter(s=>s.activiteId===actId);
+  if(seances.length===0){
+    wrap.innerHTML = '<div class="empty">Aucun appel n\'a encore été fait pendant cette activité.</div>';
+    return;
+  }
+  const rows = students.map(s=>{
+    let seancesCount=0, absences=0, dispenses=0, oublis=0;
+    seances.forEach(se=>{
+      const e = se.students[s.id];
+      if(!e) return;
+      seancesCount++;
+      if(e.presence==='absent') absences++;
+      if(e.dispense) dispenses++;
+      if(e.oubli) oublis++;
+    });
+    return {s, seancesCount, absences, dispenses, oublis};
+  }).sort((a,b)=>a.s.prenom.localeCompare(b.s.prenom,'fr'));
+
+  wrap.innerHTML = `
+    <div class="hint" style="margin-bottom:8px;">${seances.length} séance(s) enregistrée(s) du ${fmtDate(act.debut)} au ${fmtDate(act.fin)}.</div>
+    <div style="overflow-x:auto;">
+    <table class="stats">
+      <thead><tr>
+        <th style="text-align:left;">Élève</th>
+        <th>Séances</th>
+        <th>Absences</th>
+        <th>Dispensé</th>
+        <th>Affaires oubliées</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r=>`
+          <tr>
+            <td class="name-cell">${escapeHtml(r.s.prenom)}</td>
+            <td>${r.seancesCount}</td>
+            <td class="${r.absences>0?'warn':''}">${r.absences}</td>
+            <td class="${r.dispenses>0?'warn':''}">${r.dispenses}</td>
+            <td class="${r.oublis>0?'warn':''}">${r.oublis}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>`;
+}
+
+/* ---------------------------------------------------------------
+   INIT
+--------------------------------------------------------------- */
+async function init(){
+  await loadUiState();
+  await loadAll();
+  refreshClassSelects();
+  $('#appelDate').value = todayISO();
+  renderClasses();
+  renderAppelTab();
+  renderSuiviTab();
+}
+init();
+
+})();
+</script>
+</body>
+</html>
