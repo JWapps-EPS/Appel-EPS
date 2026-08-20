@@ -451,6 +451,27 @@ let recognizer = null;
 let lastMatchedStudentId = null;
 
 const $ = (sel) => document.querySelector(sel);
+
+/* Stockage persistant local (localStorage) — fonctionne quand le fichier est ouvert
+   directement dans le navigateur (double-clic, GitHub Pages, ENT...), contrairement
+   à window.storage qui n'existe que dans l'aperçu Claude. */
+const storage = {
+  async get(key){
+    try{
+      const v = localStorage.getItem('appel-eps:'+key);
+      if(v===null || v===undefined) return null;
+      return { key, value:v };
+    }catch(e){ return null; }
+  },
+  async set(key, value){
+    try{ localStorage.setItem('appel-eps:'+key, value); return { key, value }; }
+    catch(e){ return null; }
+  },
+  async delete(key){
+    try{ localStorage.removeItem('appel-eps:'+key); return { key, deleted:true }; }
+    catch(e){ return null; }
+  }
+};
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 const uid = (p) => p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
@@ -470,16 +491,16 @@ let CONFIG = { url:'', token:'' };
 
 async function loadConfig(){
   try{
-    const r = await window.storage.get('sheets-config');
+    const r = await storage.get('sheets-config');
     if(r) CONFIG = Object.assign({url:'',token:''}, JSON.parse(r.value));
   }catch(e){}
 }
 async function saveConfigToStorage(){
-  try{ await window.storage.set('sheets-config', JSON.stringify(CONFIG), false); }catch(e){}
+  try{ await storage.set('sheets-config', JSON.stringify(CONFIG), false); }catch(e){}
 }
 async function loadCache(){
   try{
-    const r = await window.storage.get('data-cache');
+    const r = await storage.get('data-cache');
     if(r){
       const c = JSON.parse(r.value);
       DATA.classes = c.classes||{};
@@ -492,7 +513,7 @@ async function loadCache(){
 }
 async function saveCache(){
   try{
-    await window.storage.set('data-cache', JSON.stringify({
+    await storage.set('data-cache', JSON.stringify({
       classes: DATA.classes, activites: DATA.activites, seances: DATA.seances
     }), false);
   }catch(e){}
@@ -834,12 +855,12 @@ $('#btnAddStudent').addEventListener('click', ()=>{
 let UI_STATE = { lastClassId: '' };
 async function loadUiState(){
   try{
-    const r = await window.storage.get('ui-state');
+    const r = await storage.get('ui-state');
     if(r) UI_STATE = Object.assign({lastClassId:''}, JSON.parse(r.value));
   }catch(e){}
 }
 async function saveUiState(){
-  try{ await window.storage.set('ui-state', JSON.stringify(UI_STATE), false); }catch(e){}
+  try{ await storage.set('ui-state', JSON.stringify(UI_STATE), false); }catch(e){}
 }
 
 function renderAppelTab(){
@@ -999,15 +1020,19 @@ function levenshtein(a, b){
   return prev[lb];
 }
 function fuzzyThreshold(len){
-  if(len<=3) return 1;
-  if(len<=6) return 2;
-  return 3;
+  if(len<=4) return 1;
+  return 2;
+}
+function sameStart(a,b){
+  // exige la même lettre de départ : deux prénoms qui ne commencent pas pareil
+  // (ex. Evanne / Yoan) ont très peu de chances d'être confondus à l'oral
+  return a && b && a[0]===b[0];
 }
 function namesMatch(gram, target){
   if(!gram || !target) return false;
   if(gram===target) return true;
   if(target.length>=3 && gram.includes(target)) return true;
-  if(Math.abs(gram.length-target.length)<=3){
+  if(sameStart(gram,target) && Math.abs(gram.length-target.length)<=3){
     if(levenshtein(gram,target) <= fuzzyThreshold(target.length)) return true;
   }
   return false;
@@ -1064,7 +1089,7 @@ function processSpokenText(text){
     const oralCompact = oral.map(compact);
     const isClose = (g)=>{
       const gc = compact(g);
-      return oralCompact.some(o => Math.abs(gc.length-o.length)<=3 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
+      return oralCompact.some(o => sameStart(gc,o) && Math.abs(gc.length-o.length)<=2 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
     };
     const candidateGrams = grams.filter(isClose);
     if(candidateGrams.length===0) return;
@@ -1075,7 +1100,7 @@ function processSpokenText(text){
       if(oOral.length===0) return false;
       return candidateGrams.some(g=>{
         const gc = compact(g);
-        return oOral.some(o => Math.abs(gc.length-o.length)<=3 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
+        return oOral.some(o => sameStart(gc,o) && Math.abs(gc.length-o.length)<=2 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
       });
     });
     if(!ambiguous){
