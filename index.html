@@ -822,7 +822,11 @@ function recordOralSample(studentId, classId, btnEl){
     renderClasses();
   };
   rec.onerror = (e)=>{
-    if(!done){ finish(); if(e.error!=='no-speech') toast('Erreur micro : '+e.error); }
+    if(!done){
+      finish();
+      if(e.error==='no-speech') toast('Rien entendu — réessaie en parlant juste après avoir appuyé');
+      else toast('Erreur micro : '+e.error);
+    }
   };
   rec.onend = ()=>{ if(!done) finish(); };
   try{ rec.start(); }catch(err){ finish(); toast('Impossible de démarrer le micro'); }
