@@ -709,6 +709,7 @@ function escapeHtml(s){
   return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
+let openClassIds = new Set();
 function renderClasses(){
   refreshClassSelects();
   const wrap = $('#classesList');
@@ -737,7 +738,7 @@ function renderClasses(){
       </div>`;
     }).join('') || '<div class="empty">Aucun élève.</div>';
     return `
-    <details class="card class-card">
+    <details class="card class-card" data-class-id="${c.id}" ${openClassIds.has(c.id)?'open':''}>
       <summary>
         <span class="name">${escapeHtml(c.name)}</span>
         <span class="count">${students.length} élève(s) · <button class="icon-btn" data-del-class="${c.id}">supprimer la classe</button></span>
@@ -746,6 +747,12 @@ function renderClasses(){
     </details>`;
   }).join('');
 
+  wrap.querySelectorAll('details.class-card').forEach(det=>{
+    det.addEventListener('toggle', ()=>{
+      const cid = det.dataset.classId;
+      if(det.open) openClassIds.add(cid); else openClassIds.delete(cid);
+    });
+  });
   wrap.querySelectorAll('[data-del-student]').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       e.preventDefault();
@@ -1079,6 +1086,42 @@ function namesMatch(gram, target){
   }
   return false;
 }
+
+/* ---- Clé phonétique simplifiée (français) ----
+   Réduit un mot à une approximation de sa sonorité, pour rapprocher des
+   orthographes très différentes qui se prononcent pareil (utile pour les
+   prénoms rares ou inventés : "Kaïs"/"Kayce", "Jehyan"/"Jean"...) */
+function phoneticKey(str){
+  let t = normalize(str).replace(/\s+/g,'');
+  if(!t) return '';
+  t = t.replace(/eau/g,'o').replace(/au/g,'o');
+  t = t.replace(/ph/g,'f');
+  t = t.replace(/th/g,'t');
+  t = t.replace(/ch/g,'x');
+  t = t.replace(/qu/g,'k');
+  t = t.replace(/gu(?=[eiy])/g,'g');
+  t = t.replace(/g(?=[eiy])/g,'j');
+  t = t.replace(/[cç](?=[eiy])/g,'s');
+  t = t.replace(/c/g,'k');
+  t = t.replace(/oi/g,'wa');
+  t = t.replace(/ai|ei/g,'e');
+  t = t.replace(/ou/g,'u');
+  t = t.replace(/y/g,'i');
+  t = t.replace(/^h/,'').replace(/h/g,'');
+  t = t.replace(/x/g,'ks');
+  t = t.replace(/([a-z])\1+/g,'$1'); // double lettres -> simple
+  t = t.replace(/e$/,''); // e final souvent muet
+  t = t.replace(/s$/,''); // s final souvent muet
+  return t;
+}
+function getDuplicatePhonetic(classId){
+  const counts = {};
+  studentsOf(classId).forEach(s=>{
+    const k = phoneticKey(s.prenom);
+    counts[k] = (counts[k]||0)+1;
+  });
+  return new Set(Object.keys(counts).filter(k=>k && counts[k]>1));
+}
 function getDuplicatePrenoms(classId){
   const counts = {};
   studentsOf(classId).forEach(s=>{
@@ -1151,6 +1194,31 @@ function processSpokenText(text){
     }
   });
 
+  // Passe 0c : prononciation enregistrée, correspondance PHONÉTIQUE — pour les
+  // prénoms rares/inventés où la reconnaissance orthographie différemment à
+  // chaque fois (ex. "Kaïs" reconnu tantôt "kaisse", tantôt "kaicce")
+  pending().forEach(s=>{
+    const entry = seance.students[s.id];
+    if(entry.presence==='present') return;
+    const oral = s.oral||[];
+    if(oral.length===0) return;
+    const oralKeys = oral.map(phoneticKey).filter(Boolean);
+    if(oralKeys.length===0) return;
+    const candidateGrams = grams.filter(g=>{
+      const gk = phoneticKey(g);
+      return gk && oralKeys.includes(gk);
+    });
+    if(candidateGrams.length===0) return;
+    const ambiguous = pending().some(other=>{
+      if(other.id===s.id) return false;
+      const oKeys = (other.oral||[]).map(phoneticKey).filter(Boolean);
+      if(oKeys.length===0) return false;
+      return candidateGrams.some(g=>oKeys.includes(phoneticKey(g)));
+    });
+    if(!ambiguous){
+      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
+    }
+  });
   // Passe 1 : nom complet (prénom + nom) — fiable, résout aussi les doublons,
   // utilisée pour les élèves sans prononciation enregistrée
   pending().forEach(s=>{
@@ -1190,6 +1258,20 @@ function processSpokenText(text){
     const np = normalize(s.prenom);
     if(stillPendingPrenoms[np]>1) return; // doublon non résolu : on attend le nom
     if(grams.some(g=>namesMatch(g, np))){
+      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
+    }
+  });
+
+  // Passe 3b : prénom seul, correspondance PHONÉTIQUE — pour les prénoms rares/
+  // inventés sans prononciation enregistrée, et non ambigus phonétiquement
+  const dupPhonetic = getDuplicatePhonetic(seance.classId);
+  pending().forEach(s=>{
+    const entry = seance.students[s.id];
+    if(entry.presence==='present') return;
+    if((s.oral||[]).length>0) return;
+    const pk = phoneticKey(s.prenom);
+    if(!pk || dupPhonetic.has(pk)) return; // ambigu : deux prénoms sonnent pareil
+    if(grams.some(g=>phoneticKey(g)===pk)){
       entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
     }
   });
