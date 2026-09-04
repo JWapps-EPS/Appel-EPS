@@ -667,7 +667,7 @@ function classList(){
 }
 function studentsOf(classId){
   const c = DATA.classes[classId];
-  return c ? c.students.slice().sort((a,b)=>a.prenom.localeCompare(b.prenom,'fr')) : [];
+  return c ? c.students.slice().sort((a,b)=>(a.nom||'').localeCompare(b.nom||'','fr') || a.prenom.localeCompare(b.prenom,'fr')) : [];
 }
 function activitesOf(classId){
   return Object.values(DATA.activites).filter(a=>a.classId===classId)
@@ -939,6 +939,19 @@ $('#btnStartAppel').addEventListener('click', ()=>{
   openAppelCard(seance.id);
 });
 
+// S'assure que tous les élèves actuels de la classe ont bien une entrée dans cet
+// appel (utile si des élèves ont été ajoutés à la classe après la création de l'appel)
+function syncSeanceRoster(seance){
+  let changed = false;
+  studentsOf(seance.classId).forEach(s=>{
+    if(!seance.students[s.id]){
+      seance.students[s.id] = { presence:'pending', dispense:false, pratiquant:false, oubli:false };
+      changed = true;
+    }
+  });
+  return changed;
+}
+
 function openAppelCard(seanceId){
   currentAppelId = seanceId;
   const seance = DATA.seances[seanceId];
@@ -946,6 +959,7 @@ function openAppelCard(seanceId){
   $('#appelSetupCard').style.display='none';
   $('#appelLiveCard').style.display='block';
   $('#appelLiveTitle').textContent = cls.name+' · '+fmtDate(seance.date);
+  if(syncSeanceRoster(seance)) saveAll();
   renderMicZone();
   renderRoster();
   renderAppelSummary();
@@ -1077,6 +1091,7 @@ function getDuplicatePrenoms(classId){
 function processSpokenText(text){
   const seance = DATA.seances[currentAppelId];
   if(!seance) return;
+  syncSeanceRoster(seance);
   const words = normalize(text).split(/\s+/).filter(Boolean);
   const students = studentsOf(seance.classId);
   const dupPrenoms = getDuplicatePrenoms(seance.classId);
@@ -1190,6 +1205,7 @@ function processSpokenText(text){
 function renderRoster(){
   const seance = DATA.seances[currentAppelId];
   if(!seance) return;
+  syncSeanceRoster(seance);
   const students = studentsOf(seance.classId);
   const act = seance.activiteId ? DATA.activites[seance.activiteId] : null;
   const dupPrenoms = getDuplicatePrenoms(seance.classId);
@@ -1415,7 +1431,7 @@ function renderStatsTable(){
       if(e.oubli) oublis++;
     });
     return {s, seancesCount, absences, dispenses, oublis};
-  }).sort((a,b)=>a.s.prenom.localeCompare(b.s.prenom,'fr'));
+  }).sort((a,b)=>(a.s.nom||'').localeCompare(b.s.nom||'','fr') || a.s.prenom.localeCompare(b.s.prenom,'fr'));
 
   wrap.innerHTML = `
     <div class="hint" style="margin-bottom:8px;">${seances.length} séance(s) enregistrée(s) du ${fmtDate(act.debut)} au ${fmtDate(act.fin)}.</div>
