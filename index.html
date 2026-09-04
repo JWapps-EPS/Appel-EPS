@@ -589,6 +589,24 @@ function saveAll(){
     }
   }, 500);
 }
+// Sauvegarde immédiate et confirmée (sans attendre le délai de regroupement),
+// utilisée pour les actions ponctuelles importantes comme l'enregistrement
+// d'une prononciation, où l'utilisateur doit savoir tout de suite si c'est bien passé.
+async function saveNow(){
+  clearTimeout(saveTimer);
+  await saveCache();
+  if(!CONFIG.url) return true; // pas de Sheet configuré : le cache local suffit
+  setSyncStatus('sync', 'Synchronisation…');
+  try{
+    await pushToSheet();
+    setSyncStatus('ok', 'Synchronisé avec Google Sheets');
+    return true;
+  }catch(err){
+    console.warn(err);
+    setSyncStatus('error', 'Échec de synchronisation ('+err.message+')');
+    return false;
+  }
+}
 
 function renderReglagesTab(){
   $('#sheetsUrl').value = CONFIG.url||'';
@@ -733,7 +751,8 @@ function renderClasses(){
       e.preventDefault();
       const cid = btn.dataset.class, sid = btn.dataset.delStudent;
       DATA.classes[cid].students = DATA.classes[cid].students.filter(s=>s.id!==sid);
-      saveAll(); renderClasses();
+      renderClasses();
+      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
     });
   });
   wrap.querySelectorAll('[data-del-class]').forEach(btn=>{
@@ -741,7 +760,8 @@ function renderClasses(){
       e.preventDefault();
       if(!confirm('Supprimer cette classe et ses élèves ?')) return;
       delete DATA.classes[btn.dataset.delClass];
-      saveAll(); renderClasses();
+      renderClasses();
+      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
     });
   });
   wrap.querySelectorAll('[data-del-oral]').forEach(btn=>{
@@ -750,7 +770,8 @@ function renderClasses(){
       const cid = btn.dataset.class, sid = btn.dataset.sid, idx = parseInt(btn.dataset.delOral,10);
       const s = DATA.classes[cid].students.find(x=>x.id===sid);
       if(s && s.oral) s.oral.splice(idx,1);
-      saveAll(); renderClasses();
+      renderClasses();
+      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
     });
   });
   wrap.querySelectorAll('[data-rec-oral]').forEach(btn=>{
@@ -781,7 +802,13 @@ function recordOralSample(studentId, classId, btnEl){
       if(s){
         s.oral = s.oral||[];
         if(!s.oral.includes(transcript)) s.oral.push(transcript);
-        saveAll();
+        btnEl.textContent = '💾 Enregistrement...';
+        saveNow().then(ok=>{
+          toast(ok ? 'Prononciation enregistrée ✓' : '⚠ Non synchronisé — vérifie ta connexion et réessaie');
+          finish();
+          renderClasses();
+        });
+        return;
       }
     }
     finish();
@@ -829,10 +856,11 @@ $('#btnImportCsv').addEventListener('click', ()=>{
     rows.forEach(r=>{
       cls.students.push({ id: uid('stu'), prenom: r.prenom, nom: r.nom, oral: [] });
     });
-    saveAll();
-    nameInput.value=''; fileInput.value='';
-    toast(rows.length+' élève(s) importé(s) dans '+name);
-    renderClasses();
+    saveNow().then(ok=>{
+      nameInput.value=''; fileInput.value='';
+      toast(ok ? rows.length+' élève(s) importé(s) dans '+name : '⚠ Import local ok, mais non synchronisé avec le Sheet');
+      renderClasses();
+    });
   };
   reader.readAsText(file, 'UTF-8');
 });
@@ -845,8 +873,8 @@ $('#btnAddStudent').addEventListener('click', ()=>{
   if(!prenom){ toast('Indique un prénom'); return; }
   DATA.classes[cid].students.push({ id: uid('stu'), prenom, nom, oral: [] });
   $('#manualPrenom').value=''; $('#manualNom').value='';
-  saveAll(); renderClasses();
-  toast('Élève ajouté');
+  renderClasses();
+  saveNow().then(ok=>{ toast(ok ? 'Élève ajouté ✓' : '⚠ Ajouté localement, non synchronisé'); });
 });
 
 /* ---------------------------------------------------------------
