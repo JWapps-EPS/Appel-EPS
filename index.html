@@ -335,11 +335,19 @@
           <input type="date" id="appelDate">
         </div>
       </div>
+      <label class="field-label" for="appelActiviteSelect">Activité (obligatoire)</label>
+      <select id="appelActiviteSelect" style="margin-bottom:10px;"></select>
       <button class="btn primary btn-block" id="btnStartAppel">+ Créer l'appel</button>
       <div class="hint" id="appelActiviteHint"></div>
     </div>
 
     <div class="card" id="appelLiveCard" style="display:none;">
+      <div class="row wrap" style="margin-bottom:10px;">
+        <div class="grow" style="min-width:160px;">
+          <label class="field-label" for="appelLiveActiviteSelect">Activité de cette séance</label>
+          <select id="appelLiveActiviteSelect"></select>
+        </div>
+      </div>
       <div class="row" style="justify-content:space-between;">
         <h2 id="appelLiveTitle" style="margin:0;"></h2>
         <button class="close-x" id="btnCloseAppel">✕</button>
@@ -909,7 +917,7 @@ function renderAppelTab(){
   if(!sel.value && UI_STATE.lastClassId && DATA.classes[UI_STATE.lastClassId]){
     sel.value = UI_STATE.lastClassId;
   }
-  updateActiviteHint();
+  refreshAppelActiviteSelect();
   renderPastSessions();
   if(currentAppelId && DATA.seances[currentAppelId]){
     openAppelCard(currentAppelId);
@@ -918,28 +926,46 @@ function renderAppelTab(){
 $('#appelClassSelect').addEventListener('change', ()=>{
   UI_STATE.lastClassId = $('#appelClassSelect').value;
   saveUiState();
-  updateActiviteHint();
+  refreshAppelActiviteSelect();
   renderPastSessions();
 });
-$('#appelDate').addEventListener('change', updateActiviteHint);
-function updateActiviteHint(){
+$('#appelDate').addEventListener('change', refreshAppelActiviteSelect);
+
+function refreshAppelActiviteSelect(){
   const cid = $('#appelClassSelect').value;
   const date = $('#appelDate').value;
+  const sel = $('#appelActiviteSelect');
+  const btn = $('#btnStartAppel');
   const hint = $('#appelActiviteHint');
-  if(!cid){ hint.textContent=''; return; }
-  const act = activiteActiveOn(cid, date);
-  hint.textContent = act ? ('Activité en cours : '+act.nom+' — le suivi (dispensé / oubli) sera proposé pendant l\'appel.') : 'Aucune activité active à cette date (l\'appel restera simple présence/absence).';
+  if(!cid){
+    sel.innerHTML = '<option value="">— choisis d\'abord une classe —</option>';
+    btn.disabled = true;
+    hint.textContent = '';
+    return;
+  }
+  const acts = activitesOf(cid);
+  if(acts.length===0){
+    sel.innerHTML = '<option value="">— aucune activité pour cette classe —</option>';
+    btn.disabled = true;
+    hint.textContent = 'Crée d\'abord une activité pour cette classe dans l\'onglet Suivi (l\'appel doit toujours être rattaché à une activité).';
+    return;
+  }
+  const activeNow = activiteActiveOn(cid, date);
+  sel.innerHTML = acts.map(a=>`<option value="${a.id}" ${activeNow && a.id===activeNow.id?'selected':''}>${escapeHtml(a.nom)} (${fmtDate(a.debut)}–${fmtDate(a.fin)})</option>`).join('');
+  btn.disabled = false;
+  hint.textContent = activeNow ? '' : 'Aucune activité n\'est active à cette date d\'après ses dates de début/fin — vérifie que c\'est la bonne avant de créer l\'appel.';
 }
 
 $('#btnStartAppel').addEventListener('click', ()=>{
   const cid = $('#appelClassSelect').value;
   const date = $('#appelDate').value || todayISO();
+  const activiteId = $('#appelActiviteSelect').value;
   if(!cid){ toast('Sélectionne une classe'); return; }
+  if(!activiteId){ toast('Choisis une activité — l\'appel doit y être rattaché'); return; }
   const students = studentsOf(cid);
   if(students.length===0){ toast('Cette classe n\'a pas d\'élèves'); return; }
-  const act = activiteActiveOn(cid, date);
   const seance = {
-    id: uid('seance'), classId: cid, date, activiteId: act?act.id:null,
+    id: uid('seance'), classId: cid, date, activiteId,
     status: 'open', students: {}
   };
   students.forEach(s=>{
@@ -971,10 +997,30 @@ function openAppelCard(seanceId){
   $('#appelLiveCard').style.display='block';
   $('#appelLiveTitle').textContent = cls.name+' · '+fmtDate(seance.date);
   if(syncSeanceRoster(seance)) saveAll();
+  renderLiveActiviteSelect(seance);
   renderMicZone();
   renderRoster();
   renderAppelSummary();
 }
+
+function renderLiveActiviteSelect(seance){
+  const acts = activitesOf(seance.classId);
+  const sel = $('#appelLiveActiviteSelect');
+  if(acts.length===0){
+    sel.innerHTML = '<option value="">— aucune activité pour cette classe —</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">— non rattaché —</option>' +
+    acts.map(a=>`<option value="${a.id}" ${seance.activiteId===a.id?'selected':''}>${escapeHtml(a.nom)} (${fmtDate(a.debut)}–${fmtDate(a.fin)})</option>`).join('');
+}
+$('#appelLiveActiviteSelect').addEventListener('change', ()=>{
+  const seance = DATA.seances[currentAppelId];
+  if(!seance) return;
+  seance.activiteId = $('#appelLiveActiviteSelect').value || null;
+  saveAll();
+  toast(seance.activiteId ? 'Activité mise à jour' : 'Appel détaché de toute activité');
+});
+
 $('#btnCloseAppel').addEventListener('click', ()=>{
   stopRecognition();
   currentAppelId = null;
