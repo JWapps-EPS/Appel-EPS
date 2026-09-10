@@ -274,16 +274,16 @@
 </header>
 
 <nav class="tabs">
-  <button class="tab-btn" data-view="classes">Classes</button>
   <button class="tab-btn active" data-view="appel">Appel</button>
+  <button class="tab-btn" data-view="parametrage">Paramétrage</button>
   <button class="tab-btn" data-view="suivi">Suivi</button>
   <button class="tab-btn" data-view="reglages">Réglages</button>
 </nav>
 
 <main>
 
-  <!-- ===================== CLASSES ===================== -->
-  <section id="view-classes" class="view">
+  <!-- ===================== PARAMÉTRAGE ===================== -->
+  <section id="view-parametrage" class="view">
     <div class="card">
       <h2>Importer une classe (CSV)</h2>
       <label class="field-label" for="csvClassName">Nom de la classe</label>
@@ -318,6 +318,34 @@
     </div>
 
     <div id="classesList"></div>
+
+    <div class="card">
+      <h2>Activités (max. 5 par classe)</h2>
+      <div class="hint" style="margin-bottom:8px;">Une activité peut avoir plusieurs périodes (ex. reprise en fin d'année), et plusieurs activités peuvent se dérouler sur la même période.</div>
+      <div class="row wrap" style="margin-bottom:8px;">
+        <div class="grow" style="min-width:120px;">
+          <label class="field-label">Classe</label>
+          <select id="paramActiviteClassSelect"></select>
+        </div>
+      </div>
+      <div id="activitesForClass"></div>
+
+      <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px;">
+        <label class="field-label">Nom de la nouvelle activité</label>
+        <input type="text" id="newActiviteNom" placeholder="ex : Badminton" style="margin-bottom:8px;">
+        <div class="row wrap">
+          <div class="grow" style="min-width:110px;">
+            <label class="field-label">Début (1ʳᵉ période)</label>
+            <input type="date" id="newActiviteDebut">
+          </div>
+          <div class="grow" style="min-width:110px;">
+            <label class="field-label">Fin (1ʳᵉ période)</label>
+            <input type="date" id="newActiviteFin">
+          </div>
+        </div>
+        <button class="btn ghost btn-block" id="btnAddActivite" style="margin-top:10px;">Ajouter l'activité</button>
+      </div>
+    </div>
   </section>
 
   <!-- ===================== APPEL ===================== -->
@@ -375,39 +403,19 @@
   <!-- ===================== SUIVI ===================== -->
   <section id="view-suivi" class="view">
     <div class="card">
-      <h2>Activités (max. 5 par classe)</h2>
+      <h2>Statistiques par activité</h2>
       <div class="row wrap" style="margin-bottom:8px;">
         <div class="grow" style="min-width:120px;">
           <label class="field-label">Classe</label>
-          <select id="suiviClassSelect"></select>
+          <select id="statsClassSelect"></select>
         </div>
       </div>
-      <div id="activitesForClass"></div>
-
-      <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px;">
-        <label class="field-label">Nom de l'activité</label>
-        <input type="text" id="newActiviteNom" placeholder="ex : Badminton" style="margin-bottom:8px;">
-        <div class="row wrap">
-          <div class="grow" style="min-width:110px;">
-            <label class="field-label">Début</label>
-            <input type="date" id="newActiviteDebut">
-          </div>
-          <div class="grow" style="min-width:110px;">
-            <label class="field-label">Fin</label>
-            <input type="date" id="newActiviteFin">
-          </div>
-        </div>
-        <button class="btn ghost btn-block" id="btnAddActivite" style="margin-top:10px;">Ajouter l'activité</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Statistiques par activité</h2>
       <label class="field-label">Activité</label>
       <select id="statsActiviteSelect" style="margin-bottom:10px;"></select>
       <div id="statsTableWrap"><div class="empty">Choisis une activité pour voir les statistiques.</div></div>
     </div>
   </section>
+
 
   <!-- ===================== REGLAGES ===================== -->
   <section id="view-reglages" class="view">
@@ -563,6 +571,7 @@ async function loadAll(){
   await loadConfig();
   if(!CONFIG.url){
     await loadCache();
+    migrateActivites();
     setSyncStatus('none', 'Non connecté à un Google Sheet (onglet Réglages)');
     return;
   }
@@ -572,11 +581,13 @@ async function loadAll(){
     DATA.classes = remote.classes||{};
     DATA.activites = remote.activites||{};
     DATA.seances = remote.seances||{};
+    migrateActivites();
     await saveCache();
     setSyncStatus('ok', 'Synchronisé avec Google Sheets');
   }catch(err){
     console.warn(err);
     const had = await loadCache();
+    migrateActivites();
     setSyncStatus('error', had ? 'Hors ligne — dernières données locales affichées' : ('Connexion au Sheet impossible : '+err.message));
   }
 }
@@ -636,6 +647,7 @@ $('#btnSyncNow').addEventListener('click', async ()=>{
     DATA.classes = remote.classes||{};
     DATA.activites = remote.activites||{};
     DATA.seances = remote.seances||{};
+    migrateActivites();
     await saveCache();
     setSyncStatus('ok','Synchronisé avec Google Sheets');
     renderClasses(); renderAppelTab(); renderSuiviTab();
@@ -679,10 +691,30 @@ function studentsOf(classId){
 }
 function activitesOf(classId){
   return Object.values(DATA.activites).filter(a=>a.classId===classId)
-    .sort((a,b)=>a.debut.localeCompare(b.debut));
+    .sort((a,b)=>earliestStart(a).localeCompare(earliestStart(b)));
 }
-function activiteActiveOn(classId, dateISO){
-  return activitesOf(classId).find(a => dateISO>=a.debut && dateISO<=a.fin);
+function earliestStart(act){
+  const periods = act.periods||[];
+  if(periods.length===0) return '9999-99-99';
+  return periods.map(p=>p.debut).sort()[0];
+}
+// Une activité peut avoir plusieurs périodes, et plusieurs activités peuvent
+// être actives en même temps sur une même période : on retourne donc un tableau.
+function activitesActiveOn(classId, dateISO){
+  return activitesOf(classId).filter(a=>(a.periods||[]).some(p=>dateISO>=p.debut && dateISO<=p.fin));
+}
+function fmtPeriods(act){
+  return (act.periods||[]).map(p=>fmtDate(p.debut)+'–'+fmtDate(p.fin)).join(', ') || '(aucune période)';
+}
+// Migration : les anciennes activités enregistrées avec un seul debut/fin direct
+// (avant la gestion multi-périodes) sont converties en periods:[{debut,fin}]
+function migrateActivites(){
+  Object.values(DATA.activites).forEach(a=>{
+    if(!a.periods){
+      a.periods = (a.debut && a.fin) ? [{debut:a.debut, fin:a.fin}] : [];
+      delete a.debut; delete a.fin;
+    }
+  });
 }
 
 /* ---------------------------------------------------------------
@@ -694,7 +726,7 @@ $$('.tab-btn').forEach(btn=>{
     btn.classList.add('active');
     $$('.view').forEach(v=>v.classList.remove('active'));
     $('#view-'+btn.dataset.view).classList.add('active');
-    if(btn.dataset.view==='classes') renderClasses();
+    if(btn.dataset.view==='parametrage'){ renderClasses(); renderParametrageActivites(); }
     if(btn.dataset.view==='appel') renderAppelTab();
     if(btn.dataset.view==='suivi') renderSuiviTab();
     if(btn.dataset.view==='reglages') renderReglagesTab();
@@ -706,7 +738,7 @@ $$('.tab-btn').forEach(btn=>{
 --------------------------------------------------------------- */
 function refreshClassSelects(){
   const opts = classList().map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-  ['#manualClassSelect','#appelClassSelect','#suiviClassSelect'].forEach(sel=>{
+  ['#manualClassSelect','#appelClassSelect','#paramActiviteClassSelect','#statsClassSelect'].forEach(sel=>{
     const el = $(sel);
     const prev = el.value;
     el.innerHTML = opts || '<option value="">— aucune classe —</option>';
@@ -947,13 +979,19 @@ function refreshAppelActiviteSelect(){
   if(acts.length===0){
     sel.innerHTML = '<option value="">— aucune activité pour cette classe —</option>';
     btn.disabled = true;
-    hint.textContent = 'Crée d\'abord une activité pour cette classe dans l\'onglet Suivi (l\'appel doit toujours être rattaché à une activité).';
+    hint.textContent = 'Crée d\'abord une activité pour cette classe dans l\'onglet Paramétrage (l\'appel doit toujours être rattaché à une activité).';
     return;
   }
-  const activeNow = activiteActiveOn(cid, date);
-  sel.innerHTML = acts.map(a=>`<option value="${a.id}" ${activeNow && a.id===activeNow.id?'selected':''}>${escapeHtml(a.nom)} (${fmtDate(a.debut)}–${fmtDate(a.fin)})</option>`).join('');
+  const activeIds = new Set(activitesActiveOn(cid, date).map(a=>a.id));
+  sel.innerHTML = acts.map(a=>`<option value="${a.id}" ${activeIds.has(a.id)?'selected':''}>${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('');
   btn.disabled = false;
-  hint.textContent = activeNow ? '' : 'Aucune activité n\'est active à cette date d\'après ses dates de début/fin — vérifie que c\'est la bonne avant de créer l\'appel.';
+  if(activeIds.size===0){
+    hint.textContent = 'Aucune activité n\'est active à cette date d\'après ses périodes — vérifie que c\'est la bonne avant de créer l\'appel.';
+  }else if(activeIds.size>1){
+    hint.textContent = 'Plusieurs activités sont actives à cette date : choisis la bonne dans la liste.';
+  }else{
+    hint.textContent = '';
+  }
 }
 
 $('#btnStartAppel').addEventListener('click', ()=>{
@@ -1011,7 +1049,7 @@ function renderLiveActiviteSelect(seance){
     return;
   }
   sel.innerHTML = '<option value="">— non rattaché —</option>' +
-    acts.map(a=>`<option value="${a.id}" ${seance.activiteId===a.id?'selected':''}>${escapeHtml(a.nom)} (${fmtDate(a.debut)}–${fmtDate(a.fin)})</option>`).join('');
+    acts.map(a=>`<option value="${a.id}" ${seance.activiteId===a.id?'selected':''}>${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('');
 }
 $('#appelLiveActiviteSelect').addEventListener('change', ()=>{
   const seance = DATA.seances[currentAppelId];
@@ -1421,10 +1459,13 @@ $('#btnFinishAppel').addEventListener('click', ()=>{
   });
   seance.status = 'done';
   stopRecognition();
-  saveAll();
-  renderRoster();
-  renderAppelSummary();
-  toast('Appel terminé et enregistré');
+  saveNow().then(ok=>{
+    toast(ok ? 'Appel terminé et enregistré ✓' : '⚠ Terminé, mais non synchronisé — vérifie ta connexion');
+    currentAppelId = null;
+    $('#appelSetupCard').style.display='block';
+    $('#appelLiveCard').style.display='none';
+    renderPastSessions();
+  });
 });
 
 function renderPastSessions(){
@@ -1474,42 +1515,81 @@ function renderPastSessions(){
 --------------------------------------------------------------- */
 function renderSuiviTab(){
   refreshClassSelects();
-  renderActivitesForClass();
   refreshStatsActiviteSelect();
 }
-$('#suiviClassSelect').addEventListener('change', ()=>{
+$('#statsClassSelect').addEventListener('change', refreshStatsActiviteSelect);
+
+function renderParametrageActivites(){
+  refreshClassSelects();
   renderActivitesForClass();
-  refreshStatsActiviteSelect();
-});
+}
+$('#paramActiviteClassSelect').addEventListener('change', renderActivitesForClass);
 
 function renderActivitesForClass(){
-  const cid = $('#suiviClassSelect').value;
+  const cid = $('#paramActiviteClassSelect').value;
   const wrap = $('#activitesForClass');
   if(!cid){ wrap.innerHTML=''; return; }
   const acts = activitesOf(cid);
   if(acts.length===0){
     wrap.innerHTML = '<div class="empty">Aucune activité définie pour cette classe.</div>';
   }else{
-    wrap.innerHTML = acts.map(a=>`
+    wrap.innerHTML = acts.map(a=>{
+      const periodsHtml = (a.periods||[]).map((p,idx)=>`
+        <div class="row" style="justify-content:space-between;padding:3px 0;">
+          <span class="hint" style="margin:0;">${fmtDate(p.debut)} → ${fmtDate(p.fin)}</span>
+          <button class="icon-btn" data-del-period="${idx}" data-act="${a.id}">✕</button>
+        </div>`).join('') || '<div class="hint">Aucune période — cette activité n\'apparaîtra comme active à aucune date.</div>';
+      return `
       <div class="card activite-card" style="margin-bottom:8px;padding:10px 12px;">
         <div class="row" style="justify-content:space-between;">
           <b>${escapeHtml(a.nom)}</b>
-          <button class="icon-btn" data-del-act="${a.id}">supprimer</button>
+          <button class="icon-btn" data-del-act="${a.id}">supprimer l'activité</button>
         </div>
-        <div class="hint">${fmtDate(a.debut)} → ${fmtDate(a.fin)}</div>
-      </div>`).join('');
+        ${periodsHtml}
+        <div class="row wrap" style="gap:6px;margin-top:6px;">
+          <input type="date" class="grow" style="min-width:110px;" data-new-period-debut="${a.id}">
+          <input type="date" class="grow" style="min-width:110px;" data-new-period-fin="${a.id}">
+          <button class="btn ghost small" data-add-period="${a.id}">+ période</button>
+        </div>
+      </div>`;
+    }).join('');
+
     wrap.querySelectorAll('[data-del-act]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         if(!confirm('Supprimer cette activité ? (les données déjà enregistrées restent liées)')) return;
         delete DATA.activites[btn.dataset.delAct];
-        saveAll(); renderActivitesForClass(); refreshStatsActiviteSelect();
+        renderActivitesForClass();
+        saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
+      });
+    });
+    wrap.querySelectorAll('[data-del-period]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const act = DATA.activites[btn.dataset.act];
+        if(!act) return;
+        act.periods.splice(parseInt(btn.dataset.delPeriod,10),1);
+        renderActivitesForClass();
+        saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
+      });
+    });
+    wrap.querySelectorAll('[data-add-period]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const actId = btn.dataset.addPeriod;
+        const act = DATA.activites[actId];
+        const debutEl = wrap.querySelector(`[data-new-period-debut="${actId}"]`);
+        const finEl = wrap.querySelector(`[data-new-period-fin="${actId}"]`);
+        const debut = debutEl.value, fin = finEl.value;
+        if(!debut || !fin || debut>fin){ toast('Dates de période invalides'); return; }
+        act.periods = act.periods||[];
+        act.periods.push({debut, fin});
+        renderActivitesForClass();
+        saveNow().then(ok=>{ toast(ok ? 'Période ajoutée ✓' : '⚠ Non synchronisé'); });
       });
     });
   }
 }
 
 $('#btnAddActivite').addEventListener('click', ()=>{
-  const cid = $('#suiviClassSelect').value;
+  const cid = $('#paramActiviteClassSelect').value;
   const nom = $('#newActiviteNom').value.trim();
   const debut = $('#newActiviteDebut').value;
   const fin = $('#newActiviteFin').value;
@@ -1518,21 +1598,19 @@ $('#btnAddActivite').addEventListener('click', ()=>{
   if(existing.length>=5){ toast('Maximum 5 activités par classe'); return; }
   if(!nom){ toast('Indique un nom d\'activité'); return; }
   if(!debut || !fin || debut>fin){ toast('Dates de début/fin invalides'); return; }
-  const act = { id: uid('act'), classId: cid, nom, debut, fin };
+  const act = { id: uid('act'), classId: cid, nom, periods: [{debut, fin}] };
   DATA.activites[act.id] = act;
   $('#newActiviteNom').value=''; $('#newActiviteDebut').value=''; $('#newActiviteFin').value='';
-  saveAll();
   renderActivitesForClass();
-  refreshStatsActiviteSelect();
-  toast('Activité ajoutée');
+  saveNow().then(ok=>{ toast(ok ? 'Activité ajoutée ✓' : '⚠ Non synchronisé'); });
 });
 
 function refreshStatsActiviteSelect(){
-  const cid = $('#suiviClassSelect').value;
+  const cid = $('#statsClassSelect').value;
   const sel = $('#statsActiviteSelect');
   const acts = cid ? activitesOf(cid) : Object.values(DATA.activites);
   sel.innerHTML = acts.length
-    ? acts.map(a=>`<option value="${a.id}">${escapeHtml(a.nom)} (${fmtDate(a.debut)} – ${fmtDate(a.fin)})</option>`).join('')
+    ? acts.map(a=>`<option value="${a.id}">${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('')
     : '<option value="">— aucune activité —</option>';
   renderStatsTable();
 }
@@ -1566,7 +1644,7 @@ function renderStatsTable(){
   }).sort((a,b)=>(a.s.nom||'').localeCompare(b.s.nom||'','fr') || a.s.prenom.localeCompare(b.s.prenom,'fr'));
 
   wrap.innerHTML = `
-    <div class="hint" style="margin-bottom:8px;">${seances.length} séance(s) enregistrée(s) du ${fmtDate(act.debut)} au ${fmtDate(act.fin)}.</div>
+    <div class="hint" style="margin-bottom:8px;">${seances.length} séance(s) enregistrée(s). Périodes : ${fmtPeriods(act)}.</div>
     <table class="stats">
       <colgroup>
         <col class="col-name"><col class="col-stat"><col class="col-stat"><col class="col-stat"><col class="col-stat">
@@ -1600,6 +1678,7 @@ async function init(){
   refreshClassSelects();
   $('#appelDate').value = todayISO();
   renderClasses();
+  renderParametrageActivites();
   renderAppelTab();
   renderSuiviTab();
 }
