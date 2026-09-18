@@ -2,1689 +2,1852 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-<title>Appel EPS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Club Tennis — Planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  :root{
-    --ink:#12202b;
-    --ink-soft:#4b5c66;
-    --paper:#f6f4ef;
-    --line:#d9d3c6;
-    --track:#e8622c;
-    --track-dark:#c94f1f;
-    --present:#2f7a4f;
-    --present-bg:#e3f2e8;
-    --absent:#b5342a;
-    --absent-bg:#fbe6e3;
-    --dispense:#b8860f;
-    --dispense-bg:#fbf1da;
-    --card:#ffffff;
-    --radius:14px;
-    font-size:16px;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    -webkit-tap-highlight-color:transparent;
-    padding-bottom:76px;
-  }
-  header.top{
-    position:sticky;top:0;z-index:20;
-    background:var(--ink);
-    color:#fff;
-    padding:14px 16px 12px;
-  }
-  header.top .brand{
-    display:flex;align-items:center;gap:10px;
-  }
-  header.top .whistle{
-    width:26px;height:26px;flex:none;
-  }
-  header.top h1{
-    font-size:1.15rem;margin:0;letter-spacing:.2px;font-weight:700;
-  }
-  header.top .sub{
-    font-size:.72rem;color:#c7cfd4;margin-top:2px;font-weight:500;letter-spacing:.3px;text-transform:uppercase;
-  }
-  nav.tabs{
-    display:flex;
-    background:var(--ink);
-    padding:0 8px;
-    position:sticky;top:64px;z-index:19;
-    border-bottom:2px solid #223341;
-  }
-  nav.tabs button{
-    flex:1;
-    background:none;border:none;color:#9fb0ba;
-    font-size:.86rem;font-weight:700;
-    padding:10px 4px 12px;
-    cursor:pointer;
-    border-bottom:3px solid transparent;
-    letter-spacing:.2px;
-  }
-  nav.tabs button.active{
-    color:#fff;
-    border-bottom:3px solid var(--track);
-  }
-  main{max-width:640px;margin:0 auto;padding:14px 12px 24px;}
-  .view{display:none;}
-  .view.active{display:block;}
+:root{
+  --clay:#B5552D; --clay-dark:#8C3F1E;
+  --court:#1F4D3D; --court-dark:#15362A;
+  --chalk:#F5F2E8; --ball:#D8CE4E;
+  --ink:#11201A; --line:rgba(245,242,232,.18);
+  --danger:#C0392B; --ok:#3F8F5F; --warn:#B5872D;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Work Sans',sans-serif;
+  background:var(--chalk);
+  color:var(--ink);
+  min-height:100vh;
+}
+h1,h2,h3,.display{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.03em;}
+.mono{font-family:'JetBrains Mono',monospace;}
+button{font-family:inherit; cursor:pointer; border:none;}
+input,select{font-family:inherit;}
+a{color:inherit;}
 
-  .card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:14px;
-    margin-bottom:12px;
-  }
-  .card h2{font-size:1rem;margin:0 0 10px;}
-  .row{display:flex;gap:8px;align-items:center;}
-  .row.wrap{flex-wrap:wrap;}
-  .grow{flex:1;min-width:0;}
+/* HEADER */
+header.top{
+  background:var(--court); color:var(--chalk);
+  position:relative; overflow:hidden;
+  padding:18px 20px 0;
+}
+header.top::before{
+  content:""; position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 200'%3E%3Cg fill='none' stroke='%23F5F2E8' stroke-width='1.5' opacity='0.10'%3E%3Crect x='10' y='10' width='580' height='180'/%3E%3Crect x='40' y='10' width='520' height='180'/%3E%3Cline x1='300' y1='10' x2='300' y2='190'/%3E%3Cline x1='10' y1='100' x2='590' y2='100'/%3E%3Cline x1='150' y1='30' x2='150' y2='170'/%3E%3Cline x1='450' y1='30' x2='450' y2='170'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:cover; background-position:center;
+}
+.top-inner{position:relative; max-width:1100px; margin:0 auto;}
+.brand{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+.brand .name{font-size:26px; font-weight:700; margin:0;}
+.brand .tag{font-family:'JetBrains Mono',monospace; font-size:11px; opacity:.65; letter-spacing:.08em;}
+nav.tabs{display:flex; gap:2px; margin-top:16px; overflow-x:auto; -webkit-overflow-scrolling:touch;}
+nav.tabs button{
+  flex:1; background:rgba(245,242,232,.08); color:var(--chalk);
+  padding:13px 10px; font-family:'Oswald',sans-serif; font-weight:600;
+  font-size:13px; letter-spacing:.06em; text-transform:uppercase;
+  border-bottom:3px solid transparent; transition:.15s;
+}
+nav.tabs button.active{background:var(--chalk); color:var(--court); border-bottom-color:var(--ball);}
+nav.tabs button:not(.active):hover{background:rgba(245,242,232,.16);}
 
-  label.field-label{
-    display:block;font-size:.72rem;font-weight:700;color:var(--ink-soft);
-    text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;
-  }
-  select,input[type=text],input[type=date],input[type=file],textarea{
-    width:100%;
-    border:1.5px solid var(--line);
-    border-radius:10px;
-    padding:10px 11px;
-    font-size:.95rem;
-    background:#fff;
-    color:var(--ink);
-    font-family:inherit;
-  }
-  textarea{resize:vertical;min-height:90px;}
-  button{
-    font-family:inherit;
-    cursor:pointer;
-  }
-  .btn{
-    border:none;border-radius:10px;
-    padding:10px 16px;
-    font-weight:700;font-size:.88rem;
-    background:var(--ink);color:#fff;
-    display:inline-flex;align-items:center;gap:6px;justify-content:center;
-  }
-  .btn.primary{background:var(--track);}
-  .btn.primary:active{background:var(--track-dark);}
-  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
-  .btn.danger{background:var(--absent);}
-  .btn.small{padding:6px 10px;font-size:.78rem;border-radius:8px;}
-  .btn:disabled{opacity:.4;}
-  .btn-block{width:100%;}
+main{max-width:1100px; margin:0 auto; padding:22px 16px 70px;}
 
-  .empty{
-    text-align:center;color:var(--ink-soft);
-    padding:26px 10px;font-size:.9rem;
-  }
-  .empty b{display:block;color:var(--ink);font-size:.98rem;margin-bottom:4px;}
+/* CARDS */
+.card{background:#fff; border:1px solid #e3dfd2; border-radius:var(--radius); padding:18px; margin-bottom:16px;}
+.card h2{font-size:18px; margin:0 0 14px; color:var(--court-dark); border-bottom:2px solid var(--ball); padding-bottom:8px; display:inline-block;}
+.muted{color:#6b6657; font-size:13px;}
+.row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.field{display:flex; flex-direction:column; gap:4px; margin-bottom:10px;}
+.field label{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:#6b6657; font-weight:600;}
+.field input, .field select, .field textarea{
+  padding:9px 10px; border:1.5px solid #ddd6c4; border-radius:6px; font-size:14px; background:#fffdf8;
+}
+.field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--clay); outline-offset:1px; border-color:var(--clay);}
+.btn{padding:10px 16px; border-radius:6px; font-weight:600; font-size:13px; letter-spacing:.02em;}
+.btn-primary{background:var(--clay); color:#fff;}
+.btn-primary:hover{background:var(--clay-dark);}
+.btn-ghost{background:transparent; border:1.5px solid #ddd6c4 !important; color:var(--ink);}
+.btn-ghost:hover{border-color:var(--clay) !important;}
+.btn-danger{background:#fff; color:var(--danger); border:1.5px solid var(--danger) !important;}
+.btn-sm{padding:6px 10px; font-size:12px;}
+.btn-ok{background:var(--ok); color:#fff;}
+.pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; background:#f1eee2;}
+.pill-clay{background:var(--clay); color:#fff;}
+.pill-court{background:var(--court); color:var(--chalk);}
 
-  /* Classes tab */
-  .class-card{margin-bottom:10px;}
-  .class-card summary{
-    list-style:none;cursor:pointer;
-    display:flex;justify-content:space-between;align-items:center;
-  }
-  .class-card summary::-webkit-details-marker{display:none;}
-  .class-card summary .name{font-weight:700;font-size:1.02rem;}
-  .class-card summary .count{font-size:.78rem;color:var(--ink-soft);font-weight:600;}
-  .student-row{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:8px 0;border-top:1px solid var(--line);
-    font-size:.9rem;
-  }
-  .student-row:first-of-type{border-top:none;margin-top:8px;}
-  .icon-btn{
-    background:none;border:none;color:var(--ink-soft);
-    padding:4px 6px;font-size:.85rem;
-  }
+/* PLANNING PUBLIC */
+.day-pills{display:flex; gap:6px; overflow-x:auto; margin-bottom:14px; padding-bottom:4px;}
+.day-pills button{
+  background:#fff; border:1.5px solid #ddd6c4 !important; padding:8px 14px; border-radius:20px;
+  font-family:'Oswald',sans-serif; font-weight:600; font-size:12px; text-transform:uppercase; white-space:nowrap;
+  text-align:center; line-height:1.4;
+}
+.day-pills button.active{background:var(--court); color:var(--chalk); border-color:var(--court) !important;}
+.day-col h3{font-size:13px; margin:0 0 8px; text-align:center; color:var(--court-dark);}
+.slot{
+  background:#fff; border:1px solid #e3dfd2; border-left:4px solid var(--clay); border-radius:8px;
+  padding:10px; margin-bottom:8px;
+}
+.slot .hr{font-family:'JetBrains Mono',monospace; font-weight:700; font-size:14px; color:var(--court-dark);}
+.slot .niv{font-size:12px; margin-top:2px;}
+.slot .meta{font-size:11px; color:#6b6657; margin-top:5px; display:flex; justify-content:space-between;}
+.slot .full{color:var(--danger); font-weight:700;}
 
-  /* Appel tab */
-  .status-pill{
-    font-size:.68rem;font-weight:800;letter-spacing:.3px;
-    padding:3px 9px;border-radius:20px;text-transform:uppercase;
-  }
-  .status-pill.present{background:var(--present-bg);color:var(--present);}
-  .status-pill.absent{background:var(--absent-bg);color:var(--absent);}
-  .status-pill.pending{background:#eee;color:#888;}
+/* LOGIN */
+.login-box{max-width:340px; margin:60px auto; text-align:center;}
+.login-box .court-icon{font-size:40px; margin-bottom:6px;}
+.login-box input{width:100%; text-align:center; font-size:20px; letter-spacing:.1em; font-family:'JetBrains Mono',monospace;}
 
-  .mic-wrap{text-align:center;padding:6px 0 4px;}
-  .mic-btn{
-    width:84px;height:84px;border-radius:50%;
-    border:none;background:var(--track);color:#fff;
-    font-size:1.8rem;
-    box-shadow:0 4px 14px rgba(232,98,44,.35);
-  }
-  .mic-btn.listening{
-    background:var(--absent);
-    animation:pulse 1.2s infinite;
-  }
-  @keyframes pulse{
-    0%{box-shadow:0 0 0 0 rgba(181,52,42,.5);}
-    70%{box-shadow:0 0 0 18px rgba(181,52,42,0);}
-    100%{box-shadow:0 0 0 0 rgba(181,52,42,0);}
-  }
-  .mic-caption{font-size:.78rem;color:var(--ink-soft);margin-top:8px;min-height:16px;}
-  .transcript{
-    font-size:.8rem;color:var(--ink-soft);font-style:italic;
-    min-height:18px;text-align:center;margin-top:2px;word-break:break-word;
-  }
+/* TABLE */
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{text-align:left; padding:8px 8px; background:#f1eee2; font-family:'Oswald',sans-serif; letter-spacing:.03em; text-transform:uppercase; font-size:11px; color:#5b5747;}
+td{padding:7px 8px; border-bottom:1px solid #ede9da; vertical-align:middle;}
+.scroll-x{overflow-x:auto;}
 
-  .roster-item{
-    border-top:1px solid var(--line);
-    padding:10px 0;
-  }
-  .roster-item:first-child{border-top:none;}
-  .roster-item.just-matched{background:var(--present-bg);border-radius:8px;}
-  .roster-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-  .roster-name{font-weight:700;font-size:.95rem;}
-  .roster-actions{display:flex;gap:6px;}
-  .toggle-btn{
-    border:1.5px solid var(--line);background:#fff;border-radius:8px;
-    padding:5px 10px;font-size:.76rem;font-weight:700;color:var(--ink-soft);
-  }
-  .toggle-btn.on-present{background:var(--present);color:#fff;border-color:var(--present);}
-  .toggle-btn.on-absent{background:var(--absent);color:#fff;border-color:var(--absent);}
-  .toggle-btn.icon-toggle{display:inline-flex;align-items:center;justify-content:center;padding:7px 12px;}
-  .extra-row{
-    display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;
-  }
-  .chip{
-    border:1.5px solid var(--line);border-radius:20px;
-    padding:4px 10px;font-size:.72rem;font-weight:700;color:var(--ink-soft);background:#fff;
-  }
-  .chip.on.dispense{background:var(--dispense-bg);color:var(--dispense);border-color:var(--dispense);}
-  .chip.on.oubli{background:var(--absent-bg);color:var(--absent);border-color:var(--absent);}
-  .chip.icon-chip{font-size:1.05rem;padding:5px 12px;line-height:1;}
-  .chip.icon-chip[data-field="dispense"]{color:var(--absent);border-color:var(--absent);}
-  .chip.icon-chip[data-field="dispense"].on{background:var(--absent);color:#fff;}
+/* ESPACE PROF */
+.prof-day-nav{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:22px;}
+.prof-day-btn{
+  flex-shrink:0; padding:10px 18px; border-radius:10px;
+  background:#fff; border:2px solid #e3dfd2 !important;
+  font-family:'Oswald',sans-serif; font-weight:600; font-size:13px; text-transform:uppercase;
+  color:#6b6657; transition:.15s; text-align:center; line-height:1.3;
+}
+.prof-day-btn.active{ background:var(--court); color:var(--chalk); border-color:var(--court) !important;}
+.prof-day-btn .nb{ font-size:11px; font-weight:400; opacity:.8;}
+.creneau-cards{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:14px; margin-bottom:24px;}
+.creneau-card{
+  background:#fff; border:1.5px solid #e3dfd2; border-radius:14px;
+  padding:18px; cursor:pointer; transition:.15s; position:relative; overflow:hidden;
+}
+.creneau-card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--clay);}
+.creneau-card:hover{ border-color:var(--clay); box-shadow:0 4px 16px rgba(181,85,45,.13);}
+.creneau-card.selected{ border-color:var(--court); box-shadow:0 0 0 3px rgba(31,77,61,.15);}
+.creneau-card.selected::before{ background:var(--court);}
+.creneau-card .cc-time{ font-family:'Oswald',sans-serif; font-size:22px; font-weight:700; color:var(--court-dark); margin-bottom:2px;}
+.creneau-card .cc-dur{ font-size:12px; color:#9b9684; font-family:'JetBrains Mono',monospace;}
+.creneau-card .cc-niv{ font-size:14px; font-weight:600; margin:8px 0 4px; color:var(--ink);}
+.creneau-card .cc-prof{ font-size:12px; color:#6b6657;}
+.creneau-card .cc-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding-top:10px; border-top:1px solid #f0ece0;}
+.cc-gauge-mini{ flex:1; height:6px; background:#ede9da; border-radius:4px; overflow:hidden; margin-right:10px;}
+.cc-gauge-mini-fill{ height:100%; background:linear-gradient(90deg,var(--clay),var(--ball)); border-radius:4px;}
+.cc-seances-count{ font-family:'JetBrains Mono',monospace; font-size:12px; color:#6b6657; white-space:nowrap;}
+.gauge-wrap{margin-bottom:16px;}
+.gauge{height:14px; background:#ede9da; border-radius:8px; overflow:hidden;}
+.gauge-fill{height:100%; background:linear-gradient(90deg,var(--clay),var(--ball)); transition:width .3s;}
+.gauge-label{font-family:'JetBrains Mono',monospace; font-size:13px; margin-top:6px;}
+.seance-cell{width:34px; height:30px; border-radius:5px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;}
+.present{background:var(--ok); color:#fff;}
+.absent{background:#f1eee2; color:#999;}
+.personne-col{background:#f6f4ed; color:#aaa;}
+.date-head{font-family:'JetBrains Mono',monospace; font-size:11px; cursor:pointer; white-space:nowrap;}
+.add-seance-btn{width:34px; height:34px; border-radius:50%; background:var(--court); color:#fff; font-size:20px; line-height:1;}
 
-  .summary-box{
-    background:#fff;border:1.5px dashed var(--line);border-radius:12px;
-    padding:12px;margin-top:10px;font-size:.88rem;
-  }
-  .summary-box .abs-name{
-    display:inline-block;background:var(--absent-bg);color:var(--absent);
-    padding:3px 9px;border-radius:20px;font-weight:700;font-size:.78rem;margin:3px 4px 0 0;
-  }
+/* SUBTABS */
+.subtabs{display:flex; gap:6px; margin-bottom:18px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch;}
+.subtabs button{padding:8px 14px; border-radius:6px; background:#f1eee2; font-size:12px; font-weight:600; font-family:'Oswald',sans-serif; letter-spacing:.03em; text-transform:uppercase;}
+.subtabs button.active{background:var(--clay); color:#fff;}
 
-  .session-item{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:9px 0;border-top:1px solid var(--line);font-size:.86rem;
-  }
-  .session-item:first-child{border-top:none;}
+.banner{padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:14px;}
+.banner-warn{background:#fbf1d9; border:1px solid var(--warn); color:#7a5c14;}
+.banner-ok{background:#e8f5ec; border:1px solid var(--ok); color:#1f5c36;}
+.banner-err{background:#fbe6e3; border:1px solid var(--danger); color:#8a261b;}
 
-  /* Suivi */
-  table.stats{
-    width:100%;border-collapse:collapse;font-size:.82rem;table-layout:fixed;
-  }
-  table.stats th,table.stats td{
-    padding:6px 2px;text-align:center;border-bottom:1px solid var(--line);
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  }
-  table.stats th{font-size:.62rem;text-transform:uppercase;color:var(--ink-soft);letter-spacing:.2px;font-weight:800;}
-  table.stats th.icon-col,table.stats td.icon-col{font-size:.95rem;}
-  table.stats td.name-cell{text-align:left;font-weight:700;font-size:.78rem;}
-  table.stats td.warn{color:var(--absent);font-weight:800;}
-  table.stats col.col-name{width:30%;}
-  table.stats col.col-stat{width:17.5%;}
+footer{text-align:center; padding:18px; font-size:11px; color:#9b9684; font-family:'JetBrains Mono',monospace;}
 
-  .activite-card{border-left:4px solid var(--track);}
-  .toast{
-    position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
-    background:var(--ink);color:#fff;padding:10px 18px;border-radius:30px;
-    font-size:.85rem;font-weight:600;z-index:50;opacity:0;pointer-events:none;
-    transition:opacity .25s;
-  }
-  .toast.show{opacity:1;}
-  .hint{font-size:.76rem;color:var(--ink-soft);margin-top:4px;}
-  .close-x{background:none;border:none;color:var(--ink-soft);font-size:1rem;padding:2px 6px;}
+/* ===== RESPONSIVE MOBILE ===== */
+@media(max-width:640px){
+  /* Header */
+  .top-inner > div:first-child { flex-direction:column; align-items:flex-start; gap:4px; }
+  .brand .name { font-size:20px; }
+  #refreshBtn span:last-child { display:none; } /* cacher le texte "Actualiser", garder l'icône */
+  #refreshBtn { padding:7px 9px; }
 
-  .sub.status-ok{color:#8fd6a8;}
-  .sub.status-error{color:#f0a99e;}
-  .sub.status-sync{color:#f0cf9e;}
-  .sub.status-none{color:#c7cfd4;}
-  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;}
-  .status-dot.ok{background:#8fd6a8;}
-  .status-dot.error{background:#f0a99e;}
-  .status-dot.sync{background:#f0cf9e;}
-  .status-dot.none{background:#8b98a1;}
-  code.inline{background:#efe9dc;border-radius:5px;padding:1px 6px;font-size:.82rem;}
+  /* Onglets principaux : icônes + texte court */
+  nav.tabs button { font-size:11px; padding:10px 6px; letter-spacing:0; }
+
+  /* Main */
+  main { padding:14px 10px 60px; }
+
+  /* Cards */
+  .card { padding:14px 12px; }
+  .card h2 { font-size:15px; }
+
+  /* Formulaires : champs pleine largeur */
+  .row { flex-direction:column; }
+  .field { width:100%; }
+  .field input, .field select, .field textarea { font-size:16px; } /* évite le zoom auto iOS */
+
+  /* Boutons en ligne */
+  .btn { font-size:13px; }
+  .subtabs { gap:4px; }
+  .subtabs button { font-size:11px; padding:7px 9px; }
+
+  /* Day pills planning */
+  .day-pills button { padding:7px 10px; font-size:11px; }
+
+  /* Cartes créneaux espace prof */
+  .creneau-cards { grid-template-columns:1fr !important; }
+  .creneau-card .cc-time { font-size:18px; }
+
+  /* Vue semaine : 1 colonne sur mobile */
+  .print-grid { grid-template-columns:1fr !important; }
+  .mercredi-col { grid-column:span 1 !important; }
+
+  /* Tableaux : scroll horizontal */
+  .scroll-x { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  table { min-width:0; width:100%; }
+
+  /* Login box */
+  .login-box { margin:30px auto; padding:0 10px; }
+
+  /* Jauge appel */
+  .gauge-label { font-size:12px; }
+
+  /* Feuille d'appel : réduire les cellules */
+  .seance-cell { width:28px; height:26px; font-size:12px; }
+  .add-seance-btn { width:30px; height:30px; font-size:18px; }
+}
+
+@media(max-width:400px){
+  nav.tabs button { font-size:10px; padding:9px 4px; }
+  .brand .name { font-size:17px; }
+}
+
+@media print {
+  @page { size:A4 landscape; margin:10mm; }
+  header.top, nav.tabs, .day-pills, footer, .no-print { display:none !important; }
+  body { background:#fff; font-size:9px; }
+  main { padding:0; max-width:100%; }
+  #print-header { display:block !important; }
+  .print-grid { display:grid !important; grid-template-columns:1fr 1fr 2fr 1fr 1fr 1fr !important; gap:5px !important; width:100% !important; }
+  .print-col { break-inside:avoid; }
+  .mercredi-col { grid-column:span 2; }
+  .print-col-head { font-size:9px !important; padding:4px 6px !important; border-radius:4px 4px 0 0 !important; }
+  .print-slot { padding:5px 6px !important; }
+  .print-slot-time { font-size:9px !important; }
+  .print-slot-niv { font-size:8px !important; }
+  .print-slot-prof { font-size:8px !important; }
+  .print-membre { font-size:8px !important; padding:1px 0 !important; }
+  .print-avatar { width:14px !important; height:14px !important; font-size:7px !important; }
+  .card, .slot { box-shadow:none !important; }
+  a { text-decoration:none; }
+}
 </style>
 </head>
 <body>
-
 <header class="top">
-  <div class="brand">
-    <svg class="whistle" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="11" stroke="#e8622c" stroke-width="2"/>
-      <path d="M8 12h8M12 8v8" stroke="#e8622c" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <div>
-      <h1>Appel EPS</h1>
-      <div class="sub" id="headerSub">Prêt</div>
+  <div class="top-inner">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+      <div class="brand">
+        <h1 class="name" id="clubName">Club de Tennis</h1>
+        <span class="tag">PLANNING &amp; APPEL</span>
+      </div>
+      <button onclick="actualiser()" id="refreshBtn" title="Actualiser les données" style="background:rgba(245,242,232,.12); border:1.5px solid rgba(245,242,232,.25) !important; color:var(--chalk); padding:7px 12px; border-radius:8px; font-size:12px; font-family:'Work Sans',sans-serif; font-weight:600; display:flex; align-items:center; gap:6px; cursor:pointer; transition:.15s;">
+        <span id="refreshIcon">🔄</span> Actualiser
+      </button>
     </div>
+    <nav class="tabs" id="mainTabs"></nav>
   </div>
 </header>
-
-<nav class="tabs">
-  <button class="tab-btn active" data-view="appel">Appel</button>
-  <button class="tab-btn" data-view="parametrage">Paramétrage</button>
-  <button class="tab-btn" data-view="suivi">Suivi</button>
-  <button class="tab-btn" data-view="reglages">Réglages</button>
-</nav>
-
-<main>
-
-  <!-- ===================== PARAMÉTRAGE ===================== -->
-  <section id="view-parametrage" class="view">
-    <div class="card">
-      <h2>Importer une classe (CSV)</h2>
-      <label class="field-label" for="csvClassName">Nom de la classe</label>
-      <div class="row" style="margin-bottom:8px;">
-        <input type="text" id="csvClassName" class="grow" placeholder="ex : 5e A">
-      </div>
-      <label class="field-label" for="csvFile">Fichier CSV (colonnes : prenom, nom — 1 par ligne)</label>
-      <input type="file" id="csvFile" accept=".csv,text/csv">
-      <div class="hint">Une ligne d'en-tête est détectée et ignorée automatiquement si présente. Séparateur : virgule ou point-virgule.</div>
-      <button class="btn primary btn-block" id="btnImportCsv" style="margin-top:10px;">Importer</button>
-    </div>
-
-    <div class="card">
-      <h2>Ajouter un élève manuellement</h2>
-      <div class="row wrap" style="margin-bottom:8px;">
-        <div class="grow" style="min-width:120px;">
-          <label class="field-label">Classe</label>
-          <select id="manualClassSelect"></select>
-        </div>
-      </div>
-      <div class="row wrap">
-        <div class="grow" style="min-width:100px;">
-          <label class="field-label">Prénom</label>
-          <input type="text" id="manualPrenom">
-        </div>
-        <div class="grow" style="min-width:100px;">
-          <label class="field-label">Nom</label>
-          <input type="text" id="manualNom">
-        </div>
-      </div>
-      <button class="btn ghost btn-block" id="btnAddStudent" style="margin-top:10px;">Ajouter l'élève</button>
-    </div>
-
-    <div id="classesList"></div>
-
-    <div class="card">
-      <h2>Activités (max. 5 par classe)</h2>
-      <div class="hint" style="margin-bottom:8px;">Une activité peut avoir plusieurs périodes (ex. reprise en fin d'année), et plusieurs activités peuvent se dérouler sur la même période.</div>
-      <div class="row wrap" style="margin-bottom:8px;">
-        <div class="grow" style="min-width:120px;">
-          <label class="field-label">Classe</label>
-          <select id="paramActiviteClassSelect"></select>
-        </div>
-      </div>
-      <div id="activitesForClass"></div>
-
-      <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px;">
-        <label class="field-label">Nom de la nouvelle activité</label>
-        <input type="text" id="newActiviteNom" placeholder="ex : Badminton" style="margin-bottom:8px;">
-        <div class="row wrap">
-          <div class="grow" style="min-width:110px;">
-            <label class="field-label">Début (1ʳᵉ période)</label>
-            <input type="date" id="newActiviteDebut">
-          </div>
-          <div class="grow" style="min-width:110px;">
-            <label class="field-label">Fin (1ʳᵉ période)</label>
-            <input type="date" id="newActiviteFin">
-          </div>
-        </div>
-        <button class="btn ghost btn-block" id="btnAddActivite" style="margin-top:10px;">Ajouter l'activité</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== APPEL ===================== -->
-  <section id="view-appel" class="view active">
-
-    <div class="card" id="appelSetupCard">
-      <h2>Nouvel appel</h2>
-      <div class="row wrap" style="margin-bottom:10px;">
-        <div class="grow" style="min-width:130px;">
-          <label class="field-label">Classe</label>
-          <select id="appelClassSelect"></select>
-        </div>
-        <div class="grow" style="min-width:130px;">
-          <label class="field-label">Date</label>
-          <input type="date" id="appelDate">
-        </div>
-      </div>
-      <label class="field-label" for="appelActiviteSelect">Activité (obligatoire)</label>
-      <select id="appelActiviteSelect" style="margin-bottom:10px;"></select>
-      <button class="btn primary btn-block" id="btnStartAppel">+ Créer l'appel</button>
-      <div class="hint" id="appelActiviteHint"></div>
-    </div>
-
-    <div class="card" id="appelLiveCard" style="display:none;">
-      <div class="row wrap" style="margin-bottom:10px;">
-        <div class="grow" style="min-width:160px;">
-          <label class="field-label" for="appelLiveActiviteSelect">Activité de cette séance</label>
-          <select id="appelLiveActiviteSelect"></select>
-        </div>
-      </div>
-      <div class="row" style="justify-content:space-between;">
-        <h2 id="appelLiveTitle" style="margin:0;"></h2>
-        <button class="close-x" id="btnCloseAppel">✕</button>
-      </div>
-
-      <div id="micZone" class="mic-wrap"></div>
-
-      <div class="row wrap" style="margin:10px 0 4px;gap:8px;">
-        <button class="btn ghost small" id="btnMarkAllPresent">Tout présent</button>
-        <button class="btn ghost small" id="btnResetAppel">Réinitialiser</button>
-      </div>
-
-      <div id="rosterList"></div>
-
-      <button class="btn primary btn-block" id="btnFinishAppel" style="margin-top:12px;">Terminer l'appel</button>
-      <div id="appelSummary"></div>
-    </div>
-
-    <div class="card">
-      <h2>Appels précédents</h2>
-      <div id="pastSessions"><div class="empty">Aucun appel enregistré pour l'instant.</div></div>
-    </div>
-  </section>
-
-  <!-- ===================== SUIVI ===================== -->
-  <section id="view-suivi" class="view">
-    <div class="card">
-      <h2>Statistiques par activité</h2>
-      <div class="row wrap" style="margin-bottom:8px;">
-        <div class="grow" style="min-width:120px;">
-          <label class="field-label">Classe</label>
-          <select id="statsClassSelect"></select>
-        </div>
-      </div>
-      <label class="field-label">Activité</label>
-      <select id="statsActiviteSelect" style="margin-bottom:10px;"></select>
-      <div id="statsTableWrap"><div class="empty">Choisis une activité pour voir les statistiques.</div></div>
-    </div>
-  </section>
-
-
-  <!-- ===================== REGLAGES ===================== -->
-  <section id="view-reglages" class="view">
-    <div class="card">
-      <h2>Google Sheet comme base de données</h2>
-      <p class="hint" style="margin-bottom:10px;">
-        Toutes les données (classes, appels, activités, suivi) sont lues et écrites dans ton Google Sheet
-        via une petite passerelle Apps Script que tu déploies une fois. Voir le guide fourni à côté de ce fichier.
-      </p>
-      <label class="field-label" for="sheetsUrl">URL de l'application web Apps Script</label>
-      <input type="text" id="sheetsUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" style="margin-bottom:8px;">
-      <label class="field-label" for="sheetsToken">Jeton secret (facultatif, doit correspondre à TOKEN dans le script)</label>
-      <input type="text" id="sheetsToken" placeholder="ex : monclasse2026" style="margin-bottom:10px;">
-      <div class="row wrap">
-        <button class="btn primary grow" id="btnSaveConfig">Enregistrer et se connecter</button>
-        <button class="btn ghost grow" id="btnSyncNow">Synchroniser maintenant</button>
-      </div>
-      <div class="hint" id="reglagesStatus" style="margin-top:10px;"></div>
-    </div>
-    <div class="card">
-      <h2>Bon à savoir</h2>
-      <div class="hint">
-        • Sans URL configurée, l'application fonctionne quand même, en local sur cet appareil.<br>
-        • Si le Sheet est injoignable (pas de réseau), les dernières données synchronisées restent affichées et modifiables ; la synchronisation reprend automatiquement au prochain changement.<br>
-        • Le jeton n'est qu'une protection basique : toute personne avec le lien de l'application web et le jeton peut lire/écrire les données.
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<div class="toast" id="toast"></div>
+<div id="print-header" style="display:none; margin-bottom:10px; border-bottom:2px solid #1F4D3D; padding-bottom:6px;">
+  <div style="display:flex; justify-content:space-between; align-items:baseline;">
+    <span style="font-family:'Oswald',sans-serif; font-size:16px; font-weight:700; text-transform:uppercase;" id="printClubName">Club de Tennis</span>
+    <span style="font-size:9px; color:#666;">Planning de la semaine — imprimé le <span id="printDate"></span></span>
+  </div>
+</div>
+<main id="app"></main>
+<footer>Application club de tennis — données synchronisées avec Google Sheets</footer>
 
 <script>
-(function(){
-"use strict";
-
-/* ---------------------------------------------------------------
-   STATE
---------------------------------------------------------------- */
-let DATA = {
-  classes: {},      // classId -> {id,name,students:[{id,prenom,nom}]}
-  seances: {},       // seanceId -> {id,classId,date,activiteId,status:'open'|'done',students:{studentId:{presence,dispense,pratiquant,oubli}}}
-  activites: {}      // activiteId -> {id,classId,nom,debut,fin}
+/* ====================== CONSTANTES ====================== */
+const JOURS = ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+const SHEETS = ['Config','Profs','Planning','Eleves','Affectations','Seances','Presences'];
+const HEADERS = {
+  Config: ['cle','valeur'],
+  Profs: ['id','nom'],
+  Planning: ['id','jour','heure_debut','duree','niveau','places','prof_id'],
+  Eleves: ['id','nom','prenom','sexe','annee_naissance','niveau','telephone','indisponibilites'],
+  Affectations: ['id','eleve_id','creneau_id'],
+  Seances: ['id','creneau_id','date','personne'],
+  Presences: ['id','seance_id','eleve_id','present']
 };
-let currentAppelId = null;
-let recognizing = false;
-let recognizer = null;
-let lastMatchedStudentId = null;
 
-const $ = (sel) => document.querySelector(sel);
+/* ====================== STATE ====================== */
+let DB = { Config:[], Profs:[], Planning:[], Eleves:[], Affectations:[], Seances:[], Presences:[] };
+let UI = {
+  mainTab: 'planning',
+  planningDay: 'tous',
+  planningSelectedSlot: null,
+  profSession: null,        // {id, nom}
+  profSelectedCreneau: null,
+  adminSession: false,
+  adminSubtab: 'reglages',
+  editingCreneau: null,
+  editingEleve: null,
+  affFiltres: { nom:'', annee:'', niveau:'', sexe:'', creneau:'', categorie:'' },
+  lastAutoReport: null,
+  loading: false,
+  archivesList: [],
+  archiveData: null,
+  archiveSeasonName: null,
+  sheetUrl: localStorage.getItem('tc_sheet_url') || ''
+};
 
-/* Stockage persistant local (localStorage) — fonctionne quand le fichier est ouvert
-   directement dans le navigateur (double-clic, GitHub Pages, ENT...), contrairement
-   à window.storage qui n'existe que dans l'aperçu Claude. */
-const storage = {
-  async get(key){
-    try{
-      const v = localStorage.getItem('appel-eps:'+key);
-      if(v===null || v===undefined) return null;
-      return { key, value:v };
-    }catch(e){ return null; }
+const uid = () => 'id' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+function cfg(key, fallback){
+  const row = DB.Config.find(r => r.cle === key);
+  return row ? row.valeur : fallback;
+}
+function setCfg(key, value){
+  let row = DB.Config.find(r => r.cle === key);
+  if(row){ row.valeur = value; } else { DB.Config.push({cle:key, valeur:value}); }
+}
+
+/* ====================== API (Google Apps Script) ====================== */
+const Api = {
+  async getAll(){
+    if(!UI.sheetUrl) return null;
+    const res = await fetch(UI.sheetUrl, {method:'GET'});
+    if(!res.ok) throw new Error('Erreur réseau');
+    return await res.json();
   },
-  async set(key, value){
-    try{ localStorage.setItem('appel-eps:'+key, value); return { key, value }; }
-    catch(e){ return null; }
+  async save(sheet, rows, mode='replace'){
+    if(!UI.sheetUrl) throw new Error('Aucune URL Google Sheet configurée');
+    const res = await fetch(UI.sheetUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({sheet, mode, rows})
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || 'Erreur de sauvegarde');
+    return data;
   },
-  async delete(key){
-    try{ localStorage.removeItem('appel-eps:'+key); return { key, deleted:true }; }
-    catch(e){ return null; }
+  async listArchives(){
+    const res = await fetch(UI.sheetUrl + '?action=archives');
+    const data = await res.json();
+    return data.saisons || [];
+  },
+  async getArchive(season){
+    const res = await fetch(UI.sheetUrl + '?action=archive&season=' + encodeURIComponent(season));
+    return await res.json();
+  },
+  async archiveSeason(seasonName){
+    const res = await fetch(UI.sheetUrl, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({action:'archiveSeason', seasonName})
+    });
+    const data = await res.json();
+    if(!data.ok) throw new Error(data.error || "Erreur lors de l'archivage");
+    return data;
   }
 };
-const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-const uid = (p) => p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
-/* Icône "main levée" (élève présent qui répond à l'appel) — dessinée pour hériter
-   de la couleur du bouton (currentColor), comme le sifflet de l'en-tête */
-const ICON_HAND = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;">
-  <path d="M8 11.5V5.2a1.3 1.3 0 0 1 2.6 0v5.8"/>
-  <path d="M10.6 10.8V4.3a1.3 1.3 0 0 1 2.6 0v6.5"/>
-  <path d="M13.2 11V5.6a1.3 1.3 0 0 1 2.6 0v6.9"/>
-  <path d="M15.8 12.2v-2a1.3 1.3 0 0 1 2.6 0V15a6 6 0 0 1-6 6h-1.2c-1.9 0-2.9-.6-4-1.9l-3-3.5c-.6-.8-.5-1.7.2-2.3.7-.6 1.6-.5 2.3.2l1.3 1.4"/>
-</svg>`;
+/* ===== SAUVEGARDE LOCALE (localStorage) ===== */
+/* ===== SAUVEGARDE LOCALE (filet de sécurité) ===== */
+const LOCAL_KEY = 'tc_db_local';
 
-/* ---------------------------------------------------------------
-   STORAGE — Google Sheet (source de vérité) + cache local (secours hors-ligne)
---------------------------------------------------------------- */
-let CONFIG = { url:'', token:'' };
-
-async function loadConfig(){
+function sauvegarderLocal(){
   try{
-    const r = await storage.get('sheets-config');
-    if(r) CONFIG = Object.assign({url:'',token:''}, JSON.parse(r.value));
+    localStorage.setItem(LOCAL_KEY, JSON.stringify({
+      Seances: DB.Seances, Presences: DB.Presences, ts: Date.now()
+    }));
   }catch(e){}
 }
-async function saveConfigToStorage(){
-  try{ await storage.set('sheets-config', JSON.stringify(CONFIG), false); }catch(e){}
+
+function chargerLocal(){
+  try{ const r = localStorage.getItem(LOCAL_KEY); return r ? JSON.parse(r) : null; }
+  catch(e){ return null; }
 }
-async function loadCache(){
-  try{
-    const r = await storage.get('data-cache');
-    if(r){
-      const c = JSON.parse(r.value);
-      DATA.classes = c.classes||{};
-      DATA.activites = c.activites||{};
-      DATA.seances = c.seances||{};
-      return true;
+
+/* ===== DEBOUNCE : évite les sauvegardes concurrentes ===== */
+const _debounceTimers = {};
+function persistDebounced(sheet, delay=800){
+  if(_debounceTimers[sheet]) clearTimeout(_debounceTimers[sheet]);
+  _debounceTimers[sheet] = setTimeout(async()=>{
+    sauvegarderLocal();
+    const ok = await persist(sheet);
+    if(ok){ showToast('✅ Enregistré', 'ok', 2000); }
+    else {
+      showToast('📱 Sauvegardé localement — sera synchronisé au rechargement', 'info', 5000);
     }
-  }catch(e){}
-  return false;
-}
-async function saveCache(){
-  try{
-    await storage.set('data-cache', JSON.stringify({
-      classes: DATA.classes, activites: DATA.activites, seances: DATA.seances
-    }), false);
-  }catch(e){}
-}
-
-function setSyncStatus(kind, msg){
-  const el = $('#headerSub');
-  el.className = 'sub status-'+kind;
-  el.innerHTML = '<span class="status-dot '+kind+'"></span>'+msg;
-  const rs = $('#reglagesStatus');
-  if(rs) rs.textContent = msg;
-}
-
-async function fetchFromSheet(){
-  const u = new URL(CONFIG.url);
-  u.searchParams.set('action','load');
-  if(CONFIG.token) u.searchParams.set('token', CONFIG.token);
-  const res = await fetch(u.toString());
-  const json = await res.json();
-  if(json.error) throw new Error(json.error);
-  return json;
-}
-async function pushToSheet(){
-  const payload = {
-    action:'save',
-    token: CONFIG.token||'',
-    data: { classes: DATA.classes, activites: DATA.activites, seances: DATA.seances }
-  };
-  const res = await fetch(CONFIG.url, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify(payload)
-  });
-  const json = await res.json();
-  if(json.error) throw new Error(json.error);
+  }, delay);
 }
 
 async function loadAll(){
-  await loadConfig();
-  if(!CONFIG.url){
-    await loadCache();
-    migrateActivites();
-    setSyncStatus('none', 'Non connecté à un Google Sheet (onglet Réglages)');
-    return;
-  }
-  setSyncStatus('sync', 'Connexion au Google Sheet…');
+  if(!UI.sheetUrl){ renderApp(); return; }
+  UI.loading = true; renderApp();
   try{
-    const remote = await fetchFromSheet();
-    DATA.classes = remote.classes||{};
-    DATA.activites = remote.activites||{};
-    DATA.seances = remote.seances||{};
-    migrateActivites();
-    await saveCache();
-    setSyncStatus('ok', 'Synchronisé avec Google Sheets');
-  }catch(err){
-    console.warn(err);
-    const had = await loadCache();
-    migrateActivites();
-    setSyncStatus('error', had ? 'Hors ligne — dernières données locales affichées' : ('Connexion au Sheet impossible : '+err.message));
-  }
-}
+    const data = await Api.getAll();
+    // Sheet = source de vérité
+    SHEETS.forEach(s => DB[s] = (data[s]||[]).map(normalizeRow));
 
-let saveTimer=null;
-function saveAll(){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async ()=>{
-    await saveCache();
-    if(!CONFIG.url) return;
-    setSyncStatus('sync', 'Synchronisation…');
-    try{
-      await pushToSheet();
-      setSyncStatus('ok', 'Synchronisé avec Google Sheets');
-    }catch(err){
-      console.warn(err);
-      setSyncStatus('error', 'Échec de synchronisation ('+err.message+') — nouvel essai au prochain changement');
-    }
-  }, 500);
-}
-// Sauvegarde immédiate et confirmée (sans attendre le délai de regroupement),
-// utilisée pour les actions ponctuelles importantes comme l'enregistrement
-// d'une prononciation, où l'utilisateur doit savoir tout de suite si c'est bien passé.
-async function saveNow(){
-  clearTimeout(saveTimer);
-  await saveCache();
-  if(!CONFIG.url) return true; // pas de Sheet configuré : le cache local suffit
-  setSyncStatus('sync', 'Synchronisation…');
-  try{
-    await pushToSheet();
-    setSyncStatus('ok', 'Synchronisé avec Google Sheets');
-    return true;
-  }catch(err){
-    console.warn(err);
-    setSyncStatus('error', 'Échec de synchronisation ('+err.message+')');
-    return false;
-  }
-}
-
-function renderReglagesTab(){
-  $('#sheetsUrl').value = CONFIG.url||'';
-  $('#sheetsToken').value = CONFIG.token||'';
-}
-$('#btnSaveConfig').addEventListener('click', async ()=>{
-  CONFIG.url = $('#sheetsUrl').value.trim();
-  CONFIG.token = $('#sheetsToken').value.trim();
-  await saveConfigToStorage();
-  toast('Réglages enregistrés');
-  await loadAll();
-  renderClasses(); renderAppelTab(); renderSuiviTab();
-});
-$('#btnSyncNow').addEventListener('click', async ()=>{
-  if(!CONFIG.url){ toast('Renseigne d\'abord une URL'); return; }
-  setSyncStatus('sync','Synchronisation manuelle…');
-  try{
-    const remote = await fetchFromSheet();
-    DATA.classes = remote.classes||{};
-    DATA.activites = remote.activites||{};
-    DATA.seances = remote.seances||{};
-    migrateActivites();
-    await saveCache();
-    setSyncStatus('ok','Synchronisé avec Google Sheets');
-    renderClasses(); renderAppelTab(); renderSuiviTab();
-    toast('Données rechargées depuis le Sheet');
-  }catch(err){
-    setSyncStatus('error', 'Échec : '+err.message);
-  }
-});
-
-/* ---------------------------------------------------------------
-   HELPERS
---------------------------------------------------------------- */
-function normalize(str){
-  return (str||'').toString().toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9\s-]/g,'').trim();
-}
-function toast(msg){
-  const t = $('#toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._h);
-  t._h = setTimeout(()=>t.classList.remove('show'), 2200);
-}
-function todayISO(){
-  const d = new Date();
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
-}
-function fmtDate(iso){
-  if(!iso) return '';
-  const [y,m,d] = iso.split('-');
-  return d+'/'+m+'/'+y;
-}
-function classList(){
-  return Object.values(DATA.classes).sort((a,b)=>a.name.localeCompare(b.name,'fr'));
-}
-function studentsOf(classId){
-  const c = DATA.classes[classId];
-  return c ? c.students.slice().sort((a,b)=>(a.nom||'').localeCompare(b.nom||'','fr') || a.prenom.localeCompare(b.prenom,'fr')) : [];
-}
-function activitesOf(classId){
-  return Object.values(DATA.activites).filter(a=>a.classId===classId)
-    .sort((a,b)=>earliestStart(a).localeCompare(earliestStart(b)));
-}
-function earliestStart(act){
-  const periods = act.periods||[];
-  if(periods.length===0) return '9999-99-99';
-  return periods.map(p=>p.debut).sort()[0];
-}
-// Une activité peut avoir plusieurs périodes, et plusieurs activités peuvent
-// être actives en même temps sur une même période : on retourne donc un tableau.
-function activitesActiveOn(classId, dateISO){
-  return activitesOf(classId).filter(a=>(a.periods||[]).some(p=>dateISO>=p.debut && dateISO<=p.fin));
-}
-function fmtPeriods(act){
-  return (act.periods||[]).map(p=>fmtDate(p.debut)+'–'+fmtDate(p.fin)).join(', ') || '(aucune période)';
-}
-// Migration : les anciennes activités enregistrées avec un seul debut/fin direct
-// (avant la gestion multi-périodes) sont converties en periods:[{debut,fin}]
-function migrateActivites(){
-  Object.values(DATA.activites).forEach(a=>{
-    if(!a.periods){
-      a.periods = (a.debut && a.fin) ? [{debut:a.debut, fin:a.fin}] : [];
-      delete a.debut; delete a.fin;
-    }
-  });
-}
-
-/* ---------------------------------------------------------------
-   TAB NAVIGATION
---------------------------------------------------------------- */
-$$('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    $$('.tab-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    $$('.view').forEach(v=>v.classList.remove('active'));
-    $('#view-'+btn.dataset.view).classList.add('active');
-    if(btn.dataset.view==='parametrage'){ renderClasses(); renderParametrageActivites(); }
-    if(btn.dataset.view==='appel') renderAppelTab();
-    if(btn.dataset.view==='suivi') renderSuiviTab();
-    if(btn.dataset.view==='reglages') renderReglagesTab();
-  });
-});
-
-/* ---------------------------------------------------------------
-   CLASSES TAB
---------------------------------------------------------------- */
-function refreshClassSelects(){
-  const opts = classList().map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-  ['#manualClassSelect','#appelClassSelect','#paramActiviteClassSelect','#statsClassSelect'].forEach(sel=>{
-    const el = $(sel);
-    const prev = el.value;
-    el.innerHTML = opts || '<option value="">— aucune classe —</option>';
-    if(prev && DATA.classes[prev]) el.value = prev;
-  });
-}
-function escapeHtml(s){
-  return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-let openClassIds = new Set();
-function renderClasses(){
-  refreshClassSelects();
-  const wrap = $('#classesList');
-  const classes = classList();
-  const speechOk = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  if(classes.length===0){
-    wrap.innerHTML = `<div class="empty"><b>Aucune classe importée</b>Importe un fichier CSV ci-dessus pour commencer.</div>`;
-    return;
-  }
-  wrap.innerHTML = classes.map(c=>{
-    const students = studentsOf(c.id);
-    const rows = students.map(s=>{
-      const oral = s.oral||[];
-      const chips = oral.map((o,idx)=>`<span class="chip on" style="border-color:#2b5b8c;color:#2b5b8c;background:#eaf2fb;">🔊 ${escapeHtml(o)} <button class="icon-btn" style="padding:0 0 0 4px;font-size:.9rem;" data-del-oral="${idx}" data-sid="${s.id}" data-class="${c.id}">✕</button></span>`).join('');
-      return `
-      <div class="student-row" data-sid="${s.id}" style="flex-direction:column;align-items:stretch;gap:6px;">
-        <div class="row" style="justify-content:space-between;">
-          <span>${escapeHtml(s.prenom)} ${escapeHtml(s.nom||'')}</span>
-          <button class="icon-btn" data-del-student="${s.id}" data-class="${c.id}">Suppr.</button>
-        </div>
-        <div class="row wrap" style="gap:6px;">
-          ${speechOk ? `<button class="icon-btn" style="border:1.5px solid var(--line);border-radius:8px;" data-rec-oral="${s.id}" data-class="${c.id}">🎤 Enregistrer la prononciation</button>` : ''}
-          ${chips}
-          ${(!oral.length) ? '<span class="hint" style="margin:0;">Aucune prononciation enregistrée — la reconnaissance utilisera l\'orthographe (moins fiable).</span>' : ''}
-        </div>
-      </div>`;
-    }).join('') || '<div class="empty">Aucun élève.</div>';
-    return `
-    <details class="card class-card" data-class-id="${c.id}" ${openClassIds.has(c.id)?'open':''}>
-      <summary>
-        <span class="name">${escapeHtml(c.name)}</span>
-        <span class="count">${students.length} élève(s) · <button class="icon-btn" data-del-class="${c.id}">supprimer la classe</button></span>
-      </summary>
-      ${rows}
-    </details>`;
-  }).join('');
-
-  wrap.querySelectorAll('details.class-card').forEach(det=>{
-    det.addEventListener('toggle', ()=>{
-      const cid = det.dataset.classId;
-      if(det.open) openClassIds.add(cid); else openClassIds.delete(cid);
-    });
-  });
-  wrap.querySelectorAll('[data-del-student]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      const cid = btn.dataset.class, sid = btn.dataset.delStudent;
-      DATA.classes[cid].students = DATA.classes[cid].students.filter(s=>s.id!==sid);
-      renderClasses();
-      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
-    });
-  });
-  wrap.querySelectorAll('[data-del-class]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      if(!confirm('Supprimer cette classe et ses élèves ?')) return;
-      delete DATA.classes[btn.dataset.delClass];
-      renderClasses();
-      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
-    });
-  });
-  wrap.querySelectorAll('[data-del-oral]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      const cid = btn.dataset.class, sid = btn.dataset.sid, idx = parseInt(btn.dataset.delOral,10);
-      const s = DATA.classes[cid].students.find(x=>x.id===sid);
-      if(s && s.oral) s.oral.splice(idx,1);
-      renderClasses();
-      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
-    });
-  });
-  wrap.querySelectorAll('[data-rec-oral]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      recordOralSample(btn.dataset.recOral, btn.dataset.class, btn);
-    });
-  });
-}
-
-function recordOralSample(studentId, classId, btnEl){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return;
-  const rec = new SR();
-  rec.lang = 'fr-FR';
-  rec.continuous = false;
-  rec.interimResults = false;
-  const originalLabel = btnEl.textContent;
-  btnEl.textContent = '🎙️ Parle maintenant…';
-  btnEl.disabled = true;
-  let done = false;
-  const finish = ()=>{ btnEl.textContent = originalLabel; btnEl.disabled = false; };
-  rec.onresult = (e)=>{
-    done = true;
-    const transcript = normalize(e.results[0][0].transcript);
-    if(transcript){
-      const s = DATA.classes[classId].students.find(x=>x.id===studentId);
-      if(s){
-        s.oral = s.oral||[];
-        if(!s.oral.includes(transcript)) s.oral.push(transcript);
-        btnEl.textContent = '💾 Enregistrement...';
-        saveNow().then(ok=>{
-          toast(ok ? 'Prononciation enregistrée ✓' : '⚠ Non synchronisé — vérifie ta connexion et réessaie');
-          finish();
-          renderClasses();
-        });
-        return;
+    // Filet local : si le Sheet est vide mais le local a des données récentes (< 24h),
+    // c'est probablement un échec de sauvegarde → on restaure le local
+    const local = chargerLocal();
+    if(local && local.ts && (Date.now()-local.ts) < 86400000){
+      if(DB.Presences.length === 0 && local.Presences && local.Presences.length > 0){
+        DB.Presences = local.Presences.map(normalizeRow);
+        showToast('⚠️ Présences restaurées depuis la sauvegarde locale', 'info', 5000);
+        // Resynchroniser vers le Sheet
+        setTimeout(async()=>{
+          const ok = await persist('Presences');
+          if(ok) showToast('✅ Présences synchronisées', 'ok');
+        }, 1500);
+      }
+      if(DB.Seances.length === 0 && local.Seances && local.Seances.length > 0){
+        DB.Seances = local.Seances.map(normalizeRow);
+        setTimeout(()=> persist('Seances'), 1500);
       }
     }
-    finish();
-    renderClasses();
-  };
-  rec.onerror = (e)=>{
-    if(!done){
-      finish();
-      if(e.error==='no-speech') toast('Rien entendu — réessaie en parlant juste après avoir appuyé');
-      else toast('Erreur micro : '+e.error);
+
+    if(!DB.Config.find(r=>r.cle==='admin_code')) setCfg('admin_code','admin123');
+    if(!DB.Config.find(r=>r.cle==='objectif_seances')) setCfg('objectif_seances',30);
+  }catch(err){
+    // Sheet inaccessible → charger depuis le local
+    const local = chargerLocal();
+    if(local){
+      if(local.Seances) DB.Seances = local.Seances.map(normalizeRow);
+      if(local.Presences) DB.Presences = local.Presences.map(normalizeRow);
+      showToast('⚠️ Sheet inaccessible — données locales chargées', 'error', 5000);
+    } else {
+      UI.lastError = "Impossible de charger les données : " + err.message;
     }
-  };
-  rec.onend = ()=>{ if(!done) finish(); };
-  try{ rec.start(); }catch(err){ finish(); toast('Impossible de démarrer le micro'); }
-}
-
-function parseCsv(text){
-  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
-  if(lines.length===0) return [];
-  const sep = lines[0].includes(';') ? ';' : ',';
-  let start = 0;
-  const firstCols = lines[0].split(sep).map(c=>normalize(c));
-  if(firstCols.some(c=>c.includes('prenom')||c.includes('nom')||c.includes('classe'))) start = 1;
-  const out = [];
-  for(let i=start;i<lines.length;i++){
-    const cols = lines[i].split(sep).map(c=>c.trim().replace(/^"|"$/g,''));
-    if(cols.length===0 || !cols[0]) continue;
-    out.push({ prenom: cols[0]||'', nom: cols[1]||'', oral: [] });
   }
-  return out;
+  UI.loading = false;
+  renderApp();
 }
-
-$('#btnImportCsv').addEventListener('click', ()=>{
-  const nameInput = $('#csvClassName');
-  const fileInput = $('#csvFile');
-  const name = nameInput.value.trim();
-  if(!name){ toast('Indique un nom de classe'); return; }
-  const file = fileInput.files[0];
-  if(!file){ toast('Choisis un fichier CSV'); return; }
-  const reader = new FileReader();
-  reader.onload = (ev)=>{
-    const rows = parseCsv(ev.target.result);
-    if(rows.length===0){ toast('CSV vide ou illisible'); return; }
-    let cls = Object.values(DATA.classes).find(c=>normalize(c.name)===normalize(name));
-    if(!cls){
-      cls = { id: uid('cls'), name, students: [] };
-      DATA.classes[cls.id] = cls;
+function normalizeRow(r){
+  const o = {...r};
+  if('present' in o) o.present = (o.present===true||o.present==='TRUE'||o.present===1||o.present==='1');
+  if('personne' in o) o.personne = (o.personne===true||o.personne==='TRUE'||o.personne===1||o.personne==='1');
+  if('duree' in o) o.duree = Number(o.duree);
+  if('places' in o) o.places = Number(o.places);
+  if('annee_naissance' in o) o.annee_naissance = Number(o.annee_naissance);
+  return o;
+}
+async function persist(sheet, mode='replace', rowsOverride=null){
+  const MAX_RETRIES = 3;
+  const rows = rowsOverride || DB[sheet];
+  for(let i=0; i<MAX_RETRIES; i++){
+    try{
+      await Api.save(sheet, rows, mode);
+      return true;
+    }catch(err){
+      if(i < MAX_RETRIES-1){
+        await new Promise(r => setTimeout(r, 1000*(i+1)));
+      } else {
+        console.error('Persist failed:', err.message);
+        return false;
+      }
     }
-    rows.forEach(r=>{
-      cls.students.push({ id: uid('stu'), prenom: r.prenom, nom: r.nom, oral: [] });
-    });
-    saveNow().then(ok=>{
-      nameInput.value=''; fileInput.value='';
-      toast(ok ? rows.length+' élève(s) importé(s) dans '+name : '⚠ Import local ok, mais non synchronisé avec le Sheet');
-      renderClasses();
-    });
-  };
-  reader.readAsText(file, 'UTF-8');
-});
-
-$('#btnAddStudent').addEventListener('click', ()=>{
-  const cid = $('#manualClassSelect').value;
-  const prenom = $('#manualPrenom').value.trim();
-  const nom = $('#manualNom').value.trim();
-  if(!cid){ toast('Crée ou importe d\'abord une classe'); return; }
-  if(!prenom){ toast('Indique un prénom'); return; }
-  DATA.classes[cid].students.push({ id: uid('stu'), prenom, nom, oral: [] });
-  $('#manualPrenom').value=''; $('#manualNom').value='';
-  renderClasses();
-  saveNow().then(ok=>{ toast(ok ? 'Élève ajouté ✓' : '⚠ Ajouté localement, non synchronisé'); });
-});
-
-/* ---------------------------------------------------------------
-   APPEL TAB
---------------------------------------------------------------- */
-let UI_STATE = { lastClassId: '' };
-async function loadUiState(){
-  try{
-    const r = await storage.get('ui-state');
-    if(r) UI_STATE = Object.assign({lastClassId:''}, JSON.parse(r.value));
-  }catch(e){}
-}
-async function saveUiState(){
-  try{ await storage.set('ui-state', JSON.stringify(UI_STATE), false); }catch(e){}
-}
-
-function renderAppelTab(){
-  refreshClassSelects();
-  if(!$('#appelDate').value) $('#appelDate').value = todayISO();
-  const sel = $('#appelClassSelect');
-  if(!sel.value && UI_STATE.lastClassId && DATA.classes[UI_STATE.lastClassId]){
-    sel.value = UI_STATE.lastClassId;
-  }
-  refreshAppelActiviteSelect();
-  renderPastSessions();
-  if(currentAppelId && DATA.seances[currentAppelId]){
-    openAppelCard(currentAppelId);
-  }
-}
-$('#appelClassSelect').addEventListener('change', ()=>{
-  UI_STATE.lastClassId = $('#appelClassSelect').value;
-  saveUiState();
-  refreshAppelActiviteSelect();
-  renderPastSessions();
-});
-$('#appelDate').addEventListener('change', refreshAppelActiviteSelect);
-
-function refreshAppelActiviteSelect(){
-  const cid = $('#appelClassSelect').value;
-  const date = $('#appelDate').value;
-  const sel = $('#appelActiviteSelect');
-  const btn = $('#btnStartAppel');
-  const hint = $('#appelActiviteHint');
-  if(!cid){
-    sel.innerHTML = '<option value="">— choisis d\'abord une classe —</option>';
-    btn.disabled = true;
-    hint.textContent = '';
-    return;
-  }
-  const acts = activitesOf(cid);
-  if(acts.length===0){
-    sel.innerHTML = '<option value="">— aucune activité pour cette classe —</option>';
-    btn.disabled = true;
-    hint.textContent = 'Crée d\'abord une activité pour cette classe dans l\'onglet Paramétrage (l\'appel doit toujours être rattaché à une activité).';
-    return;
-  }
-  const activeIds = new Set(activitesActiveOn(cid, date).map(a=>a.id));
-  sel.innerHTML = acts.map(a=>`<option value="${a.id}" ${activeIds.has(a.id)?'selected':''}>${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('');
-  btn.disabled = false;
-  if(activeIds.size===0){
-    hint.textContent = 'Aucune activité n\'est active à cette date d\'après ses périodes — vérifie que c\'est la bonne avant de créer l\'appel.';
-  }else if(activeIds.size>1){
-    hint.textContent = 'Plusieurs activités sont actives à cette date : choisis la bonne dans la liste.';
-  }else{
-    hint.textContent = '';
-  }
-}
-
-$('#btnStartAppel').addEventListener('click', ()=>{
-  const cid = $('#appelClassSelect').value;
-  const date = $('#appelDate').value || todayISO();
-  const activiteId = $('#appelActiviteSelect').value;
-  if(!cid){ toast('Sélectionne une classe'); return; }
-  if(!activiteId){ toast('Choisis une activité — l\'appel doit y être rattaché'); return; }
-  const students = studentsOf(cid);
-  if(students.length===0){ toast('Cette classe n\'a pas d\'élèves'); return; }
-  const seance = {
-    id: uid('seance'), classId: cid, date, activiteId,
-    status: 'open', students: {}
-  };
-  students.forEach(s=>{
-    seance.students[s.id] = { presence:'pending', dispense:false, pratiquant:false, oubli:false };
-  });
-  DATA.seances[seance.id] = seance;
-  saveAll();
-  openAppelCard(seance.id);
-});
-
-// S'assure que tous les élèves actuels de la classe ont bien une entrée dans cet
-// appel (utile si des élèves ont été ajoutés à la classe après la création de l'appel)
-function syncSeanceRoster(seance){
-  let changed = false;
-  studentsOf(seance.classId).forEach(s=>{
-    if(!seance.students[s.id]){
-      seance.students[s.id] = { presence:'pending', dispense:false, pratiquant:false, oubli:false };
-      changed = true;
-    }
-  });
-  return changed;
-}
-
-function openAppelCard(seanceId){
-  currentAppelId = seanceId;
-  const seance = DATA.seances[seanceId];
-  const cls = DATA.classes[seance.classId];
-  $('#appelSetupCard').style.display='none';
-  $('#appelLiveCard').style.display='block';
-  $('#appelLiveTitle').textContent = cls.name+' · '+fmtDate(seance.date);
-  if(syncSeanceRoster(seance)) saveAll();
-  renderLiveActiviteSelect(seance);
-  renderMicZone();
-  renderRoster();
-  renderAppelSummary();
-}
-
-function renderLiveActiviteSelect(seance){
-  const acts = activitesOf(seance.classId);
-  const sel = $('#appelLiveActiviteSelect');
-  if(acts.length===0){
-    sel.innerHTML = '<option value="">— aucune activité pour cette classe —</option>';
-    return;
-  }
-  sel.innerHTML = '<option value="">— non rattaché —</option>' +
-    acts.map(a=>`<option value="${a.id}" ${seance.activiteId===a.id?'selected':''}>${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('');
-}
-$('#appelLiveActiviteSelect').addEventListener('change', ()=>{
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  seance.activiteId = $('#appelLiveActiviteSelect').value || null;
-  saveAll();
-  toast(seance.activiteId ? 'Activité mise à jour' : 'Appel détaché de toute activité');
-});
-
-$('#btnCloseAppel').addEventListener('click', ()=>{
-  stopRecognition();
-  currentAppelId = null;
-  $('#appelSetupCard').style.display='block';
-  $('#appelLiveCard').style.display='none';
-  renderPastSessions();
-});
-
-function renderMicZone(){
-  const zone = $('#micZone');
-  const supported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  if(!supported){
-    zone.innerHTML = `<div class="hint" style="text-align:center;">
-      La reconnaissance vocale n'est pas disponible sur ce navigateur.<br>Utilise les boutons Présent / Absent sur chaque élève.
-    </div>`;
-    return;
-  }
-  zone.innerHTML = `
-    <button class="mic-btn" id="btnMic">🎤</button>
-    <div class="mic-caption" id="micCaption">Appuie et parle : dis les prénoms des élèves présents.</div>
-    <div class="transcript" id="micTranscript"></div>
-  `;
-  $('#btnMic').addEventListener('click', toggleRecognition);
-}
-
-function toggleRecognition(){
-  if(recognizing){ stopRecognition(); return; }
-  startRecognition();
-}
-function startRecognition(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return;
-  recognizer = new SR();
-  recognizer.lang = 'fr-FR';
-  recognizer.continuous = true;
-  recognizer.interimResults = true;
-  recognizer.onresult = (e)=>{
-    let finalText='', interimText='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const t = e.results[i][0].transcript;
-      if(e.results[i].isFinal) finalText += ' '+t; else interimText += ' '+t;
-    }
-    const combined = (finalText+' '+interimText).trim();
-    const capt = $('#micTranscript');
-    if(capt) capt.textContent = combined;
-    // Analyse dès le texte intermédiaire (avant la pause de fin de phrase) pour
-    // marquer présent le plus vite possible, sans attendre la finalisation
-    if(combined) processSpokenText(combined);
-  };
-  recognizer.onerror = (e)=>{
-    if(e.error==='no-speech') return;
-    toast('Erreur micro : '+e.error);
-    stopRecognition();
-  };
-  recognizer.onend = ()=>{
-    if(recognizing){
-      try{ recognizer.start(); }catch(err){ recognizing=false; updateMicUi(); }
-    }
-  };
-  try{
-    recognizer.start();
-    recognizing = true;
-    updateMicUi();
-  }catch(err){ toast('Impossible de démarrer le micro'); }
-}
-function stopRecognition(){
-  recognizing = false;
-  if(recognizer){ try{ recognizer.stop(); }catch(e){} }
-  updateMicUi();
-}
-function updateMicUi(){
-  const btn = $('#btnMic');
-  const cap = $('#micCaption');
-  if(!btn) return;
-  btn.classList.toggle('listening', recognizing);
-  btn.textContent = recognizing ? '⏸' : '🎤';
-  if(cap) cap.textContent = recognizing ? 'Écoute en cours… dis les prénoms au fur et à mesure.' : 'Appuie et parle : dis les prénoms des élèves présents.';
-}
-
-/* ---- Correspondance floue (tolère les variantes d'orthographe des prénoms) ---- */
-function levenshtein(a, b){
-  const la = a.length, lb = b.length;
-  if(la===0) return lb;
-  if(lb===0) return la;
-  let prev = new Array(lb+1);
-  let cur = new Array(lb+1);
-  for(let j=0;j<=lb;j++) prev[j]=j;
-  for(let i=1;i<=la;i++){
-    cur[0]=i;
-    for(let j=1;j<=lb;j++){
-      const cost = a[i-1]===b[j-1] ? 0 : 1;
-      cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost);
-    }
-    [prev,cur] = [cur,prev];
-  }
-  return prev[lb];
-}
-function fuzzyThreshold(len){
-  if(len<=4) return 1;
-  return 2;
-}
-function sameStart(a,b){
-  // exige la même lettre de départ : deux prénoms qui ne commencent pas pareil
-  // (ex. Evanne / Yoan) ont très peu de chances d'être confondus à l'oral
-  return a && b && a[0]===b[0];
-}
-function namesMatch(gram, target){
-  if(!gram || !target) return false;
-  if(gram===target) return true;
-  if(target.length>=3 && gram.includes(target)) return true;
-  if(sameStart(gram,target) && Math.abs(gram.length-target.length)<=3){
-    if(levenshtein(gram,target) <= fuzzyThreshold(target.length)) return true;
   }
   return false;
 }
 
-/* ---- Clé phonétique simplifiée (français) ----
-   Réduit un mot à une approximation de sa sonorité, pour rapprocher des
-   orthographes très différentes qui se prononcent pareil (utile pour les
-   prénoms rares ou inventés : "Kaïs"/"Kayce", "Jehyan"/"Jean"...) */
-function phoneticKey(str){
-  let t = normalize(str).replace(/\s+/g,'');
-  if(!t) return '';
-  t = t.replace(/eau/g,'o').replace(/au/g,'o');
-  t = t.replace(/ph/g,'f');
-  t = t.replace(/th/g,'t');
-  t = t.replace(/ch/g,'x');
-  t = t.replace(/qu/g,'k');
-  t = t.replace(/gu(?=[eiy])/g,'g');
-  t = t.replace(/g(?=[eiy])/g,'j');
-  t = t.replace(/[cç](?=[eiy])/g,'s');
-  t = t.replace(/c/g,'k');
-  t = t.replace(/oi/g,'wa');
-  t = t.replace(/ai|ei/g,'e');
-  t = t.replace(/ou/g,'u');
-  t = t.replace(/y/g,'i');
-  t = t.replace(/^h/,'').replace(/h/g,'');
-  t = t.replace(/x/g,'ks');
-  t = t.replace(/([a-z])\1+/g,'$1'); // double lettres -> simple
-  t = t.replace(/e$/,''); // e final souvent muet
-  t = t.replace(/s$/,''); // s final souvent muet
-  return t;
-}
-function getDuplicatePhonetic(classId){
-  const counts = {};
-  studentsOf(classId).forEach(s=>{
-    const k = phoneticKey(s.prenom);
-    counts[k] = (counts[k]||0)+1;
+function showToast(msg, type='info', duration=3000){
+  const existing = document.getElementById('toast');
+  if(existing) existing.remove();
+  const t = document.createElement('div');
+  t.id = 'toast';
+  t.textContent = msg;
+  const bg = type==='error' ? '#C0392B' : type==='ok' ? '#3F8F5F' : 'var(--court-dark)';
+  Object.assign(t.style, {
+    position:'fixed', bottom:'20px', left:'50%', transform:'translateX(-50%)',
+    background: bg, color:'#fff', padding:'10px 18px', borderRadius:'8px',
+    fontSize:'13px', fontWeight:'600', zIndex:'9999',
+    boxShadow:'0 4px 16px rgba(0,0,0,.25)', whiteSpace:'nowrap',
+    fontFamily:"'Work Sans',sans-serif", textAlign:'center', maxWidth:'90vw',
+    whiteSpace:'normal'
   });
-  return new Set(Object.keys(counts).filter(k=>k && counts[k]>1));
-}
-function getDuplicatePrenoms(classId){
-  const counts = {};
-  studentsOf(classId).forEach(s=>{
-    const np = normalize(s.prenom);
-    counts[np] = (counts[np]||0)+1;
-  });
-  return new Set(Object.keys(counts).filter(k=>counts[k]>1));
+  document.body.appendChild(t);
+  setTimeout(()=>{ if(t.parentNode) t.remove(); }, duration);
 }
 
-function processSpokenText(text){
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  syncSeanceRoster(seance);
-  const words = normalize(text).split(/\s+/).filter(Boolean);
-  const students = studentsOf(seance.classId);
-  const dupPrenoms = getDuplicatePrenoms(seance.classId);
-  // fenêtres de 1 à 3 mots pour capter prénom+nom même si dits ensemble
-  const grams = [];
-  for(let i=0;i<words.length;i++){
-    grams.push(words[i]);
-    if(i+1<words.length) grams.push(words[i]+' '+words[i+1]);
-    if(i+2<words.length) grams.push(words[i]+' '+words[i+1]+' '+words[i+2]);
-  }
-  let matchedAny = false;
-  const pending = ()=>students.filter(s=>seance.students[s.id].presence!=='present');
-
-  // Passe 0 : prononciation enregistrée, correspondance exacte — la plus fiable,
-  // fonctionne même pour des prénoms proches (Mathis / Matisse) car propre à chaque élève
-  // (comparaison "compacte" : les espaces sont ignorés pour absorber les découpages
-  // différents d'un même mot par la reconnaissance, ex. "nathin gael" / "nathingael")
-  const compact = (s)=>s.replace(/\s+/g,'');
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    const oral = s.oral||[];
-    if(oral.length===0) return;
-    const oralCompact = oral.map(compact);
-    if(grams.some(g=>oral.includes(g) || oralCompact.includes(compact(g)))){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
+/* ====================== HELPERS MÉTIER ====================== */
+function heureFin(heure_debut, duree){
+  const [h,m] = heure_debut.split(':').map(Number);
+  const total = h*60+m+Number(duree);
+  return String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+}
+function placesOccupees(creneauId){
+  return DB.Affectations.filter(a => a.creneau_id === creneauId).length;
+}
+function eleveById(id){ return DB.Eleves.find(e=>e.id===id); }
+function profById(id){ return DB.Profs.find(p=>p.id===id); }
+function creneauById(id){ return DB.Planning.find(c=>c.id===id); }
+function elevesDuCreneau(creneauId){
+  return DB.Affectations.filter(a=>a.creneau_id===creneauId).map(a=>eleveById(a.eleve_id)).filter(Boolean);
+}
+function isAdulte(eleve){
+  const annee = new Date().getFullYear();
+  return (annee - Number(eleve.annee_naissance)) >= 18;
+}
+function presencePct(eleveId, creneauId, source){
+  source = source || DB;
+  const seances = source.Seances.filter(s=>s.creneau_id===creneauId && !s.personne);
+  if(seances.length===0) return null;
+  let present = 0;
+  seances.forEach(s=>{
+    const p = source.Presences.find(pr=>pr.seance_id===s.id && pr.eleve_id===eleveId);
+    if(p && p.present) present++;
   });
+  return Math.round(100*present/seances.length);
+}
 
-  // Passe 0b : prononciation enregistrée, tolérance sur les lettres (proportionnelle à la
-  // longueur), en comparaison compacte — seulement si la correspondance est unique parmi
-  // les élèves pas encore présents (pas d'ambiguïté)
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    const oral = s.oral||[];
-    if(oral.length===0) return;
-    const oralCompact = oral.map(compact);
-    const isClose = (g)=>{
-      const gc = compact(g);
-      return oralCompact.some(o => sameStart(gc,o) && Math.abs(gc.length-o.length)<=2 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
-    };
-    const candidateGrams = grams.filter(isClose);
-    if(candidateGrams.length===0) return;
-    // vérifie qu'aucun autre élève en attente n'est aussi proche de ce même gram
-    const ambiguous = pending().some(other=>{
-      if(other.id===s.id) return false;
-      const oOral = (other.oral||[]).map(compact);
-      if(oOral.length===0) return false;
-      return candidateGrams.some(g=>{
-        const gc = compact(g);
-        return oOral.some(o => sameStart(gc,o) && Math.abs(gc.length-o.length)<=2 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
+/* ====================== ALGORITHME DE PROPOSITION AUTO ====================== */
+function genererPropositionAuto(){
+  const slots = DB.Planning.map(c => ({
+    id:c.id, jour:c.jour, niveau:(c.niveau||'').toLowerCase(), max:c.places,
+    type:null, assigned:[] // {eleveId, sexe, niveau}
+  }));
+  const indispoConflict = (eleve, jour) => (eleve.indisponibilites||'').toLowerCase().includes(jour.toLowerCase());
+
+  function placerGroupe(eleves, type, cap){
+    // tri par niveau pour regrouper les niveaux homogènes
+    const tries = [...eleves].sort((a,b)=> (a.niveau||'').localeCompare(b.niveau||''));
+    const nonPlaces = [];
+    tries.forEach(el=>{
+      const candidats = slots.filter(s=>
+        (s.type===null || s.type===type) &&
+        s.assigned.length < Math.min(s.max, cap) &&
+        !indispoConflict(el, s.jour)
+      );
+      if(candidats.length===0){ nonPlaces.push(el); return; }
+      // scoring: niveau identique > sexe majoritaire identique > slot le plus rempli (consolider groupes)
+      let meilleur = null, meilleurScore = -1;
+      candidats.forEach(s=>{
+        let score = 0;
+        const niveauxSlot = s.assigned.map(a=>a.niveau);
+        if(niveauxSlot.length && niveauxSlot[0]===(el.niveau||'').toLowerCase()) score += 100;
+        else if(niveauxSlot.length===0) score += 40;
+        const sexes = s.assigned.map(a=>a.sexe);
+        const majoritySexe = sexes.length ? sexes.filter(x=>x===sexes[0]).length>sexes.length/2 ? sexes[0] : null : null;
+        if(majoritySexe && majoritySexe===el.sexe) score += 15;
+        score += s.assigned.length; // privilégier remplissage des groupes déjà commencés
+        if(score>meilleurScore){ meilleurScore=score; meilleur=s; }
       });
+      meilleur.type = type;
+      meilleur.assigned.push({eleveId:el.id, sexe:el.sexe, niveau:(el.niveau||'').toLowerCase()});
     });
-    if(!ambiguous){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 0c : prononciation enregistrée, correspondance PHONÉTIQUE — pour les
-  // prénoms rares/inventés où la reconnaissance orthographie différemment à
-  // chaque fois (ex. "Kaïs" reconnu tantôt "kaisse", tantôt "kaicce")
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    const oral = s.oral||[];
-    if(oral.length===0) return;
-    const oralKeys = oral.map(phoneticKey).filter(Boolean);
-    if(oralKeys.length===0) return;
-    const candidateGrams = grams.filter(g=>{
-      const gk = phoneticKey(g);
-      return gk && oralKeys.includes(gk);
-    });
-    if(candidateGrams.length===0) return;
-    const ambiguous = pending().some(other=>{
-      if(other.id===s.id) return false;
-      const oKeys = (other.oral||[]).map(phoneticKey).filter(Boolean);
-      if(oKeys.length===0) return false;
-      return candidateGrams.some(g=>oKeys.includes(phoneticKey(g)));
-    });
-    if(!ambiguous){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-  // Passe 1 : nom complet (prénom + nom) — fiable, résout aussi les doublons,
-  // utilisée pour les élèves sans prononciation enregistrée
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    if((s.oral||[]).length>0) return; // déjà couvert par passe 0/0b
-    const full = (normalize(s.prenom)+' '+normalize(s.nom)).trim();
-    if(!normalize(s.nom)) return;
-    if(grams.some(g=>namesMatch(g, full))){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 2 : nom de famille seul — utile quand le prénom est en doublon
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    if((s.oral||[]).length>0) return;
-    const nn = normalize(s.nom);
-    if(nn.length<2) return;
-    if(grams.some(g=>namesMatch(g, nn))){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 3 : prénom seul, tolérant aux variantes — seulement pour les élèves sans
-  // prononciation enregistrée, et seulement si ce prénom n'est pas en doublon
-  const stillPendingPrenoms = {};
-  pending().forEach(s=>{
-    const np = normalize(s.prenom);
-    stillPendingPrenoms[np] = (stillPendingPrenoms[np]||0)+1;
-  });
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    if((s.oral||[]).length>0) return;
-    const np = normalize(s.prenom);
-    if(stillPendingPrenoms[np]>1) return; // doublon non résolu : on attend le nom
-    if(grams.some(g=>namesMatch(g, np))){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 3b : prénom seul, correspondance PHONÉTIQUE — pour les prénoms rares/
-  // inventés sans prononciation enregistrée, et non ambigus phonétiquement
-  const dupPhonetic = getDuplicatePhonetic(seance.classId);
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    if((s.oral||[]).length>0) return;
-    const pk = phoneticKey(s.prenom);
-    if(!pk || dupPhonetic.has(pk)) return; // ambigu : deux prénoms sonnent pareil
-    if(grams.some(g=>phoneticKey(g)===pk)){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  if(matchedAny){
-    saveAll();
-    renderRoster();
-    renderAppelSummary();
-    if(navigator.vibrate) navigator.vibrate(40);
+    return nonPlaces;
   }
+
+  const adultes = DB.Eleves.filter(isAdulte);
+  const enfants = DB.Eleves.filter(e=>!isAdulte(e));
+  const nonPlacesA = placerGroupe(adultes, 'adulte', 5);
+  const nonPlacesE = placerGroupe(enfants, 'enfant', 6);
+
+  const affectations = [];
+  slots.forEach(s=> s.assigned.forEach(a=> affectations.push({id:uid(), eleve_id:a.eleveId, creneau_id:s.id})));
+
+  return { affectations, nonPlaces: [...nonPlacesA, ...nonPlacesE] };
 }
 
-function renderRoster(){
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  syncSeanceRoster(seance);
-  const students = studentsOf(seance.classId);
-  const act = seance.activiteId ? DATA.activites[seance.activiteId] : null;
-  const dupPrenoms = getDuplicatePrenoms(seance.classId);
-  $('#rosterList').innerHTML = students.map(s=>{
-    const entry = seance.students[s.id] || {presence:'pending',dispense:false,pratiquant:false,oubli:false};
-    const justMatched = s.id===lastMatchedStudentId && entry.presence==='present';
-    const isDup = dupPrenoms.has(normalize(s.prenom)) && entry.presence!=='present';
-    const dupBadge = isDup ? '<span class="chip on oubli" style="margin-left:6px;">⚠ prénom en doublon — dis le nom</span>' : '';
-    const oralBadge = (s.oral&&s.oral.length) ? '<span title="Prononciation enregistrée" style="margin-left:6px;">🔊</span>' : '';
-    const extra = (entry.presence==='present') ? `
-      <div class="extra-row">
-        <button class="chip icon-chip ${entry.dispense?'on dispense':''}" data-sid="${s.id}" data-field="dispense" title="Dispensé">✚</button>
-        <button class="chip icon-chip ${entry.oubli?'on oubli':''}" data-sid="${s.id}" data-field="oubli" title="Affaires oubliées">👟</button>
-      </div>` : '';
-    return `
-    <div class="roster-item ${justMatched?'just-matched':''}" data-row="${s.id}">
-      <div class="roster-top">
-        <span class="roster-name">${escapeHtml(s.prenom)} ${escapeHtml(s.nom||'')}${oralBadge}${dupBadge}</span>
-        <div class="roster-actions">
-          <button class="toggle-btn icon-toggle ${entry.presence==='present'?'on-present':''}" data-sid="${s.id}" data-field="presence" data-val="present" title="Présent">${ICON_HAND}</button>
-          <button class="toggle-btn ${entry.presence==='absent'?'on-absent':''}" data-sid="${s.id}" data-field="presence" data-val="absent">Absent</button>
+/* ====================== RENDU PRINCIPAL ====================== */
+function renderApp(){
+  document.getElementById('clubName').textContent = cfg('nom_club','Club de Tennis');
+  const tabsEl = document.getElementById('mainTabs');
+  tabsEl.innerHTML = `
+    <button class="${UI.mainTab==='planning'?'active':''}" onclick="setMainTab('planning')">Planning</button>
+    <button class="${UI.mainTab==='prof'?'active':''}" onclick="setMainTab('prof')">Espace Prof</button>
+    <button class="${UI.mainTab==='admin'?'active':''}" onclick="setMainTab('admin')">Admin</button>
+  `;
+  const app = document.getElementById('app');
+  if(UI.loading){ app.innerHTML = `<p class="muted">Chargement des données…</p>`; return; }
+  if(!UI.sheetUrl && UI.mainTab!=='admin'){
+    app.innerHTML = `<div class="banner banner-warn">L'application n'est pas encore connectée à un Google Sheet. Rendez-vous dans l'onglet <b>Admin</b> pour la configurer.</div>`;
+    return;
+  }
+  if(UI.lastError){ app.innerHTML = `<div class="banner banner-err">${UI.lastError}</div>` + app.innerHTML; }
+
+  if(UI.mainTab==='planning') return renderPlanning();
+  if(UI.mainTab==='prof') return renderProf();
+  if(UI.mainTab==='admin') return renderAdmin();
+}
+function setMainTab(t){ UI.mainTab=t; renderApp(); }
+
+/* ---------- PLANNING PUBLIC ---------- */
+function renderPlanning(){
+  const app = document.getElementById('app');
+
+  // Boutons de navigation
+  let html = `<div class="day-pills">
+    <button style="flex-shrink:0; padding:10px 14px; border-radius:20px; font-family:'Oswald',sans-serif; font-weight:600; font-size:12px; text-transform:uppercase; text-align:center; line-height:1.4; background:${UI.planningDay==='tous'?'var(--clay)':'#fff'}; border:1.5px solid ${UI.planningDay==='tous'?'var(--clay)':'#ddd6c4'} !important; color:${UI.planningDay==='tous'?'#fff':'#6b6657'};" onclick="setPlanningDay('tous')">
+      📅 Semaine<br><span style="font-size:10px; font-weight:400;">tous les jours</span>
+    </button>`;
+  JOURS.forEach(j=>{
+    const slots = DB.Planning.filter(c=>c.jour===j);
+    html += `<button class="${UI.planningDay===j?'active':''}" onclick="setPlanningDay('${j}')">${j}<br><span style="font-size:10px; font-weight:400; opacity:.7;">${slots.length} cours</span></button>`;
+  });
+  html += `</div>`;
+
+  if(UI.planningDay==='tous'){
+    const joursActifs = JOURS.filter(j=> DB.Planning.some(c=>c.jour===j));
+
+    html += `<div class="no-print" style="margin-bottom:12px; display:flex; justify-content:flex-end;">
+      <button class="btn btn-ghost btn-sm" onclick="imprimerPlanning()" style="display:flex; align-items:center; gap:6px;">
+        🖨️ Imprimer
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="exporterPDF()" style="display:flex; align-items:center; gap:6px;">
+        📄 Exporter PDF
+      </button>
+    </div>`;
+
+    html += `<div class="print-grid" style="display:grid; grid-template-columns:1fr 1fr 2fr 1fr 1fr 1fr; gap:10px; align-items:start; width:100%;">`;
+    joursActifs.forEach(j=>{
+      const estMercredi = j === 'Mercredi';
+      const slots = DB.Planning.filter(c=>c.jour===j).sort((a,b)=>a.heure_debut.localeCompare(b.heure_debut));
+      html += `<div class="print-col ${estMercredi?'mercredi-col':''}" style="min-width:0; ${estMercredi?'grid-column:span 2;':''}">
+        <div class="print-col-head" style="font-family:'Oswald',sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.06em;
+          color:var(--chalk); background:var(--court-dark); border-radius:7px 7px 0 0;
+          padding:6px 10px; display:flex; justify-content:space-between; align-items:center;">
+          <span>${j}</span>
+          <span style="font-size:10px; opacity:.7;">${slots.length} cours</span>
+        </div>
+        <div style="background:#fff; border:1px solid #ddd6c4; border-top:none; border-radius:0 0 7px 7px; overflow:hidden;">`;
+      if(!slots.length){
+        html += `<div style="padding:12px; text-align:center; color:#9b9684; font-size:12px;">—</div>`;
+      } else if(estMercredi){
+        // Mercredi : 2 colonnes internes
+        html += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:0;">`;
+        slots.forEach((c, idx)=>{
+          const prof = profById(c.prof_id);
+          const eleves = elevesDuCreneau(c.id).sort((a,b)=>(a.nom+a.prenom).localeCompare(b.nom+b.prenom));
+          const occ = eleves.length;
+          const full = occ >= c.places;
+          const borderLeft = idx%2===1 ? 'border-left:1px solid #f0ece0;' : '';
+          const borderTop = idx>=2 ? 'border-top:1px solid #f0ece0;' : '';
+          html += `
+          <div class="print-slot" style="${borderLeft}${borderTop}padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <span class="print-slot-time" style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; color:var(--court-dark);">${c.heure_debut}</span>
+              <span style="font-size:10px; font-weight:600; padding:2px 6px; border-radius:10px; background:${full?'#fbe6e3':'#e8f5ec'}; color:${full?'var(--danger)':'var(--ok)'};">${occ}/${c.places}</span>
+            </div>
+            <div class="print-slot-niv" style="font-size:11px; font-weight:600; color:var(--ink); margin-bottom:2px;">${c.niveau||'—'}</div>
+            <div class="print-slot-prof" style="font-size:10px; color:#9b9684; margin-bottom:6px;">👤 ${prof?prof.nom:'—'} · ${c.duree==90?'1h30':'1h'}</div>
+            ${occ>0 ? `<div style="border-top:1px dashed #e8e4d8; padding-top:6px;">
+              ${eleves.map(e=>`
+                <div class="print-membre" style="display:flex; align-items:center; gap:5px; padding:2px 0;">
+                  <div class="print-avatar" style="width:18px; height:18px; border-radius:50%; background:${e.sexe==='M'?'#dbe8f5':'#fde8f0'}; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:${e.sexe==='M'?'#2a6496':'#8a2252'}; flex-shrink:0;">${(e.prenom||'?')[0]}</div>
+                  <span style="font-size:11px; line-height:1.3; word-break:break-word;">${e.prenom} ${e.nom}</span>
+                </div>`).join('')}
+            </div>` : `<div style="border-top:1px dashed #e8e4d8; padding-top:5px; font-size:10px; color:#bbb; font-style:italic;">Groupe vide</div>`}
+          </div>`;
+        });
+        html += `</div>`;
+      } else {
+        slots.forEach((c, idx)=>{
+          const prof = profById(c.prof_id);
+          const eleves = elevesDuCreneau(c.id).sort((a,b)=>(a.nom+a.prenom).localeCompare(b.nom+b.prenom));
+          const occ = eleves.length;
+          const full = occ >= c.places;
+          html += `
+          <div class="print-slot" style="${idx>0?'border-top:1px solid #f0ece0;':''}padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+              <span class="print-slot-time" style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:12px; color:var(--court-dark);">${c.heure_debut}</span>
+              <span style="font-size:10px; font-weight:600; padding:2px 6px; border-radius:10px; background:${full?'#fbe6e3':'#e8f5ec'}; color:${full?'var(--danger)':'var(--ok)'};">${occ}/${c.places}</span>
+            </div>
+            <div class="print-slot-niv" style="font-size:11px; font-weight:600; color:var(--ink); margin-bottom:2px;">${c.niveau||'—'}</div>
+            <div class="print-slot-prof" style="font-size:10px; color:#9b9684; margin-bottom:6px;">👤 ${prof?prof.nom:'—'} · ${c.duree==90?'1h30':'1h'}</div>
+            ${occ>0 ? `<div style="border-top:1px dashed #e8e4d8; padding-top:6px;">
+              ${eleves.map(e=>`
+                <div class="print-membre" style="display:flex; align-items:center; gap:5px; padding:2px 0;">
+                  <div class="print-avatar" style="width:18px; height:18px; border-radius:50%; background:${e.sexe==='M'?'#dbe8f5':'#fde8f0'}; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:${e.sexe==='M'?'#2a6496':'#8a2252'}; flex-shrink:0;">${(e.prenom||'?')[0]}</div>
+                  <span style="font-size:11px; line-height:1.3; word-break:break-word;">${e.prenom} ${e.nom}</span>
+                </div>`).join('')}
+            </div>` : `<div style="border-top:1px dashed #e8e4d8; padding-top:5px; font-size:10px; color:#bbb; font-style:italic;">Groupe vide</div>`}
+          </div>`;
+        });
+      }
+      html += `</div></div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div class="day-col"><h3 style="font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:16px; margin-bottom:12px; color:var(--court-dark);">${UI.planningDay}</h3>`;
+    html += renderSlotsForDay(UI.planningDay);
+    html += `</div>`;
+  }
+
+  app.innerHTML = html;
+}
+function setPlanningDay(j){ UI.planningDay=j; UI.planningSelectedSlot=null; renderApp(); }
+function togglePlanningSlot(id){ UI.planningSelectedSlot = UI.planningSelectedSlot===id ? null : id; renderApp(); }
+
+function imprimerPlanning(){
+  // Mettre à jour l'en-tête d'impression
+  const d = new Date();
+  const dateStr = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const el = document.getElementById('printDate');
+  if(el) el.textContent = dateStr;
+  const cn = document.getElementById('printClubName');
+  if(cn) cn.textContent = cfg('nom_club','Club de Tennis');
+  window.print();
+}
+
+async function exporterPDF(){
+  if(!window.jspdf){ showToast('Chargement de jsPDF…'); await new Promise(r=>setTimeout(r,1500)); }
+  if(!window.jspdf){ showToast('Erreur : jsPDF non chargé','error'); return; }
+  showToast('Génération du PDF…');
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'landscape', unit:'mm', format:'a4' });
+  const nomClub = cfg('nom_club','Club de Tennis');
+  const joursActifs = JOURS.filter(j=> DB.Planning.some(c=>c.jour===j));
+
+  // Dimensions fixes A4 paysage
+  const PAGE_W = 297, PAGE_H = 210;
+  const marginL = 8, marginT = 8, marginR = 8, marginB = 8;
+  const W = PAGE_W - marginL - marginR; // 281mm disponibles en largeur
+  const H = PAGE_H - marginT - marginB; // 194mm disponibles en hauteur
+  const HEADER_H = 7, DAY_H = 5, GAP = 0.8;
+
+  // Largeurs colonnes
+  const totalParts = joursActifs.reduce((s,j)=> s+(j==='Mercredi'?2:1), 0);
+  const unitW = W / totalParts;
+  const xCols = {};
+  let cx = marginL;
+  joursActifs.forEach(j=>{ xCols[j]=cx; cx += unitW*(j==='Mercredi'?2:1); });
+
+  // Calculer la hauteur naturelle de chaque colonne (avec scale=1)
+  const BASE_LINE = 3.2, BASE_HEADER = 6.5;
+  function slotNaturalH(c){ return BASE_HEADER + elevesDuCreneau(c.id).length * BASE_LINE; }
+  function colNaturalH(jour){
+    const slots = DB.Planning.filter(c=>c.jour===jour);
+    if(jour==='Mercredi'){
+      const rows = Math.ceil(slots.length/2);
+      let h=0;
+      for(let r=0;r<rows;r++){
+        const pair = slots.slice(r*2,r*2+2);
+        h += Math.max(...pair.map(slotNaturalH)) + GAP;
+      }
+      return h;
+    }
+    return slots.reduce((s,c)=>s+slotNaturalH(c)+GAP, 0);
+  }
+
+  const maxColH = Math.max(...joursActifs.map(colNaturalH));
+  const availH = H - HEADER_H - DAY_H - 2;
+  const scale = Math.min(1, availH / maxColH); // réduire si nécessaire, jamais agrandir
+
+  const lineH  = BASE_LINE  * scale;
+  const hdrH   = BASE_HEADER * scale;
+
+  // === Dessin ===
+  // En-tête
+  doc.setFillColor(31,77,61);
+  doc.rect(marginL, marginT, W, HEADER_H, 'F');
+  doc.setTextColor(245,242,232);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.text(nomClub, marginL+2, marginT+HEADER_H-2);
+  doc.setFontSize(7);
+  doc.setFont('helvetica','normal');
+  doc.text('Planning — '+new Date().toLocaleDateString('fr-FR'), marginL+W-2, marginT+HEADER_H-2, {align:'right'});
+
+  // En-têtes des jours
+  const dayY = marginT + HEADER_H + 0.5;
+  joursActifs.forEach(j=>{
+    const cw = unitW*(j==='Mercredi'?2:1);
+    doc.setFillColor(21,54,42);
+    doc.rect(xCols[j], dayY, cw-0.3, DAY_H, 'F');
+    doc.setTextColor(245,242,232);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(6.5*scale+4*(1-scale)); // police adaptée
+    doc.text(j.toUpperCase(), xCols[j]+cw/2, dayY+DAY_H-1.2, {align:'center'});
+  });
+
+  // Créneaux
+  const slotsY = dayY + DAY_H + 0.5;
+  joursActifs.forEach(j=>{
+    const cw = unitW*(j==='Mercredi'?2:1);
+    const slots = DB.Planning.filter(c=>c.jour===j).sort((a,b)=>a.heure_debut.localeCompare(b.heure_debut));
+    let sy = slotsY;
+    if(j==='Mercredi'){
+      const half = cw/2;
+      for(let r=0;r<Math.ceil(slots.length/2);r++){
+        const pair = slots.slice(r*2,r*2+2);
+        const rowH = Math.max(...pair.map(c=>hdrH+elevesDuCreneau(c.id).length*lineH));
+        pair.forEach((c,col)=>{
+          drawSlotPDF(doc, xCols[j]+col*half, sy, half-0.3, c, profById(c.prof_id), elevesDuCreneau(c.id), scale, lineH, hdrH);
+        });
+        sy += rowH + GAP;
+      }
+    } else {
+      slots.forEach(c=>{
+        const eleves = elevesDuCreneau(c.id);
+        const h = hdrH + eleves.length*lineH;
+        drawSlotPDF(doc, xCols[j], sy, cw-0.3, c, profById(c.prof_id), eleves, scale, lineH, hdrH);
+        sy += h + GAP;
+      });
+    }
+  });
+
+  doc.save(`planning-${nomClub.replace(/\s+/g,'-')}.pdf`);
+  showToast('PDF téléchargé ✓');
+}
+
+function drawSlotPDF(doc, x, y, w, c, prof, eleves, scale=1, lineH=3.2, hdrH=6.5){
+  const occ = eleves.length;
+  const full = occ >= c.places;
+  const h = hdrH + occ*lineH;
+  const fs = s => Math.max(4, s*scale);
+
+  doc.setFillColor(255,255,255);
+  doc.rect(x, y, w, h, 'F');
+  doc.setDrawColor(210,205,188);
+  doc.setLineWidth(0.15);
+  doc.rect(x, y, w, h, 'S');
+  doc.setFillColor(181,85,45);
+  doc.rect(x, y, 1.2*scale, h, 'F');
+
+  // Heure
+  doc.setTextColor(31,77,61);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(fs(7.5));
+  doc.text(`${c.heure_debut}–${heureFin(c.heure_debut,c.duree)}`, x+2, y+hdrH*0.45);
+
+  // Niveau + prof
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(fs(6));
+  doc.setTextColor(110,100,90);
+  doc.text(`${c.niveau||'—'}  ${prof?prof.nom:''}`, x+2, y+hdrH*0.82);
+
+  // Élèves
+  eleves.forEach((e,i)=>{
+    const ey = y + hdrH + i*lineH + lineH*0.65;
+    const clr = e.sexe==='M'?[180,210,240]:[250,210,230];
+    doc.setFillColor(...clr);
+    doc.circle(x+2.5*scale, ey-lineH*0.2, Math.max(0.6,1.1*scale), 'F');
+    doc.setTextColor(30,30,30);
+    doc.setFontSize(fs(6));
+    doc.text(`${e.prenom} ${e.nom}`, x+4.5*scale, ey);
+  });
+
+  // Places
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(fs(5.5));
+  doc.setTextColor(full?192:63, full?57:143, full?43:95);
+  doc.text(`${occ}/${c.places}`, x+w-1, y+hdrH*0.45, {align:'right'});
+  return h;
+}
+function renderSlotsForDay(jour){
+  const slots = DB.Planning.filter(c=>c.jour===jour).sort((a,b)=>a.heure_debut.localeCompare(b.heure_debut));
+  if(slots.length===0) return `<p class="muted">Aucun cours ce jour.</p>`;
+
+  return `<div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px;">` +
+  slots.map(c=>{
+    const prof = profById(c.prof_id);
+    const eleves = elevesDuCreneau(c.id).sort((a,b)=>(a.nom+a.prenom).localeCompare(b.nom+b.prenom));
+    const occ = eleves.length;
+    const full = occ >= c.places;
+
+    return `<div style="background:#fff; border:1px solid #ddd6c4; border-radius:10px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.05);">
+
+      <!-- En-tête du créneau -->
+      <div style="background:var(--court-dark); padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace; font-weight:700; font-size:15px; color:var(--chalk);">${c.heure_debut} <span style="font-size:11px; opacity:.7;">→ ${heureFin(c.heure_debut,c.duree)}</span></div>
+          <div style="font-family:'Oswald',sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:rgba(245,242,232,.75); margin-top:1px;">${c.niveau||'—'}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; color:rgba(245,242,232,.7);">${prof?prof.nom:'—'}</div>
+          <div style="margin-top:3px; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px; background:${full?'rgba(192,57,43,.85)':'rgba(63,143,95,.85)'}; color:#fff;">${occ}/${c.places} places</div>
         </div>
       </div>
-      ${extra}
-    </div>`;
-  }).join('');
 
-  $('#rosterList').querySelectorAll('[data-field="presence"]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const sid = btn.dataset.sid, val = btn.dataset.val;
-      const entry = seance.students[sid];
-      entry.presence = (entry.presence===val) ? 'pending' : val;
-      saveAll(); renderRoster(); renderAppelSummary();
-    });
-  });
-  $('#rosterList').querySelectorAll('[data-field]:not([data-field="presence"])').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const sid = btn.dataset.sid, field = btn.dataset.field;
-      const entry = seance.students[sid];
-      entry[field] = !entry[field];
-      saveAll(); renderRoster();
-    });
-  });
+      <!-- Liste des membres -->
+      <div style="padding:10px 14px;">
+        ${occ===0
+          ? `<div style="text-align:center; color:#bbb; font-size:12px; font-style:italic; padding:8px 0;">Groupe vide</div>`
+          : eleves.map((e,i)=>`
+            <div style="display:flex; align-items:center; gap:8px; padding:5px 0; ${i>0?'border-top:1px solid #f5f2e8;':''}">
+              <div style="width:26px; height:26px; border-radius:50%; flex-shrink:0;
+                background:${e.sexe==='M'?'#dbe8f5':'#fde8f0'};
+                display:flex; align-items:center; justify-content:center;
+                font-weight:700; font-size:11px; color:${e.sexe==='M'?'#2a6496':'#8a2252'};">
+                ${(e.prenom||'?')[0].toUpperCase()}
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:600; line-height:1.2;">${e.prenom} ${e.nom}</div>
+              </div>
+            </div>`).join('')
+        }
+      </div>
+    </div>`;
+  }).join('') + `</div>`;
 }
 
-
-$('#btnMarkAllPresent').addEventListener('click', ()=>{
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  Object.values(seance.students).forEach(e=>{ if(e.presence==='pending') e.presence='present'; });
-  saveAll(); renderRoster(); renderAppelSummary();
-});
-$('#btnResetAppel').addEventListener('click', ()=>{
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  if(!confirm('Réinitialiser les statuts de cet appel ?')) return;
-  Object.values(seance.students).forEach(e=>{ e.presence='pending'; e.dispense=false; e.pratiquant=false; e.oubli=false; });
-  saveAll(); renderRoster(); renderAppelSummary();
-});
-
-function renderAppelSummary(){
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  const students = studentsOf(seance.classId);
-  const total = students.length;
-  const presentCount = students.filter(s=>seance.students[s.id].presence==='present').length;
-  const absents = students.filter(s=>seance.students[s.id].presence!=='present');
-  $('#appelSummary').innerHTML = `
-    <div class="summary-box">
-      <b>${presentCount} / ${total}</b> présent(s) marqué(s).
-      ${absents.length ? '<div style="margin-top:6px;">Non appelés / absents : '+absents.map(s=>`<span class="abs-name">${escapeHtml(s.prenom)}</span>`).join('')+'</div>' : '<div style="margin-top:6px;">Tout le monde a été appelé.</div>'}
-    </div>`;
-}
-
-$('#btnFinishAppel').addEventListener('click', ()=>{
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  const students = studentsOf(seance.classId);
-  students.forEach(s=>{
-    if(seance.students[s.id].presence==='pending') seance.students[s.id].presence='absent';
-  });
-  seance.status = 'done';
-  stopRecognition();
-  saveNow().then(ok=>{
-    toast(ok ? 'Appel terminé et enregistré ✓' : '⚠ Terminé, mais non synchronisé — vérifie ta connexion');
-    currentAppelId = null;
-    $('#appelSetupCard').style.display='block';
-    $('#appelLiveCard').style.display='none';
-    renderPastSessions();
-  });
-});
-
-function renderPastSessions(){
-  const cid = $('#appelClassSelect').value;
-  const wrap = $('#pastSessions');
-  let sessions = Object.values(DATA.seances);
-  if(cid) sessions = sessions.filter(s=>s.classId===cid);
-  sessions.sort((a,b)=>b.date.localeCompare(a.date));
-  if(sessions.length===0){
-    wrap.innerHTML = '<div class="empty">Aucun appel enregistré pour l\'instant.</div>';
+/* ---------- ESPACE PROF ---------- */
+function renderProf(){
+  const app = document.getElementById('app');
+  if(!UI.profSession){
+    app.innerHTML = `
+      <div class="login-box">
+        <div class="court-icon">🎾</div>
+        <h2 style="margin-bottom:6px;">Espace professeur</h2>
+        <p class="muted" style="margin-bottom:18px;">Code commun à toute l'équipe pédagogique</p>
+        <div class="field"><input id="profCodeInput" maxlength="8" placeholder="CODE" style="font-size:24px; letter-spacing:.2em; text-align:center;"></div>
+        <button class="btn btn-primary" style="width:100%; margin-top:6px;" onclick="profLogin()">Entrer</button>
+        <p class="muted" id="profLoginErr" style="margin-top:10px; color:var(--danger);"></p>
+      </div>`;
     return;
   }
-  wrap.innerHTML = sessions.slice(0,30).map(s=>{
-    const cls = DATA.classes[s.classId];
-    if(!cls) return '';
-    const total = cls.students.length;
-    const present = Object.values(s.students).filter(e=>e.presence==='present').length;
-    return `<div class="session-item">
-      <span>${escapeHtml(cls.name)} · ${fmtDate(s.date)} ${s.status==='open'?'(en cours)':''}</span>
-      <span>
-        <span class="status-pill present">${present}/${total}</span>
-        <button class="icon-btn" data-open-seance="${s.id}">ouvrir</button>
-        <button class="icon-btn" data-del-seance="${s.id}">suppr.</button>
-      </span>
+
+  const joursActifs = JOURS.filter(j=> DB.Planning.some(c=>c.jour===j));
+  if(!UI.profDay || !joursActifs.includes(UI.profDay)) UI.profDay = joursActifs[0] || JOURS[0];
+  const creneauOuvert = UI.profSelectedCreneau && DB.Planning.find(c=>c.id===UI.profSelectedCreneau && c.jour===UI.profDay);
+
+  let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+    <div>
+      <h2 style="margin:0; font-family:'Oswald',sans-serif; font-size:22px; color:var(--court-dark); text-transform:uppercase;">Espace professeurs</h2>
+      <p class="muted" style="margin:2px 0 0;">${creneauOuvert ? 'Appel en cours' : 'Sélectionnez un cours pour faire l\'appel'}</p>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="profLogout()">Déconnexion</button>
+  </div>`;
+
+  if(creneauOuvert){
+    // MODE APPEL : on n'affiche QUE la feuille d'appel + un bouton retour en haut
+    const c = DB.Planning.find(x=>x.id===UI.profSelectedCreneau);
+    const prof = profById(c.prof_id);
+    html += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="selectCreneauProf(null)" style="display:flex; align-items:center; gap:6px;">
+        ← Retour aux cours
+      </button>
+      <div style="background:var(--court); color:var(--chalk); border-radius:8px; padding:7px 14px; font-family:'Oswald',sans-serif; font-size:14px; text-transform:uppercase; letter-spacing:.04em;">
+        ${c.jour} ${c.heure_debut}→${heureFin(c.heure_debut,c.duree)} · ${c.niveau||''} · ${prof?prof.nom:'—'}
+      </div>
     </div>`;
-  }).join('');
-  wrap.querySelectorAll('[data-open-seance]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const sid = btn.dataset.openSeance;
-      const s = DATA.seances[sid];
-      $('#appelClassSelect').value = s.classId;
-      $('#appelDate').value = s.date;
-      openAppelCard(sid);
+    html += renderFeuilleAppel(UI.profSelectedCreneau);
+  } else {
+    // MODE SÉLECTION : navigation par jour + cartes créneaux
+    html += `<div class="prof-day-nav">`;
+    joursActifs.forEach(j=>{
+      const nb = DB.Planning.filter(c=>c.jour===j).length;
+      html += `<button class="prof-day-btn ${UI.profDay===j?'active':''}" onclick="setProfDay('${j}')">
+        ${j}<br><span class="nb">${nb} cours</span>
+      </button>`;
     });
-  });
-  wrap.querySelectorAll('[data-del-seance]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(!confirm('Supprimer cet appel ?')) return;
-      delete DATA.seances[btn.dataset.delSeance];
-      saveAll(); renderPastSessions();
+    html += `</div>`;
+
+    const creneauxDuJour = DB.Planning.filter(c=>c.jour===UI.profDay)
+      .sort((a,b)=>a.heure_debut.localeCompare(b.heure_debut));
+
+    if(creneauxDuJour.length===0){
+      html += `<p class="muted">Aucun cours configuré ce jour.</p>`;
+    } else {
+      html += `<div class="creneau-cards">`;
+      creneauxDuJour.forEach(c=>{
+        const prof = profById(c.prof_id);
+        const seances = DB.Seances.filter(s=>s.creneau_id===c.id);
+        const objectif = Number(cfg('objectif_seances',30));
+        const fait = seances.length;
+        const pct = Math.min(100, Math.round(100*fait/objectif));
+        const nbEleves = elevesDuCreneau(c.id).length;
+        html += `<div class="creneau-card" onclick="selectCreneauProf('${c.id}')">
+          <div class="cc-time">${c.heure_debut} <span style="font-size:14px; opacity:.6;">→ ${heureFin(c.heure_debut,c.duree)}</span></div>
+          <div class="cc-dur">${c.duree==90?'1h30':'1h00'}</div>
+          <div class="cc-niv">${c.niveau||'Niveau non défini'}</div>
+          <div class="cc-prof">👤 ${prof?prof.nom:'Prof non assigné'} &nbsp;·&nbsp; 🎾 ${nbEleves} élève${nbEleves>1?'s':''}</div>
+          <div class="cc-footer">
+            <div class="cc-gauge-mini"><div class="cc-gauge-mini-fill" style="width:${pct}%"></div></div>
+            <span class="cc-seances-count">${fait}/${objectif} séances</span>
+          </div>
+          <div style="text-align:center; margin-top:10px; font-size:12px; color:var(--court); font-weight:600;">Appuyer pour faire l'appel →</div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  }
+
+  app.innerHTML = html;
+}
+function setProfDay(j){ UI.profDay=j; UI.profSelectedCreneau=null; renderApp(); }
+function profLogin(){
+  const code = document.getElementById('profCodeInput').value.trim();
+  if(code && code === cfg('code_profs','0000')){ UI.profSession=true; UI.profSelectedCreneau=null; renderApp(); }
+  else document.getElementById('profLoginErr').textContent = "Code incorrect.";
+}
+function profLogout(){ UI.profSession=null; renderApp(); }
+function selectCreneauProf(id){
+  UI.profSelectedCreneau = id;
+  renderApp();
+  if(id) window.scrollTo({top:0, behavior:'smooth'});
+}
+
+let _smsTimer = null;
+let _smsFired = false;
+function startSmsGroupe(creneauId){
+  _smsFired = false;
+  const bar = document.getElementById('smsBtnProgress');
+  if(bar){
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    requestAnimationFrame(()=> requestAnimationFrame(()=>{
+      bar.style.transition = 'width 2s linear';
+      bar.style.width = '100%';
+    }));
+  }
+  _smsTimer = setTimeout(()=>{
+    _smsFired = true;
+    ouvrirModalSmsGroupe(creneauId);
+  }, 2000);
+}
+function cancelSmsGroupe(){
+  if(!_smsFired) clearTimeout(_smsTimer);
+  const bar = document.getElementById('smsBtnProgress');
+  if(bar && !_smsFired){ bar.style.transition='none'; bar.style.width='0%'; }
+}
+function ouvrirModalSmsGroupe(creneauId){
+  const eleves = elevesDuCreneau(creneauId);
+  const elevesAvecNum = eleves.filter(e=>e.telephone);
+  const sansNum = eleves.filter(e=>!e.telephone);
+  const c = creneauById(creneauId);
+
+  if(document.getElementById('smsModal')) document.getElementById('smsModal').remove();
+  const modal = document.createElement('div');
+  modal.id = 'smsModal';
+  modal.innerHTML = `
+    <div onclick="document.getElementById('smsModal').remove()" style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;"></div>
+    <div style="position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:16px 16px 0 0;padding:20px;z-index:9999;max-height:90vh;overflow-y:auto;box-shadow:0 -4px 30px rgba(0,0,0,.2);">
+      <h3 style="font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:18px;margin:0 0 4px;color:var(--court-dark);">💬 Message au groupe</h3>
+      <p style="font-size:12px;color:#9b9684;margin:0 0 14px;">${c.jour} ${c.heure_debut} · ${elevesAvecNum.length} contact(s)${sansNum.length?` · ${sansNum.length} sans numéro`:''}</p>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label>Votre message</label>
+        <textarea id="smsMsgText" rows="3" style="width:100%;padding:10px;border:1.5px solid #ddd;border-radius:8px;font-size:15px;font-family:inherit;resize:vertical;" placeholder="Écrivez votre message ici..."></textarea>
+      </div>
+
+      ${elevesAvecNum.length ? `
+      <p style="font-size:12px;font-weight:600;color:#6b6657;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">Envoyer à chaque membre :</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+        ${elevesAvecNum.map(e=>{
+          const tel = e.telephone.replace(/\s/g,'');
+          return `<div style="display:flex;gap:8px;align-items:center;background:#f7f4ec;border-radius:8px;padding:8px 12px;">
+            <div style="flex:1;font-size:13px;font-weight:600;">${e.prenom} ${e.nom}</div>
+            <a href="#" onclick="envoyerSMSIndividuel(''\x27)" style="background:#2a6496;color:#fff;padding:9px 16px;border-radius:7px;font-size:13px;font-weight:700;text-decoration:none;flex-shrink:0;">💬 SMS</a>
+          </div>`;
+        }).join('')}
+      </div>` : `<p style="color:var(--danger);font-size:13px;margin-bottom:14px;">⚠️ Aucun numéro renseigné dans ce groupe.</p>`}
+
+      ${sansNum.length ? `<p style="font-size:11px;color:#9b9684;margin-bottom:12px;">Sans numéro : ${sansNum.map(e=>e.prenom+' '+e.nom).join(', ')}</p>` : ''}
+      <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="document.getElementById('smsModal').remove()">Fermer</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function getMsg(){ return encodeURIComponent((document.getElementById('smsMsgText').value||'').trim()); }
+function envoyerWA(tel){
+  const msg = getMsg();
+  const url = `https://wa.me/${tel}${msg?'?text='+msg:''}`;
+  window.open(url, '_blank');
+}
+function envoyerSMSIndividuel(tel){
+  const msg = getMsg();
+  const a = document.createElement('a');
+  a.href = `sms:${tel}${msg?'?body='+msg:''}`;
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>a.remove(), 500);
+}
+function copierNumeros(numeros){
+  navigator.clipboard.writeText(numeros.join(', ')).then(()=>showToast('Numéros copiés !')).catch(()=>prompt('Copiez ces numéros :', numeros.join(', ')));
+}
+
+// Tooltip téléphone sur appui long (500ms)
+let _longPressTimer = null;
+let _longPressFired = false;
+let _tooltip = null;
+function startLongPress(eleveId){
+  _longPressFired = false;
+  _longPressTimer = setTimeout(()=>{
+    _longPressFired = true;
+    const el = eleveById(eleveId);
+    if(!el) return;
+    const tel = el.telephone || '';
+    const telPropre = tel.replace(/\s/g,'');
+    if(_tooltip) _tooltip.remove();
+    _tooltip = document.createElement('div');
+    _tooltip.innerHTML = `
+      <div style="font-weight:700; font-size:15px; margin-bottom:4px;">${el.prenom} ${el.nom}</div>
+      <div style="font-size:13px; opacity:.85; margin-bottom:12px;">${tel || 'Téléphone non renseigné'}</div>
+      ${telPropre ? `
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <a href="tel:${telPropre}" style="display:flex; align-items:center; gap:6px; background:#3F8F5F; color:#fff; padding:9px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px;">
+          📞 Appeler
+        </a>
+        <a href="sms:${telPropre}" style="display:flex; align-items:center; gap:6px; background:#2a6496; color:#fff; padding:9px 16px; border-radius:8px; text-decoration:none; font-weight:600; font-size:13px;">
+          💬 SMS
+        </a>
+      </div>` : ''}
+      <div onclick="if(_tooltip){_tooltip.remove();_tooltip=null;}" style="margin-top:10px; font-size:11px; opacity:.5; cursor:pointer;">Appuyer pour fermer</div>
+    `;
+    Object.assign(_tooltip.style, {
+      position:'fixed', bottom:'30px', left:'50%', transform:'translateX(-50%)',
+      background:'var(--court-dark)', color:'var(--chalk)', padding:'12px 20px',
+      borderRadius:'12px', fontSize:'15px', zIndex:'9999', textAlign:'center',
+      boxShadow:'0 4px 20px rgba(0,0,0,.3)', lineHeight:'1.6',
+      animation:'fadeIn .15s ease'
     });
+    const style = document.createElement('style');
+    style.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+    document.head.appendChild(style);
+    document.body.appendChild(_tooltip);
+    setTimeout(()=>{ if(_tooltip){ _tooltip.remove(); _tooltip=null; }}, 3000);
+  }, 2000);
+}
+function cancelLongPress(){ if(!_longPressFired) clearTimeout(_longPressTimer); }
+
+function renderFeuilleAppel(creneauId){
+  const c = creneauById(creneauId);
+  const eleves = elevesDuCreneau(creneauId);
+  const seances = DB.Seances.filter(s=>s.creneau_id===creneauId).sort((a,b)=>a.date.localeCompare(b.date));
+  const objectif = Number(cfg('objectif_seances',30));
+  const fait = seances.length;
+  const pct = Math.min(100, Math.round(100*fait/objectif));
+
+  // Bouton SMS groupe (appui long 2s)
+  const smsBtn = `
+    <div style="margin-top:10px;">
+      <button id="smsBtnGroupe"
+        style="background:#2a6496; color:#fff; border:none; border-radius:8px; padding:10px 16px; font-size:13px; font-weight:600; font-family:inherit; cursor:pointer; display:flex; align-items:center; gap:7px; position:relative; overflow:hidden; user-select:none; -webkit-user-select:none; touch-action:none; -webkit-touch-callout:none;"
+        oncontextmenu="return false;"
+        onmousedown="startSmsGroupe('${creneauId}')" onmouseup="cancelSmsGroupe()" onmouseleave="cancelSmsGroupe()"
+        ontouchstart="startSmsGroupe('${creneauId}')" ontouchend="cancelSmsGroupe()" ontouchcancel="cancelSmsGroupe()" ontouchmove="cancelSmsGroupe()">
+        <span style="font-size:16px;">💬</span>
+        SMS groupe
+        <span style="font-size:10px; opacity:.65; margin-left:2px;">(2s)</span>
+        <span id="smsBtnProgress" style="position:absolute; left:0; top:0; bottom:0; width:0%; background:rgba(255,255,255,.2); transition:none; pointer-events:none; border-radius:8px;"></span>
+      </button>
+    </div>`;
+
+  let html = `<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+      <h2 style="margin:0; padding:0; border:none;">Feuille d'appel — ${c.jour} ${c.heure_debut}-${heureFin(c.heure_debut,c.duree)}</h2>
+      ${smsBtn}
+    </div>
+    <div class="gauge-wrap">
+      <div class="gauge"><div class="gauge-fill" style="width:${pct}%"></div></div>
+      <div class="gauge-label">${fait} / ${objectif} séances réalisées${fait>=objectif?' — objectif atteint 🎾':''}</div>
+    </div>`;
+
+  if(eleves.length===0){
+    html += `<p class="muted">Aucun élève affecté à ce créneau (à faire dans Admin → Affectations).</p></div>`;
+    return html;
+  }
+
+
+  html += `
+  <!-- Tableau unique avec scroll horizontal -->
+  <div class="appel-scroll" style="overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:8px; border:1px solid #e3dfd2;">
+    ${seances.length>0 ? `<div style="text-align:right; padding:4px 8px; font-size:10px; color:#bbb; background:#fafaf8;">← glisser pour voir les séances →</div>` : ''}
+    <table style="width:100%; border-collapse:collapse;">
+      <thead><tr>
+        <th style="min-width:150px; position:sticky; left:0; background:#f1eee2; z-index:2; padding:8px; text-align:left; font-size:12px;">Élève</th>`;
+
+  seances.forEach(s=>{
+    html += `<th class="${s.personne?'personne-col':''}" style="padding:4px 2px; text-align:center; min-width:36px; background:${s.personne?'#f6f4ed':'#f1eee2'};">
+      <span class="date-head" onclick="editSeanceDate('${s.id}')" style="font-size:10px; display:block;">${formatDate(s.date)}</span>
+      ${s.personne?'<span style="font-size:8px; color:#aaa; display:block;">⊘</span>':''}
+      <span onclick="supprimerSeance('${s.id}')" style="cursor:pointer; font-size:11px; color:#ddd;" onmouseover="this.style.color='#C0392B'" onmouseout="this.style.color='#ddd'">✕</span>
+    </th>`;
   });
+
+  if(seances.length===0){
+    html += `<th style="padding:8px; font-size:12px; color:#bbb; background:#f1eee2; white-space:nowrap;">← Aucune séance</th>`;
+  }
+
+  html += `</tr></thead><tbody>`;
+
+  eleves.forEach(el=>{
+    const pct2 = presencePct(el.id, creneauId);
+    html += `<tr>
+      <td style="position:sticky; left:0; background:#fff; z-index:1; padding:8px; cursor:pointer; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none; border-bottom:1px solid #f5f2e8;"
+        oncontextmenu="return false;"
+        onmousedown="startLongPress('${el.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()"
+        ontouchstart="startLongPress('${el.id}')" ontouchend="cancelLongPress()" ontouchcancel="cancelLongPress()" ontouchmove="cancelLongPress()">
+        <div style="font-weight:600; font-size:13px;">${el.nom} ${el.prenom}</div>
+        <div style="font-size:10px; color:#9b9684;">${el.annee_naissance||''}${el.annee_naissance&&el.niveau?' · ':''}${el.niveau||''}</div>
+        <div style="font-size:11px; font-family:'JetBrains Mono',monospace; font-weight:700; margin-top:2px; color:${pct2!==null&&pct2<50?'var(--danger)':pct2!==null&&pct2<80?'var(--warn)':'var(--ok)'};">${pct2===null?'—':pct2+'%'}</div>
+      </td>`;
+    seances.forEach(s=>{
+      if(s.personne){ html += `<td style="text-align:center; background:#f9f7f2; border-bottom:1px solid #f5f2e8; color:#ccc; font-size:12px;">—</td>`; return; }
+      const p = DB.Presences.find(pr=>pr.seance_id===s.id && pr.eleve_id===el.id);
+      const present = p ? p.present : false;
+      html += `<td style="padding:6px 2px; text-align:center; border-bottom:1px solid #f5f2e8;">
+        <div class="seance-cell ${present?'present':'absent'}" style="margin:0 auto; width:36px; height:36px; font-size:16px;" onclick="togglePresence('${s.id}','${el.id}')">${present?'✓':'✗'}</div>
+      </td>`;
+    });
+    if(seances.length===0) html += `<td style="border-bottom:1px solid #f5f2e8;"></td>`;
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div>`;
+
+  html += `<div style="margin-top:16px; display:flex; align-items:center; gap:12px; background:#e8f5ec; border-radius:8px; padding:10px 14px;">
+    <button class="add-seance-btn" onclick="ajouterSeance('${creneauId}')" title="Ajouter une séance" style="flex-shrink:0;">+</button>
+    <div>
+      <div style="font-weight:700; font-size:13px; color:var(--ok);">Nouvelle séance</div>
+      <div style="font-size:11px; color:#6b6657;">Appuyer pour créer la feuille d'appel du jour</div>
+    </div>
+  </div>`;
+  html += `</div>`;
+  return html;
+}
+function formatDate(iso){
+  if(!iso || !iso.includes('-')) return iso||'';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}`;
+}
+async function ajouterSeance(creneauId){
+  const today = new Date().toISOString().slice(0,10);
+  const dateChoisie = prompt("Date de la séance (AAAA-MM-JJ) :", today);
+  if(!dateChoisie) return;
+  const personne = confirm("Personne n'est venu à cette séance ?\n\nOK = séance comptabilisée sans élève présent\nAnnuler = séance normale avec appel");
+  const seance = {id:uid(), creneau_id:creneauId, date:dateChoisie, personne};
+  DB.Seances.push(seance);
+  let newPresences = [];
+  if(!personne){
+    elevesDuCreneau(creneauId).forEach(el=>{
+      newPresences.push({id:uid(), seance_id:seance.id, eleve_id:el.id, present:false});
+    });
+    DB.Presences = DB.Presences.concat(newPresences);
+  }
+  sauvegarderLocal();
+  renderApp();
+  showToast('💾 Enregistrement…', 'info', 1000);
+  const ok1 = await persist('Seances');
+  const ok2 = newPresences.length ? await persist('Presences') : true;
+  if(ok1 && ok2){ showToast('✅ Séance enregistrée', 'ok'); }
+  else { showToast('📱 Sauvegardé localement', 'info', 4000); }
+}
+function editSeanceDate(seanceId){
+  const s = DB.Seances.find(x=>x.id===seanceId);
+  const nv = prompt("Modifier la date de la séance (AAAA-MM-JJ) :", s.date);
+  if(nv){ s.date = nv; renderApp(); persist('Seances'); }
 }
 
-/* ---------------------------------------------------------------
-   SUIVI TAB
---------------------------------------------------------------- */
-function renderSuiviTab(){
-  refreshClassSelects();
-  refreshStatsActiviteSelect();
+async function supprimerSeance(seanceId){
+  const s = DB.Seances.find(x=>x.id===seanceId);
+  if(!s) return;
+  const date = s.date ? `du ${formatDate(s.date)}` : '';
+  const ok = confirm(`Supprimer la séance ${date} ?\n\nToutes les présences enregistrées pour cette séance seront également supprimées.\nCette action est irréversible.`);
+  if(!ok) return;
+  DB.Seances = DB.Seances.filter(x=>x.id!==seanceId);
+  DB.Presences = DB.Presences.filter(p=>p.seance_id!==seanceId);
+  renderApp();
+  await persist('Seances');
+  await persist('Presences');
 }
-$('#statsClassSelect').addEventListener('change', refreshStatsActiviteSelect);
+async function togglePresence(seanceId, eleveId){
+  const tableScroll = document.querySelector('.appel-scroll');
+  const savedScroll = tableScroll ? tableScroll.scrollLeft : 0;
 
-function renderParametrageActivites(){
-  refreshClassSelects();
-  renderActivitesForClass();
+  let p = DB.Presences.find(pr=>pr.seance_id===seanceId && pr.eleve_id===eleveId);
+  if(!p){ p = {id:uid(), seance_id:seanceId, eleve_id:eleveId, present:true}; DB.Presences.push(p); }
+  else p.present = !p.present;
+
+  renderApp();
+  requestAnimationFrame(()=>{
+    const el = document.querySelector('.appel-scroll');
+    if(el) el.scrollLeft = savedScroll;
+  });
+
+  // Debounce : attend 800ms après le dernier tap avant de sauvegarder
+  showToast('💾 …', 'info', 1000);
+  persistDebounced('Presences', 800);
 }
-$('#paramActiviteClassSelect').addEventListener('change', renderActivitesForClass);
 
-function renderActivitesForClass(){
-  const cid = $('#paramActiviteClassSelect').value;
-  const wrap = $('#activitesForClass');
-  if(!cid){ wrap.innerHTML=''; return; }
-  const acts = activitesOf(cid);
-  if(acts.length===0){
-    wrap.innerHTML = '<div class="empty">Aucune activité définie pour cette classe.</div>';
-  }else{
-    wrap.innerHTML = acts.map(a=>{
-      const periodsHtml = (a.periods||[]).map((p,idx)=>`
-        <div class="row" style="justify-content:space-between;padding:3px 0;">
-          <span class="hint" style="margin:0;">${fmtDate(p.debut)} → ${fmtDate(p.fin)}</span>
-          <button class="icon-btn" data-del-period="${idx}" data-act="${a.id}">✕</button>
-        </div>`).join('') || '<div class="hint">Aucune période — cette activité n\'apparaîtra comme active à aucune date.</div>';
-      return `
-      <div class="card activite-card" style="margin-bottom:8px;padding:10px 12px;">
-        <div class="row" style="justify-content:space-between;">
-          <b>${escapeHtml(a.nom)}</b>
-          <button class="icon-btn" data-del-act="${a.id}">supprimer l'activité</button>
+/* ---------- ADMIN ---------- */
+function renderAdmin(){
+  const app = document.getElementById('app');
+  if(!UI.adminSession){
+    app.innerHTML = `
+      <div class="login-box">
+        <div class="court-icon">🔒</div>
+        <h2 style="margin-bottom:14px;">Espace administrateur</h2>
+        <div class="field"><input id="adminCodeInput" type="password" placeholder="CODE ADMIN"></div>
+        <button class="btn btn-primary" style="width:100%" onclick="adminLogin()">Entrer</button>
+        <p class="muted" id="adminLoginErr" style="margin-top:10px;"></p>
+        ${!UI.sheetUrl ? `<p class="muted" style="margin-top:18px;">Première utilisation ? Le code par défaut est <b>admin123</b> une fois le Google Sheet connecté.</p>` : ''}
+        ${!UI.sheetUrl ? renderSheetSetupForm(true) : ''}
+      </div>`;
+    return;
+  }
+  let html = `<div class="row" style="justify-content:space-between; margin-bottom:14px;">
+    <h2 style="border:none; padding:0;">Administration</h2>
+    <button class="btn btn-ghost btn-sm" onclick="adminLogout()">Se déconnecter</button>
+  </div>`;
+  html += `<div class="subtabs">
+    <button class="${UI.adminSubtab==='reglages'?'active':''}" onclick="setAdminSubtab('reglages')">Réglages</button>
+    <button class="${UI.adminSubtab==='planning'?'active':''}" onclick="setAdminSubtab('planning')">Planning</button>
+    <button class="${UI.adminSubtab==='profs'?'active':''}" onclick="setAdminSubtab('profs')">Profs</button>
+    <button class="${UI.adminSubtab==='eleves'?'active':''}" onclick="setAdminSubtab('eleves')">Élèves</button>
+    <button class="${UI.adminSubtab==='affectations'?'active':''}" onclick="setAdminSubtab('affectations')">Affectations</button>
+    <button class="${UI.adminSubtab==='archives'?'active':''}" onclick="setAdminSubtab('archives')">Archives</button>
+  </div>`;
+
+  if(UI.adminSubtab==='reglages') html += renderAdminReglages();
+  if(UI.adminSubtab==='planning') html += renderAdminPlanning();
+  if(UI.adminSubtab==='profs') html += renderAdminProfs();
+  if(UI.adminSubtab==='eleves') html += renderAdminEleves();
+  if(UI.adminSubtab==='affectations') html += renderAdminAffectations();
+  if(UI.adminSubtab==='archives') html += renderAdminArchives();
+
+  app.innerHTML = html;
+}
+function adminLogin(){
+  const code = document.getElementById('adminCodeInput').value.trim();
+  if(code === cfg('admin_code','admin123')){ UI.adminSession=true; renderApp(); }
+  else document.getElementById('adminLoginErr').textContent = "Code incorrect.";
+}
+function adminLogout(){ UI.adminSession=false; renderApp(); }
+function setAdminSubtab(t){
+  UI.adminSubtab=t;
+  UI.archiveData=null; UI.archiveSeasonName=null;
+  renderApp();
+  if(t==='archives'){
+    Api.listArchives().then(list=>{ UI.archivesList=list; renderApp(); }).catch(()=>{});
+  }
+}
+
+function renderSheetSetupForm(compact){
+  return `<div class="card" style="text-align:left; margin-top:14px;">
+    <h2 style="font-size:14px;">Connexion Google Sheet</h2>
+    <div class="field"><label>URL de déploiement (Apps Script Web App)</label>
+      <input id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec" value="${UI.sheetUrl}">
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="saveSheetUrl()">Connecter</button>
+  </div>`;
+}
+async function saveSheetUrl(){
+  const url = document.getElementById('sheetUrlInput').value.trim();
+  if(!url) return;
+  UI.sheetUrl = url;
+  localStorage.setItem('tc_sheet_url', url);
+  UI.lastError = null;
+  await loadAll();
+}
+
+function renderAdminReglages(){
+  return `<div class="card">
+    <h2>Connexion Google Sheet</h2>
+    <div class="field"><label>URL de déploiement (Apps Script Web App)</label>
+      <input id="sheetUrlInput2" value="${UI.sheetUrl}"></div>
+    <button class="btn btn-primary btn-sm" onclick="(async()=>{UI.sheetUrl=document.getElementById('sheetUrlInput2').value.trim(); localStorage.setItem('tc_sheet_url',UI.sheetUrl); await loadAll();})()">Mettre à jour</button>
+  </div>
+  <div class="card">
+    <h2>Paramètres généraux</h2>
+    <div class="field"><label>Nom du club</label><input id="nomClubInput" value="${cfg('nom_club','Club de Tennis')}"></div>
+    <div class="field"><label>Objectif de séances par groupe (saison)</label><input id="objSeancesInput" type="number" value="${cfg('objectif_seances',30)}"></div>
+    <div class="field"><label>Code administrateur</label><input id="adminCodeChange" value="${cfg('admin_code','admin123')}"></div>
+    <div class="field"><label>Code d'accès Espace Prof (commun à toute l'équipe)</label><input id="codeProfsChange" value="${cfg('code_profs','0000')}"></div>
+    <button class="btn btn-primary btn-sm" onclick="saveReglages()">Enregistrer</button>
+  </div>
+  <div class="card">
+    <h2>Saison</h2>
+    <p>Saison actuelle : <span class="pill pill-court">${cfg('saison_actuelle', suggererNomSaison())}</span></p>
+    <p class="muted">Au passage à une nouvelle année, archivez la saison en cours : élèves, planning, groupes et feuilles d'appel sont sauvegardés dans des onglets séparés du Google Sheet et restent consultables dans « Archives ». L'application repart ensuite à zéro pour la nouvelle saison (professeurs et réglages conservés).</p>
+    <button class="btn btn-primary btn-sm" onclick="demarrerNouvelleSaison()">Archiver et démarrer une nouvelle saison</button>
+  </div>`;
+}
+function suggererNomSaison(){
+  const y = new Date().getFullYear();
+  const m = new Date().getMonth(); // 0=jan
+  const start = m>=6 ? y : y-1; // saison démarre en septembre
+  return `${start}-${start+1}`;
+}
+async function demarrerNouvelleSaison(){
+  const actuelle = cfg('saison_actuelle', suggererNomSaison());
+  const nomArchive = prompt("Nom de la saison à archiver :", actuelle);
+  if(!nomArchive) return;
+  if(!confirm(`Archiver la saison "${nomArchive}" ? Élèves, planning, groupes et appels seront sauvegardés puis remis à zéro pour la nouvelle saison.`)) return;
+  try{
+    await Api.archiveSeason(nomArchive);
+    DB.Planning = []; DB.Eleves = []; DB.Affectations = []; DB.Seances = []; DB.Presences = [];
+    const prochaine = prompt("Nom de la nouvelle saison :", `${Number(nomArchive.split('-')[1])}-${Number(nomArchive.split('-')[1])+1}`);
+    setCfg('saison_actuelle', prochaine || '');
+    await persist('Config');
+    alert('Saison archivée. La nouvelle saison commence avec une base vide pour les élèves, le planning et les groupes.');
+    renderApp();
+  }catch(err){
+    alert("Erreur lors de l'archivage : " + err.message);
+  }
+}
+async function saveReglages(){
+  setCfg('nom_club', document.getElementById('nomClubInput').value.trim());
+  setCfg('objectif_seances', Number(document.getElementById('objSeancesInput').value));
+  setCfg('admin_code', document.getElementById('adminCodeChange').value.trim());
+  setCfg('code_profs', document.getElementById('codeProfsChange').value.trim());
+  renderApp();
+  await persist('Config');
+  alert('Réglages enregistrés.');
+}
+
+function renderAdminPlanning(){
+  const editC = UI.editingCreneau ? DB.Planning.find(c=>c.id===UI.editingCreneau) : null;
+  let html = `<div class="card">
+    <h2>${editC?'Modifier le créneau':'Ajouter un créneau'}</h2>
+    <div class="row">
+      <div class="field"><label>Jour</label><select id="cJour">${JOURS.map(j=>`<option ${editC&&editC.jour===j?'selected':''}>${j}</option>`).join('')}</select></div>
+      <div class="field"><label>Heure début</label><input id="cHeure" type="time" value="${editC?editC.heure_debut:'09:00'}"></div>
+      <div class="field"><label>Durée</label><select id="cDuree">
+        <option value="60" ${editC&&editC.duree==60?'selected':''}>1h00</option>
+        <option value="90" ${editC&&editC.duree==90?'selected':''}>1h30</option>
+      </select></div>
+      <div class="field"><label>Niveau</label><input id="cNiveau" value="${editC?editC.niveau:''}" placeholder="Débutant, Compétition..."></div>
+      <div class="field"><label>Places</label><input id="cPlaces" type="number" min="1" value="${editC?editC.places:6}"></div>
+      <div class="field"><label>Prof</label><select id="cProf"><option value="">—</option>${DB.Profs.map(p=>`<option value="${p.id}" ${editC&&editC.prof_id===p.id?'selected':''}>${p.nom}</option>`).join('')}</select></div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="saveCreneau()">${editC?'Mettre à jour':'Ajouter'}</button>
+    ${editC?`<button class="btn btn-ghost btn-sm" onclick="annulerEdition()">Annuler</button>`:''}
+  </div>
+  <div class="card"><h2>Créneaux existants</h2>
+  <div class="scroll-x"><table><thead><tr><th>Jour</th><th>Horaire</th><th>Niveau</th><th>Places</th><th>Prof</th><th></th></tr></thead><tbody>`;
+  DB.Planning.sort((a,b)=> JOURS.indexOf(a.jour)-JOURS.indexOf(b.jour) || a.heure_debut.localeCompare(b.heure_debut)).forEach(c=>{
+    const prof = profById(c.prof_id);
+    html += `<tr><td>${c.jour}</td><td class="mono">${c.heure_debut}-${heureFin(c.heure_debut,c.duree)}</td><td>${c.niveau||''}</td><td>${placesOccupees(c.id)}/${c.places}</td><td>${prof?prof.nom:'—'}</td>
+      <td class="row" style="gap:4px;">
+        <button class="btn btn-ghost btn-sm" onclick="editerCreneau('${c.id}')">Éditer</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCreneau('${c.id}')">Suppr.</button>
+      </td></tr>`;
+  });
+  html += `</tbody></table></div></div>`;
+  return html;
+}
+function editerCreneau(id){ UI.editingCreneau = id; UI.adminSubtab='planning'; renderApp(); window.scrollTo(0,0); }
+function annulerEdition(){ UI.editingCreneau = null; renderApp(); }
+async function saveCreneau(){
+  const data = {
+    jour: document.getElementById('cJour').value,
+    heure_debut: document.getElementById('cHeure').value,
+    duree: Number(document.getElementById('cDuree').value),
+    niveau: document.getElementById('cNiveau').value.trim(),
+    places: Number(document.getElementById('cPlaces').value),
+    prof_id: document.getElementById('cProf').value
+  };
+  if(UI.editingCreneau){
+    const c = DB.Planning.find(c=>c.id===UI.editingCreneau);
+    Object.assign(c, data);
+    UI.editingCreneau = null;
+  } else {
+    DB.Planning.push({id:uid(), ...data});
+  }
+  renderApp();
+  await persist('Planning');
+}
+async function deleteCreneau(id){
+  if(!confirm('Supprimer ce créneau ? Les affectations liées seront aussi supprimées.')) return;
+  DB.Planning = DB.Planning.filter(c=>c.id!==id);
+  DB.Affectations = DB.Affectations.filter(a=>a.creneau_id!==id);
+  renderApp();
+  await persist('Planning');
+  await persist('Affectations');
+}
+
+function renderAdminProfs(){
+  let html = `<div class="card"><h2>Ajouter un professeur</h2>
+    <div class="row">
+      <div class="field"><label>Nom</label><input id="pNom"></div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="addProf()">Ajouter</button>
+  </div>
+  <div class="card"><h2>Professeurs</h2><table><thead><tr><th>Nom</th><th></th></tr></thead><tbody>`;
+  DB.Profs.forEach(p=>{
+    html += `<tr><td>${p.nom}</td><td><button class="btn btn-danger btn-sm" onclick="deleteProf('${p.id}')">Suppr.</button></td></tr>`;
+  });
+  html += `</tbody></table></div>`;
+  return html;
+}
+async function addProf(){
+  const nom = document.getElementById('pNom').value.trim();
+  if(!nom) return;
+  DB.Profs.push({id:uid(), nom});
+  renderApp();
+  await persist('Profs');
+}
+async function deleteProf(id){
+  if(!confirm('Supprimer ce professeur ?')) return;
+  DB.Profs = DB.Profs.filter(p=>p.id!==id);
+  renderApp();
+  await persist('Profs');
+}
+
+function renderAdminEleves(){
+  let html = `<div class="card"><h2>Import / export</h2>
+    <div class="row">
+      <button class="btn btn-ghost btn-sm" onclick="telechargerModele()">Télécharger le modèle Excel</button>
+      <label class="btn btn-primary btn-sm" style="display:inline-block;">Importer un fichier Excel<input type="file" id="excelImport" accept=".xlsx,.xls" style="display:none" onchange="importerExcel(event)"></label>
+    </div>
+    <p class="muted" style="margin-top:8px;">Colonnes attendues : Nom, Prenom, Sexe (M/F), Annee_naissance, Niveau, Telephone, Indisponibilites.</p>
+    <p class="muted">L'import <b>ajoute</b> les nouveaux élèves et <b>met à jour</b> ceux déjà présents (même nom + prénom + année de naissance). Les élèves déjà affectés à un créneau <b>conservent leur affectation</b>, même après un nouvel import.</p>
+  </div>
+  <div class="card"><h2>Ajouter un élève manuellement</h2>
+    <div class="row">
+      <div class="field"><label>Nom</label><input id="eNom"></div>
+      <div class="field"><label>Prénom</label><input id="ePrenom"></div>
+      <div class="field"><label>Sexe</label><select id="eSexe"><option value="F">F</option><option value="M">M</option></select></div>
+      <div class="field"><label>Année de naissance</label><input id="eAnnee" type="number" placeholder="2014"></div>
+      <div class="field"><label>Niveau</label><input id="eNiveau"></div>
+      <div class="field"><label>Téléphone</label><input id="eTelephone"></div>
+      <div class="field" style="flex:1; min-width:200px;"><label>Indisponibilités</label><input id="eIndispo" placeholder="ex: Mercredi, Vendredi soir"></div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="addEleveManuel()">Ajouter l'élève</button>
+  </div>`;
+
+  // Formulaire de modification si un élève est en cours d'édition
+  if(UI.editingEleve){
+    const e = DB.Eleves.find(x=>x.id===UI.editingEleve);
+    if(e){
+      html += `<div class="card" style="border:2px solid var(--clay);">
+        <h2>Modifier la fiche de ${e.prenom} ${e.nom}</h2>
+        <div class="row">
+          <div class="field"><label>Nom</label><input id="eEditNom" value="${e.nom}"></div>
+          <div class="field"><label>Prénom</label><input id="eEditPrenom" value="${e.prenom}"></div>
+          <div class="field"><label>Sexe</label>
+            <select id="eEditSexe">
+              <option value="F" ${e.sexe==='F'?'selected':''}>F</option>
+              <option value="M" ${e.sexe==='M'?'selected':''}>M</option>
+            </select>
+          </div>
+          <div class="field"><label>Année de naissance</label><input id="eEditAnnee" type="number" value="${e.annee_naissance||''}"></div>
+          <div class="field"><label>Niveau</label><input id="eEditNiveau" value="${e.niveau||''}"></div>
+          <div class="field"><label>Téléphone</label><input id="eEditTelephone" value="${e.telephone||''}"></div>
+          <div class="field" style="flex:1; min-width:200px;"><label>Indisponibilités</label><input id="eEditIndispo" value="${e.indisponibilites||''}"></div>
         </div>
-        ${periodsHtml}
-        <div class="row wrap" style="gap:6px;margin-top:6px;">
-          <input type="date" class="grow" style="min-width:110px;" data-new-period-debut="${a.id}">
-          <input type="date" class="grow" style="min-width:110px;" data-new-period-fin="${a.id}">
-          <button class="btn ghost small" data-add-period="${a.id}">+ période</button>
+        <div class="row">
+          <button class="btn btn-primary btn-sm" onclick="saveEleveEdit('${e.id}')">Enregistrer</button>
+          <button class="btn btn-ghost btn-sm" onclick="UI.editingEleve=null; renderApp();">Annuler</button>
         </div>
       </div>`;
+    }
+  }
+
+  html += `<div class="card"><h2>Liste des élèves (${DB.Eleves.length})</h2>
+  <div class="scroll-x"><table><thead><tr><th>Nom</th><th>Prénom</th><th>Sexe</th><th>Année</th><th>Niveau</th><th>Téléphone</th><th>Indispo.</th><th></th></tr></thead><tbody>`;
+  DB.Eleves.slice().sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom, 'fr', {sensitivity:'base'})).forEach(e=>{
+    const enEdition = UI.editingEleve === e.id;
+    html += `<tr style="${enEdition?'background:#fff8f5;':''}">
+      <td>${e.nom}</td><td>${e.prenom}</td><td>${e.sexe||''}</td>
+      <td>${e.annee_naissance||''}</td><td>${e.niveau||''}</td>
+      <td class="mono">${e.telephone||''}</td>
+      <td style="max-width:160px;">${e.indisponibilites||''}</td>
+      <td>
+        <div class="row" style="gap:4px; flex-wrap:nowrap;">
+          <button class="btn btn-ghost btn-sm" onclick="editerEleve('${e.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEleve('${e.id}')">Suppr.</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+  html += `</tbody></table></div></div>`;
+  return html;
+}
+function editerEleve(id){
+  UI.editingEleve = id;
+  UI.adminSubtab = 'eleves';
+  renderApp();
+  // Scroll vers le formulaire d'édition
+  setTimeout(()=>{ const el = document.querySelector('.card [id="eEditNom"]'); if(el) el.closest('.card').scrollIntoView({behavior:'smooth'}); }, 50);
+}
+async function saveEleveEdit(id){
+  const e = DB.Eleves.find(x=>x.id===id);
+  if(!e) return;
+  e.nom = document.getElementById('eEditNom').value.trim();
+  e.prenom = document.getElementById('eEditPrenom').value.trim();
+  e.sexe = document.getElementById('eEditSexe').value;
+  e.annee_naissance = Number(document.getElementById('eEditAnnee').value) || '';
+  e.niveau = document.getElementById('eEditNiveau').value.trim();
+  e.telephone = document.getElementById('eEditTelephone').value.trim();
+  e.indisponibilites = document.getElementById('eEditIndispo').value.trim();
+  DB.Eleves.sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom, 'fr', {sensitivity:'base'}));
+  UI.editingEleve = null;
+  renderApp();
+  await persist('Eleves');
+}
+async function addEleveManuel(){
+  const nom = document.getElementById('eNom').value.trim();
+  const prenom = document.getElementById('ePrenom').value.trim();
+  if(!nom || !prenom){ alert('Nom et prénom sont obligatoires.'); return; }
+  const eleve = {
+    id: uid(),
+    nom, prenom,
+    sexe: document.getElementById('eSexe').value,
+    annee_naissance: Number(document.getElementById('eAnnee').value) || '',
+    niveau: document.getElementById('eNiveau').value.trim(),
+    telephone: document.getElementById('eTelephone').value.trim(),
+    indisponibilites: document.getElementById('eIndispo').value.trim()
+  };
+  DB.Eleves.push(eleve);
+  DB.Eleves.sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom, 'fr', {sensitivity:'base'}));
+  renderApp();
+  await persist('Eleves');
+}
+function telechargerModele(){
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet([
+    {Nom:'Dupont', Prenom:'Léa', Sexe:'F', Annee_naissance:2014, Niveau:'Débutant', Telephone:'0612345678', Indisponibilites:'Mercredi'}
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws, 'Eleves');
+  XLSX.writeFile(wb, 'modele_eleves.xlsx');
+}
+function importerExcel(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const wb = XLSX.read(e.target.result, {type:'binary'});
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+    const importes = rows.map(r=>({
+      nom: r.Nom||r.nom||'',
+      prenom: r.Prenom||r.prenom||'',
+      sexe: r.Sexe||r.sexe||'',
+      annee_naissance: Number(r.Annee_naissance||r.annee_naissance||0),
+      niveau: r.Niveau||r.niveau||'',
+      telephone: r.Telephone||r.telephone||'',
+      indisponibilites: r.Indisponibilites||r.indisponibilites||''
+    })).filter(r=>r.nom);
+
+    // Fusion : on met à jour les élèves déjà existants (même nom+prénom+année) et on ajoute les nouveaux,
+    // sans toucher aux élèves déjà présents qui ne sont pas dans le fichier (ex: ajoutés manuellement).
+    const cle = e => (e.nom+'|'+e.prenom+'|'+e.annee_naissance).toLowerCase();
+    let ajoutes = 0, misAJour = 0;
+    importes.forEach(imp=>{
+      const existant = DB.Eleves.find(ex => cle(ex) === cle(imp));
+      if(existant){ Object.assign(existant, imp); misAJour++; }
+      else { DB.Eleves.push({id: uid(), ...imp}); ajoutes++; }
+    });
+    DB.Eleves.sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom, 'fr', {sensitivity:'base'}));
+    renderApp();
+    await persist('Eleves');
+    alert(`Import terminé :\n• ${ajoutes} élève(s) ajouté(s)\n• ${misAJour} élève(s) mis à jour\n\nLes affectations aux créneaux sont conservées.`);
+  };
+  reader.readAsBinaryString(file);
+}
+async function deleteEleve(id){
+  if(!confirm('Supprimer cet élève ?')) return;
+  DB.Eleves = DB.Eleves.filter(e=>e.id!==id);
+  DB.Affectations = DB.Affectations.filter(a=>a.eleve_id!==id);
+  renderApp();
+  await persist('Eleves');
+  await persist('Affectations');
+}
+
+function renderAdminAffectations(){
+  let html = `<div class="card">
+    <h2>Proposition automatique</h2>
+    <p class="muted">Forme des groupes adultes (5 max) et enfants (6 max) par niveau/sexe, en respectant les indisponibilités déclarées. À vérifier et ajuster ensuite manuellement.</p>
+    <button class="btn btn-primary btn-sm" onclick="lancerPropositionAuto()">Générer une proposition</button>
+  </div>`;
+  if(UI.lastAutoReport){
+    const r = UI.lastAutoReport;
+    html += `<div class="banner ${r.nonPlaces.length?'banner-warn':'banner-ok'}">
+      ${r.placed} élève(s) placé(s) automatiquement.
+      ${r.nonPlaces.length? `<br>Non placés (créneaux pleins ou indisponibilités) : ${r.nonPlaces.join(', ')}` : 'Tous les élèves ont pu être placés.'}
+    </div>`;
+  }
+
+  // Options de créneaux pour les selects
+  const creneausSorted = DB.Planning.slice().sort((a,b)=> JOURS.indexOf(a.jour)-JOURS.indexOf(b.jour)||a.heure_debut.localeCompare(b.heure_debut));
+
+  // Valeurs uniques pour les filtres
+  const niveauxUniques = [...new Set(DB.Eleves.map(e=>e.niveau).filter(Boolean))].sort();
+  const anneesUniques = [...new Set(DB.Eleves.map(e=>e.annee_naissance).filter(Boolean))].sort((a,b)=>b-a);
+  const f = UI.affFiltres;
+
+  // Appliquer les filtres
+  let elevesAffiches = DB.Eleves.slice().sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom));
+  if(f.nom) elevesAffiches = elevesAffiches.filter(e=> (e.nom+' '+e.prenom).toLowerCase().includes(f.nom.toLowerCase()));
+  if(f.annee) elevesAffiches = elevesAffiches.filter(e=> String(e.annee_naissance)===f.annee);
+  if(f.niveau) elevesAffiches = elevesAffiches.filter(e=> e.niveau===f.niveau);
+  if(f.sexe) elevesAffiches = elevesAffiches.filter(e=> e.sexe===f.sexe);
+  if(f.categorie) elevesAffiches = elevesAffiches.filter(e=> f.categorie==='adulte' ? isAdulte(e) : !isAdulte(e));
+  if(f.creneau==='non_affecte') elevesAffiches = elevesAffiches.filter(e=> !DB.Affectations.find(a=>a.eleve_id===e.id));
+  else if(f.creneau) elevesAffiches = elevesAffiches.filter(e=> DB.Affectations.find(a=>a.eleve_id===e.id && a.creneau_id===f.creneau));
+
+  const nbFiltres = Object.values(f).filter(Boolean).length;
+
+  html += `<div class="card"><h2>Affectation manuelle</h2>
+
+  <div style="background:#f7f4ec; border-radius:10px; padding:14px; margin-bottom:14px;">
+    <div style="font-family:'Oswald',sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:#6b6657; margin-bottom:10px;">
+      🔍 Filtrer les élèves ${nbFiltres?`<span class="pill pill-clay" style="font-size:10px; margin-left:6px;">${nbFiltres} filtre${nbFiltres>1?'s':''} actif${nbFiltres>1?'s':''}</span>`:''}
+    </div>
+    <div class="row" style="gap:8px; flex-wrap:wrap; align-items:flex-end;">
+      <div class="field" style="min-width:160px; margin:0;">
+        <label>Nom / Prénom</label>
+        <input placeholder="Rechercher..." value="${f.nom}" oninput="UI.affFiltres.nom=this.value; renderApp();">
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Année de naissance</label>
+        <select onchange="UI.affFiltres.annee=this.value; renderApp();">
+          <option value="">Toutes</option>
+          ${anneesUniques.map(a=>`<option value="${a}" ${f.annee==a?'selected':''}>${a}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Niveau</label>
+        <select onchange="UI.affFiltres.niveau=this.value; renderApp();">
+          <option value="">Tous</option>
+          ${niveauxUniques.map(n=>`<option value="${n}" ${f.niveau===n?'selected':''}>${n}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Catégorie</label>
+        <select onchange="UI.affFiltres.categorie=this.value; renderApp();">
+          <option value="">Tous</option>
+          <option value="adulte" ${f.categorie==='adulte'?'selected':''}>🧑 Adultes</option>
+          <option value="enfant" ${f.categorie==='enfant'?'selected':''}>🧒 Enfants</option>
+        </select>
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Sexe</label>
+        <select onchange="UI.affFiltres.sexe=this.value; renderApp();">
+          <option value="">Tous</option>
+          <option value="F" ${f.sexe==='F'?'selected':''}>F</option>
+          <option value="M" ${f.sexe==='M'?'selected':''}>M</option>
+        </select>
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Créneau</label>
+        <select onchange="UI.affFiltres.creneau=this.value; renderApp();">
+          <option value="">Tous</option>
+          <option value="non_affecte" ${f.creneau==='non_affecte'?'selected':''}>— Non affectés</option>
+          ${creneausSorted.map(c=>{
+            const prof = profById(c.prof_id);
+            return `<option value="${c.id}" ${f.creneau===c.id?'selected':''}>${c.jour} ${c.heure_debut} | ${c.niveau||'?'} | ${prof?prof.nom:'—'}</option>`;
+          }).join('')}
+        </select>
+      </div>
+      ${nbFiltres?`<button class="btn btn-ghost btn-sm" onclick="UI.affFiltres={nom:'',annee:'',niveau:'',sexe:'',creneau:'',categorie:''}; renderApp();">✕ Effacer les filtres</button>`:''}
+    </div>
+  </div>
+
+  <p class="muted" style="margin-bottom:10px;">${elevesAffiches.length} élève${elevesAffiches.length>1?'s':''} affiché${elevesAffiches.length>1?'s':''} sur ${DB.Eleves.length}</p>
+  <div class="scroll-x"><table>
+    <thead><tr>
+      <th>Nom / Prénom</th>
+      <th>Sexe</th>
+      <th>Naissance</th>
+      <th>Niveau</th>
+      <th>Téléphone</th>
+      <th>Indisponibilités</th>
+      <th style="min-width:300px;">Créneau assigné</th>
+    </tr></thead>
+    <tbody>`;
+
+  const annee = new Date().getFullYear();
+  elevesAffiches.forEach(el=>{
+    const aff = DB.Affectations.find(a=>a.eleve_id===el.id);
+    const adulte = el.annee_naissance ? (annee - Number(el.annee_naissance)) >= 18 : null;
+
+    const options = `<option value="">— Aucun —</option>` + creneausSorted.map(c=>{
+      const prof = profById(c.prof_id);
+      const occ = placesOccupees(c.id);
+      const plein = occ >= c.places && !(aff && aff.creneau_id===c.id);
+      const sel = aff && aff.creneau_id===c.id ? 'selected' : '';
+      return `<option value="${c.id}" ${sel} ${plein?'disabled':''}>${c.jour} ${c.heure_debut} | ${c.niveau||'?'} | ${prof?prof.nom:'—'} | ${occ}/${c.places}${plein?' ✗':''}</option>`;
     }).join('');
 
-    wrap.querySelectorAll('[data-del-act]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        if(!confirm('Supprimer cette activité ? (les données déjà enregistrées restent liées)')) return;
-        delete DATA.activites[btn.dataset.delAct];
-        renderActivitesForClass();
-        saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
-      });
-    });
-    wrap.querySelectorAll('[data-del-period]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const act = DATA.activites[btn.dataset.act];
-        if(!act) return;
-        act.periods.splice(parseInt(btn.dataset.delPeriod,10),1);
-        renderActivitesForClass();
-        saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
-      });
-    });
-    wrap.querySelectorAll('[data-add-period]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const actId = btn.dataset.addPeriod;
-        const act = DATA.activites[actId];
-        const debutEl = wrap.querySelector(`[data-new-period-debut="${actId}"]`);
-        const finEl = wrap.querySelector(`[data-new-period-fin="${actId}"]`);
-        const debut = debutEl.value, fin = finEl.value;
-        if(!debut || !fin || debut>fin){ toast('Dates de période invalides'); return; }
-        act.periods = act.periods||[];
-        act.periods.push({debut, fin});
-        renderActivitesForClass();
-        saveNow().then(ok=>{ toast(ok ? 'Période ajoutée ✓' : '⚠ Non synchronisé'); });
-      });
-    });
-  }
+    html += `<tr>
+      <td><b>${el.nom}</b> ${el.prenom}<br>
+        <span class="pill ${adulte?'pill-court':'pill-clay'}" style="font-size:10px;">${adulte?'Adulte':adulte===false?'Enfant':'—'}</span>
+      </td>
+      <td style="text-align:center;">${el.sexe||'—'}</td>
+      <td style="text-align:center;" class="mono">${el.annee_naissance||'—'}</td>
+      <td>${el.niveau||'—'}</td>
+      <td class="mono" style="font-size:12px; white-space:nowrap;">${el.telephone||'—'}</td>
+      <td style="font-size:12px; color:${el.indisponibilites?'#b5552d':'#999'}; max-width:150px;">${el.indisponibilites||'—'}</td>
+      <td><select style="width:100%; font-size:12px;" onchange="changerAffectation('${el.id}', this.value)">${options}</select></td>
+    </tr>`;
+  });
+  html += `</tbody></table></div></div>`;
+  return html;
+}
+async function lancerPropositionAuto(){
+  const {affectations, nonPlaces} = genererPropositionAuto();
+  DB.Affectations = affectations;
+  UI.lastAutoReport = {placed: affectations.length, nonPlaces: nonPlaces.map(e=>e.nom+' '+e.prenom)};
+  renderApp();
+  await persist('Affectations');
+}
+async function changerAffectation(eleveId, creneauId){
+  DB.Affectations = DB.Affectations.filter(a=>a.eleve_id!==eleveId);
+  if(creneauId) DB.Affectations.push({id:uid(), eleve_id:eleveId, creneau_id:creneauId});
+  renderApp();
+  await persist('Affectations');
 }
 
-$('#btnAddActivite').addEventListener('click', ()=>{
-  const cid = $('#paramActiviteClassSelect').value;
-  const nom = $('#newActiviteNom').value.trim();
-  const debut = $('#newActiviteDebut').value;
-  const fin = $('#newActiviteFin').value;
-  if(!cid){ toast('Sélectionne une classe'); return; }
-  const existing = activitesOf(cid);
-  if(existing.length>=5){ toast('Maximum 5 activités par classe'); return; }
-  if(!nom){ toast('Indique un nom d\'activité'); return; }
-  if(!debut || !fin || debut>fin){ toast('Dates de début/fin invalides'); return; }
-  const act = { id: uid('act'), classId: cid, nom, periods: [{debut, fin}] };
-  DATA.activites[act.id] = act;
-  $('#newActiviteNom').value=''; $('#newActiviteDebut').value=''; $('#newActiviteFin').value='';
-  renderActivitesForClass();
-  saveNow().then(ok=>{ toast(ok ? 'Activité ajoutée ✓' : '⚠ Non synchronisé'); });
-});
-
-function refreshStatsActiviteSelect(){
-  const cid = $('#statsClassSelect').value;
-  const sel = $('#statsActiviteSelect');
-  const acts = cid ? activitesOf(cid) : Object.values(DATA.activites);
-  sel.innerHTML = acts.length
-    ? acts.map(a=>`<option value="${a.id}">${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('')
-    : '<option value="">— aucune activité —</option>';
-  renderStatsTable();
-}
-$('#statsActiviteSelect').addEventListener('change', renderStatsTable);
-
-function renderStatsTable(){
-  const actId = $('#statsActiviteSelect').value;
-  const wrap = $('#statsTableWrap');
-  if(!actId || !DATA.activites[actId]){
-    wrap.innerHTML = '<div class="empty">Choisis une activité pour voir les statistiques.</div>';
-    return;
+function renderAdminArchives(){
+  let html = `<div class="card"><h2>Saisons archivées</h2>`;
+  if(!UI.archivesList || UI.archivesList.length===0){
+    html += `<p class="muted">Aucune saison archivée pour le moment.</p></div>`;
+    return html;
   }
-  const act = DATA.activites[actId];
-  const students = studentsOf(act.classId);
-  const seances = Object.values(DATA.seances).filter(s=>s.activiteId===actId);
-  if(seances.length===0){
-    wrap.innerHTML = '<div class="empty">Aucun appel n\'a encore été fait pendant cette activité.</div>';
-    return;
-  }
-  const rows = students.map(s=>{
-    let seancesCount=0, absences=0, dispenses=0, oublis=0;
-    seances.forEach(se=>{
-      const e = se.students[s.id];
-      if(!e) return;
-      seancesCount++;
-      if(e.presence==='absent') absences++;
-      if(e.dispense) dispenses++;
-      if(e.oubli) oublis++;
+  html += `<div class="row">`;
+  UI.archivesList.forEach(s=>{
+    html += `<button class="btn ${UI.archiveSeasonName===s?'btn-primary':'btn-ghost'} btn-sm" onclick="chargerArchive('${s}')">${s}</button>`;
+  });
+  html += `</div></div>`;
+
+  if(UI.archiveData){
+    const d = UI.archiveData;
+    html += `<div class="banner banner-ok">Consultation de la saison <b>${UI.archiveSeasonName}</b> (lecture seule)</div>`;
+    html += `<div class="card"><h2>Planning &amp; groupes</h2><div class="scroll-x"><table><thead><tr><th>Jour</th><th>Horaire</th><th>Niveau</th><th>Prof</th><th>Élèves (% présence)</th></tr></thead><tbody>`;
+    (d.Planning||[]).sort((a,b)=> JOURS.indexOf(a.jour)-JOURS.indexOf(b.jour) || String(a.heure_debut).localeCompare(b.heure_debut)).forEach(c=>{
+      const eleves = (d.Affectations||[]).filter(a=>a.creneau_id===c.id).map(a=>(d.Eleves||[]).find(e=>e.id===a.eleve_id)).filter(Boolean);
+      const profsArchive = d.Profs || DB.Profs;
+      const prof = profsArchive.find(p=>p.id===c.prof_id);
+      const listEleves = eleves.map(e=>{
+        const pct = presencePct(e.id, c.id, d);
+        return `${e.nom} ${e.prenom} (${pct===null?'—':pct+'%'})`;
+      }).join(', ') || '—';
+      html += `<tr><td>${c.jour}</td><td class="mono">${c.heure_debut}-${heureFin(c.heure_debut,c.duree)}</td><td>${c.niveau||''}</td><td>${prof?prof.nom:'—'}</td><td style="font-size:12px;">${listEleves}</td></tr>`;
     });
-    return {s, seancesCount, absences, dispenses, oublis};
-  }).sort((a,b)=>(a.s.nom||'').localeCompare(b.s.nom||'','fr') || a.s.prenom.localeCompare(b.s.prenom,'fr'));
+    html += `</tbody></table></div></div>`;
 
-  wrap.innerHTML = `
-    <div class="hint" style="margin-bottom:8px;">${seances.length} séance(s) enregistrée(s). Périodes : ${fmtPeriods(act)}.</div>
-    <table class="stats">
-      <colgroup>
-        <col class="col-name"><col class="col-stat"><col class="col-stat"><col class="col-stat"><col class="col-stat">
-      </colgroup>
-      <thead><tr>
-        <th style="text-align:left;">Élève</th>
-        <th title="Séances">Séa.</th>
-        <th title="Absences">Abs.</th>
-        <th class="icon-col" title="Dispensé">✚</th>
-        <th class="icon-col" title="Affaires oubliées">👟</th>
-      </tr></thead>
-      <tbody>
-        ${rows.map(r=>`
-          <tr>
-            <td class="name-cell" title="${escapeHtml(r.s.prenom)}">${escapeHtml(r.s.prenom)}</td>
-            <td>${r.seancesCount}</td>
-            <td class="${r.absences>0?'warn':''}">${r.absences}</td>
-            <td class="${r.dispenses>0?'warn':''}">${r.dispenses}</td>
-            <td class="${r.oublis>0?'warn':''}">${r.oublis}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`;
+    html += `<div class="card"><h2>Élèves de la saison (${(d.Eleves||[]).length})</h2><div class="scroll-x"><table><thead><tr><th>Nom</th><th>Prénom</th><th>Sexe</th><th>Année</th><th>Niveau</th></tr></thead><tbody>`;
+    (d.Eleves||[]).forEach(e=>{
+      html += `<tr><td>${e.nom}</td><td>${e.prenom}</td><td>${e.sexe||''}</td><td>${e.annee_naissance}</td><td>${e.niveau||''}</td></tr>`;
+    });
+    html += `</tbody></table></div></div>`;
+  }
+  return html;
 }
-
-/* ---------------------------------------------------------------
-   INIT
---------------------------------------------------------------- */
-async function init(){
-  await loadUiState();
+async function chargerArchive(season){
+  UI.loading = true; renderApp();
+  try{
+    const data = await Api.getArchive(season);
+    const norm = {};
+    ['Planning','Eleves','Affectations','Seances','Presences'].forEach(s => norm[s] = (data[s]||[]).map(normalizeRow));
+    UI.archiveData = norm;
+    UI.archiveSeasonName = season;
+  }catch(err){
+    alert("Impossible de charger cette archive : " + err.message);
+  }
+  UI.loading = false;
+  renderApp();
+}
+/* ====================== INIT ====================== */
+async function actualiser(){
+  const btn = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  if(btn) btn.style.opacity='.5';
+  if(icon) icon.style.animation='spin .7s linear infinite';
+  const style = document.createElement('style');
+  style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(style);
   await loadAll();
-  refreshClassSelects();
-  $('#appelDate').value = todayISO();
-  renderClasses();
-  renderParametrageActivites();
-  renderAppelTab();
-  renderSuiviTab();
+  if(btn) btn.style.opacity='1';
+  if(icon){ icon.style.animation=''; }
 }
-init();
-
-})();
+loadAll();
 </script>
 </body>
 </html>
