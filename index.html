@@ -2,2024 +2,927 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Appel EPS</title>
 <style>
   :root{
-    --ink:#12202b;
-    --ink-soft:#4b5c66;
-    --paper:#f6f4ef;
-    --line:#d9d3c6;
-    --track:#e8622c;
-    --track-dark:#c94f1f;
-    --present:#2f7a4f;
-    --present-bg:#e3f2e8;
-    --absent:#b5342a;
-    --absent-bg:#fbe6e3;
-    --dispense:#b8860f;
-    --dispense-bg:#fbf1da;
-    --card:#ffffff;
-    --radius:14px;
-    font-size:16px;
+    --bg:#f4f6f8; --card:#ffffff; --ink:#1c2733; --muted:#6b7785;
+    --accent:#2563eb; --accent-ink:#ffffff; --green:#16a34a; --red:#dc2626;
+    --amber:#d97706; --border:#e2e8f0; --radius:12px;
   }
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--paper);
-    color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    -webkit-tap-highlight-color:transparent;
-    padding-bottom:76px;
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:20;}
+  header h1{font-size:18px;margin:0;flex:0 0 auto;}
+  .badge{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;}
+  .badge.classe{background:#e0e7ff;color:#3730a3;}
+  .badge.date{background:#f1f5f9;color:var(--muted);}
+  .badge.vacances{background:#fee2e2;color:#991b1b;}
+  .spacer{flex:1;}
+  button{cursor:pointer;font-family:inherit;}
+  .btn{border:1px solid var(--border);background:var(--card);border-radius:9px;padding:9px 14px;font-size:14px;font-weight:600;color:var(--ink);}
+  .btn:hover{background:#f8fafc;}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+  .btn.primary:hover{background:#1d4ed8;}
+  .btn.icon{padding:9px 11px;font-size:16px;}
+  main{max-width:900px;margin:20px auto;padding:0 16px 60px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  select,input[type=text],input[type=date],input[type=time],input[type=url],textarea{
+    padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);
   }
-  header.top{
-    position:sticky;top:0;z-index:20;
-    background:var(--ink);
-    color:#fff;
-    padding:14px 16px 12px;
-  }
-  header.top .brand{
-    display:flex;align-items:center;gap:10px;
-  }
-  header.top .whistle{
-    width:26px;height:26px;flex:none;
-  }
-  header.top h1{
-    font-size:1.15rem;margin:0;letter-spacing:.2px;font-weight:700;
-  }
-  header.top .sub{
-    font-size:.72rem;color:#c7cfd4;margin-top:2px;font-weight:500;letter-spacing:.3px;text-transform:uppercase;
-  }
-  nav.tabs{
-    display:flex;
-    background:var(--ink);
-    padding:0 8px;
-    position:sticky;top:64px;z-index:19;
-    border-bottom:2px solid #223341;
-  }
-  nav.tabs button{
-    flex:1;
-    background:none;border:none;color:#9fb0ba;
-    font-size:.86rem;font-weight:700;
-    padding:10px 4px 12px;
-    cursor:pointer;
-    border-bottom:3px solid transparent;
-    letter-spacing:.2px;
-  }
-  nav.tabs button.active{
-    color:#fff;
-    border-bottom:3px solid var(--track);
-  }
-  main{max-width:640px;margin:0 auto;padding:14px 12px 24px;}
-  .view{display:none;}
-  .view.active{display:block;}
-
-  .card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:14px;
-    margin-bottom:12px;
-  }
-  .card h2{font-size:1rem;margin:0 0 10px;}
-  .row{display:flex;gap:8px;align-items:center;}
-  .row.wrap{flex-wrap:wrap;}
-  .grow{flex:1;min-width:0;}
-
-  label.field-label{
-    display:block;font-size:.72rem;font-weight:700;color:var(--ink-soft);
-    text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;
-  }
-  select,input[type=text],input[type=date],input[type=file],textarea{
-    width:100%;
-    border:1.5px solid var(--line);
-    border-radius:10px;
-    padding:10px 11px;
-    font-size:.95rem;
-    background:#fff;
-    color:var(--ink);
-    font-family:inherit;
-  }
-  textarea{resize:vertical;min-height:90px;}
-  button{
-    font-family:inherit;
-    cursor:pointer;
-  }
-  .btn{
-    border:none;border-radius:10px;
-    padding:10px 16px;
-    font-weight:700;font-size:.88rem;
-    background:var(--ink);color:#fff;
-    display:inline-flex;align-items:center;gap:6px;justify-content:center;
-  }
-  .btn.primary{background:var(--track);}
-  .btn.primary:active{background:var(--track-dark);}
-  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);}
-  .btn.danger{background:var(--absent);}
-  .btn.small{padding:6px 10px;font-size:.78rem;border-radius:8px;}
-  .btn:disabled{opacity:.4;}
-  .btn-block{width:100%;}
-
-  .empty{
-    text-align:center;color:var(--ink-soft);
-    padding:26px 10px;font-size:.9rem;
-  }
-  .empty b{display:block;color:var(--ink);font-size:.98rem;margin-bottom:4px;}
-
-  /* Classes tab */
-  .class-card{margin-bottom:10px;}
-  .class-card summary{
-    list-style:none;cursor:pointer;
-    display:flex;justify-content:space-between;align-items:center;
-  }
-  .class-card summary::-webkit-details-marker{display:none;}
-  .class-card summary .name{font-weight:700;font-size:1.02rem;}
-  .class-card summary .count{font-size:.78rem;color:var(--ink-soft);font-weight:600;}
-  .student-row{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:8px 0;border-top:1px solid var(--line);
-    font-size:.9rem;
-  }
-  .student-row:first-of-type{border-top:none;margin-top:8px;}
-  .icon-btn{
-    background:none;border:none;color:var(--ink-soft);
-    padding:4px 6px;font-size:.85rem;
-  }
-
-  /* Appel tab */
-  .status-pill{
-    font-size:.68rem;font-weight:800;letter-spacing:.3px;
-    padding:3px 9px;border-radius:20px;text-transform:uppercase;
-  }
-  .status-pill.present{background:var(--present-bg);color:var(--present);}
-  .status-pill.absent{background:var(--absent-bg);color:var(--absent);}
-  .status-pill.pending{background:#eee;color:#888;}
-
-  .mic-wrap{text-align:center;padding:6px 0 4px;}
-  .mic-btn{
-    width:84px;height:84px;border-radius:50%;
-    border:none;background:var(--track);color:#fff;
-    font-size:1.8rem;
-    box-shadow:0 4px 14px rgba(232,98,44,.35);
-  }
-  .mic-btn.listening{
-    background:var(--absent);
-    animation:pulse 1.2s infinite;
-  }
-  @keyframes pulse{
-    0%{box-shadow:0 0 0 0 rgba(181,52,42,.5);}
-    70%{box-shadow:0 0 0 18px rgba(181,52,42,0);}
-    100%{box-shadow:0 0 0 0 rgba(181,52,42,0);}
-  }
-  .mic-caption{font-size:.78rem;color:var(--ink-soft);margin-top:8px;min-height:16px;}
-  .transcript{
-    font-size:.8rem;color:var(--ink-soft);font-style:italic;
-    min-height:18px;text-align:center;margin-top:2px;word-break:break-word;
-  }
-
-  .roster-item{
-    border-top:1px solid var(--line);
-    padding:10px 0;
-  }
-  .roster-item:first-child{border-top:none;}
-  .roster-item.just-matched{background:var(--present-bg);border-radius:8px;}
-  .roster-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
-  .roster-name{font-weight:700;font-size:.95rem;}
-  .roster-actions{display:flex;gap:6px;}
-  .toggle-btn{
-    border:1.5px solid var(--line);background:#fff;border-radius:8px;
-    padding:5px 10px;font-size:.76rem;font-weight:700;color:var(--ink-soft);
-  }
-  .toggle-btn.on-present{background:var(--present);color:#fff;border-color:var(--present);}
-  .toggle-btn.on-absent{background:var(--absent);color:#fff;border-color:var(--absent);}
-  .toggle-btn.icon-toggle{display:inline-flex;align-items:center;justify-content:center;padding:7px 12px;}
-  .extra-row{
-    display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;
-  }
-  .chip{
-    border:1.5px solid var(--line);border-radius:20px;
-    padding:4px 10px;font-size:.72rem;font-weight:700;color:var(--ink-soft);background:#fff;
-  }
-  .chip.on.dispense{background:var(--dispense-bg);color:var(--dispense);border-color:var(--dispense);}
-  .chip.on.oubli{background:var(--absent-bg);color:var(--absent);border-color:var(--absent);}
-  .chip.icon-chip{font-size:1.05rem;padding:5px 12px;line-height:1;}
-  .chip.icon-chip[data-field="dispense"]{color:var(--absent);border-color:var(--absent);}
-  .chip.icon-chip[data-field="dispense"].on{background:var(--absent);color:#fff;}
-
-  .summary-box{
-    background:#fff;border:1.5px dashed var(--line);border-radius:12px;
-    padding:12px;margin-top:10px;font-size:.88rem;
-  }
-  .summary-box .abs-name{
-    display:inline-block;background:var(--absent-bg);color:var(--absent);
-    padding:3px 9px;border-radius:20px;font-weight:700;font-size:.78rem;margin:3px 4px 0 0;
-  }
-
-  .session-item{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:9px 0;border-top:1px solid var(--line);font-size:.86rem;
-  }
-  .session-item:first-child{border-top:none;}
-
-  /* Suivi */
-  table.stats{
-    width:100%;border-collapse:collapse;font-size:.82rem;table-layout:fixed;
-  }
-  table.stats th,table.stats td{
-    padding:6px 2px;text-align:center;border-bottom:1px solid var(--line);
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  }
-  table.stats th{font-size:.62rem;text-transform:uppercase;color:var(--ink-soft);letter-spacing:.2px;font-weight:800;}
-  table.stats th.icon-col,table.stats td.icon-col{font-size:.95rem;}
-  table.stats td.name-cell{text-align:left;font-weight:700;font-size:.78rem;}
-  table.stats td.warn{color:var(--absent);font-weight:800;}
-  table.stats col.col-name{width:30%;}
-  table.stats col.col-stat{width:17.5%;}
-
-  .activite-card{border-left:4px solid var(--track);}
-  .toast{
-    position:fixed;bottom:14px;left:50%;transform:translateX(-50%);
-    background:var(--ink);color:#fff;padding:10px 18px;border-radius:30px;
-    font-size:.85rem;font-weight:600;z-index:50;opacity:0;pointer-events:none;
-    transition:opacity .25s;
-  }
-  .toast.show{opacity:1;}
-  .hint{font-size:.76rem;color:var(--ink-soft);margin-top:4px;}
-  .close-x{background:none;border:none;color:var(--ink-soft);font-size:1rem;padding:2px 6px;}
-
-  .sub.status-ok{color:#8fd6a8;}
-  .sub.status-error{color:#f0a99e;}
-  .sub.status-sync{color:#f0cf9e;}
-  .sub.status-none{color:#c7cfd4;}
-  .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;}
-  .status-dot.ok{background:#8fd6a8;}
-  .status-dot.error{background:#f0a99e;}
-  .status-dot.sync{background:#f0cf9e;}
-  .status-dot.none{background:#8b98a1;}
-  code.inline{background:#efe9dc;border-radius:5px;padding:1px 6px;font-size:.82rem;}
+  table{width:100%;border-collapse:collapse;margin-top:10px;}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border);font-size:14px;}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;}
+  tr.present{background:#f0fdf4;}
+  tr.absent td:first-child{color:var(--muted);}
+  input[type=checkbox]{width:18px;height:18px;}
+  .main-nav{max-width:900px;margin:14px auto 0;padding:0 16px;display:flex;gap:6px;}
+  .main-nav-btn{flex:0 0 auto;border:1px solid var(--border);background:var(--card);border-radius:9px 9px 0 0;padding:9px 16px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:none;}
+  .main-nav-btn.active{color:var(--accent);background:var(--card);}
+  .view{}
+  .eleve-card{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-top:8px;background:#fff;transition:background .15s;}
+  .eleve-card.present{background:#f0fdf4;border-color:#bbf7d0;}
+  .eleve-row{display:flex;align-items:center;gap:10px;cursor:pointer;}
+  .eleve-nom{flex:1;font-size:15px;font-weight:600;}
+  .present-toggle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:#fff;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;}
+  .eleve-card.present .present-toggle{background:var(--green);border-color:var(--green);}
+  .eleve-actions{display:flex;gap:8px;padding-left:36px;}
+  .pill-btn{border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:5px;}
+  .pill-btn.on{background:var(--amber);border-color:var(--amber);color:#fff;}
+  .pill-btn.dispense.on{background:var(--red);border-color:var(--red);}
+  .mic-zone{display:flex;align-items:center;gap:12px;margin:14px 0;flex-wrap:wrap;}
+  .mic-btn{width:56px;height:56px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:22px;display:flex;align-items:center;justify-content:center;}
+  .mic-btn.off{background:#94a3b8;}
+  .mic-btn.listening{animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5);}70%{box-shadow:0 0 0 14px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
+  #transcript{font-size:13px;color:var(--muted);flex:1;min-width:200px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding:30px 14px;z-index:100;overflow:auto;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border-radius:var(--radius);max-width:720px;width:100%;padding:0;max-height:calc(100vh - 60px);display:flex;flex-direction:column;}
+  .modal-head{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .modal-head h2{margin:0;font-size:17px;flex:1;}
+  .tabs{display:flex;gap:4px;padding:10px 16px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .tab{padding:9px 12px;font-size:13px;font-weight:600;color:var(--muted);border:none;background:none;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--accent);border-color:var(--accent);}
+  .tab-body{padding:18px 20px;overflow:auto;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .hint{font-size:12.5px;color:var(--muted);margin:4px 0 12px;line-height:1.5;}
+  .list-item{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
+  .list-item input{flex:1;min-width:0;}
+  .small{font-size:12px;padding:5px 9px;}
+  .status{font-size:12.5px;color:var(--muted);}
+  .status.ok{color:var(--green);}
+  .status.err{color:var(--red);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .file-drop{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;color:var(--muted);font-size:13.5px;}
+  footer.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+  .empty{color:var(--muted);font-size:13.5px;padding:10px 0;}
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="brand">
-    <svg class="whistle" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="11" stroke="#e8622c" stroke-width="2"/>
-      <path d="M8 12h8M12 8v8" stroke="#e8622c" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <div>
-      <h1>Appel EPS</h1>
-      <div class="sub" id="headerSub">Prêt</div>
-    </div>
-  </div>
+<header>
+  <h1>🏃 Appel EPS</h1>
+  <span class="badge date" id="badgeDate"></span>
+  <span class="badge classe" id="badgeClasse">—</span>
+  <div class="spacer"></div>
+  <span class="status" id="syncStatus"></span>
+  <button class="btn icon" id="btnSync" title="Synchroniser avec Google Sheet">🔄</button>
+  <button class="btn icon" id="btnSettings" title="Paramètres">⚙️</button>
 </header>
 
-<nav class="tabs">
-  <button class="tab-btn active" data-view="appel">Appel</button>
-  <button class="tab-btn" data-view="parametrage">Paramétrage</button>
-  <button class="tab-btn" data-view="suivi">Suivi</button>
-  <button class="tab-btn" data-view="reglages">Réglages</button>
+<nav class="main-nav">
+  <button class="main-nav-btn active" data-view="appel">📋 Appel</button>
+  <button class="main-nav-btn" data-view="suivi">📊 Suivi</button>
 </nav>
 
 <main>
-
-  <!-- ===================== PARAMÉTRAGE ===================== -->
-  <section id="view-parametrage" class="view">
+  <!-- ===================== VUE APPEL ===================== -->
+  <div class="view" id="view-appel">
     <div class="card">
-      <h2>Importer une classe (Excel ou CSV)</h2>
-      <label class="field-label" for="csvClassName">Nom de la classe</label>
-      <div class="row" style="margin-bottom:8px;">
-        <input type="text" id="csvClassName" class="grow" placeholder="ex : 5e A">
+      <div class="row">
+        <label for="selClasse" style="font-size:13px;color:var(--muted);">Classe</label>
+        <select id="selClasse"></select>
+        <label for="selDate" style="font-size:13px;color:var(--muted);margin-left:10px;">Date</label>
+        <input type="date" id="selDate">
+        <div class="spacer"></div>
+        <span id="activiteCourante" class="badge date"></span>
       </div>
-      <label class="field-label" for="csvFile">Fichier .xlsx, .xls ou .csv (colonnes : prenom, nom — 1 par ligne)</label>
-      <input type="file" id="csvFile" accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
-      <div class="hint">Une ligne d'en-tête est détectée et ignorée automatiquement si présente. Pour Excel, la 1ʳᵉ feuille du classeur est utilisée.</div>
-      <button class="btn primary btn-block" id="btnImportCsv" style="margin-top:10px;">Importer</button>
-    </div>
 
+      <div class="mic-zone">
+        <button class="mic-btn off" id="btnMic" title="Appel à l'oral">🎤</button>
+        <div id="transcript">Appuie sur le micro puis annonce les prénoms des élèves présents, ou coche-les manuellement ci-dessous.</div>
+      </div>
+
+      <div id="listeAppel"></div>
+      <div class="empty" id="emptyEleves" style="display:none;">Aucun élève dans cette classe. Ajoute-les dans Paramètres → Élèves.</div>
+
+      <div class="row" style="margin-top:16px;">
+        <button class="btn primary" id="btnSaveAppel">💾 Enregistrer l'appel du jour</button>
+        <span class="status" id="appelStatus"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== VUE SUIVI ===================== -->
+  <div class="view" id="view-suivi" style="display:none;">
     <div class="card">
-      <h2>Ajouter un élève manuellement</h2>
-      <div class="row wrap" style="margin-bottom:8px;">
-        <div class="grow" style="min-width:120px;">
-          <label class="field-label">Classe</label>
-          <select id="manualClassSelect"></select>
-        </div>
+      <div class="row">
+        <label style="font-size:13px;color:var(--muted);">Classe</label>
+        <select id="selClasseSuivi"></select>
+        <label style="font-size:13px;color:var(--muted);margin-left:10px;">Activité</label>
+        <select id="selActiviteSuivi"></select>
+        <button class="btn primary small" id="btnCalculerSuivi">Calculer</button>
       </div>
-      <div class="row wrap">
-        <div class="grow" style="min-width:100px;">
-          <label class="field-label">Prénom</label>
-          <input type="text" id="manualPrenom">
-        </div>
-        <div class="grow" style="min-width:100px;">
-          <label class="field-label">Nom</label>
-          <input type="text" id="manualNom">
-        </div>
-      </div>
-      <button class="btn ghost btn-block" id="btnAddStudent" style="margin-top:10px;">Ajouter l'élève</button>
+      <div class="hint" id="suiviMeta"></div>
+      <table id="tableSuivi">
+        <thead>
+          <tr><th>Élève</th><th style="width:90px;">Présences</th><th style="width:110px;">👟 Affaires oubliées</th><th style="width:90px;">❌ Dispensé</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty" id="emptySuivi">Choisis une classe et une activité, puis clique sur Calculer.</div>
     </div>
-
-    <div id="classesList"></div>
-
-    <div class="card">
-      <h2>Activités (max. 5 par classe)</h2>
-      <div class="hint" style="margin-bottom:8px;">Une activité peut avoir plusieurs périodes (ex. reprise en fin d'année), et plusieurs activités peuvent se dérouler sur la même période.</div>
-      <div class="row wrap" style="margin-bottom:8px;">
-        <div class="grow" style="min-width:120px;">
-          <label class="field-label">Classe</label>
-          <select id="paramActiviteClassSelect"></select>
-        </div>
-      </div>
-      <div id="activitesForClass"></div>
-
-      <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px;">
-        <label class="field-label">Nom de la nouvelle activité</label>
-        <input type="text" id="newActiviteNom" placeholder="ex : Badminton" style="margin-bottom:8px;">
-        <div class="row wrap">
-          <div class="grow" style="min-width:110px;">
-            <label class="field-label">Début (1ʳᵉ période)</label>
-            <input type="date" id="newActiviteDebut">
-          </div>
-          <div class="grow" style="min-width:110px;">
-            <label class="field-label">Fin (1ʳᵉ période)</label>
-            <input type="date" id="newActiviteFin">
-          </div>
-        </div>
-        <button class="btn ghost btn-block" id="btnAddActivite" style="margin-top:10px;">Ajouter l'activité</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Zone scolaire &amp; semaines A/B</h2>
-      <div class="hint" style="margin-bottom:8px;">Sert à calculer automatiquement les vacances et la semaine (A ou B) en cours, pour la détection automatique de la classe dans l'onglet Appel.</div>
-      <div class="row wrap">
-        <div class="grow" style="min-width:130px;">
-          <label class="field-label" for="settingZone">Zone scolaire</label>
-          <select id="settingZone">
-            <option value="A">Zone A</option>
-            <option value="B">Zone B</option>
-            <option value="C">Zone C</option>
-          </select>
-        </div>
-        <div class="grow" style="min-width:130px;">
-          <label class="field-label" for="settingSemaineRentree">Semaine à la rentrée (1ᵉʳ sept. 2026)</label>
-          <select id="settingSemaineRentree">
-            <option value="A">Semaine A</option>
-            <option value="B">Semaine B</option>
-          </select>
-        </div>
-      </div>
-      <div class="hint" id="semaineActuelleHint" style="margin-top:8px;"></div>
-    </div>
-
-    <div class="card">
-      <h2>Emploi du temps</h2>
-      <div class="hint" style="margin-bottom:8px;">Permet à l'appli de proposer automatiquement la bonne classe au moment de l'appel, selon le jour, l'heure et la semaine A/B.</div>
-      <div id="edtList"></div>
-      <div style="margin-top:12px;border-top:1px solid var(--line);padding-top:12px;">
-        <div class="row wrap" style="margin-bottom:8px;">
-          <div class="grow" style="min-width:120px;">
-            <label class="field-label">Classe</label>
-            <select id="newEdtClasse"></select>
-          </div>
-          <div class="grow" style="min-width:110px;">
-            <label class="field-label">Jour</label>
-            <select id="newEdtJour">
-              <option value="lundi">Lundi</option>
-              <option value="mardi">Mardi</option>
-              <option value="mercredi">Mercredi</option>
-              <option value="jeudi">Jeudi</option>
-              <option value="vendredi">Vendredi</option>
-              <option value="samedi">Samedi</option>
-            </select>
-          </div>
-        </div>
-        <div class="row wrap" style="margin-bottom:8px;">
-          <div class="grow" style="min-width:100px;">
-            <label class="field-label">Heure de début</label>
-            <input type="time" id="newEdtHeure" value="08:00">
-          </div>
-          <div class="grow" style="min-width:100px;">
-            <label class="field-label">Durée (min)</label>
-            <input type="number" id="newEdtDuree" value="55" min="10" step="5">
-          </div>
-          <div class="grow" style="min-width:100px;">
-            <label class="field-label">Semaine</label>
-            <select id="newEdtSemaine">
-              <option value="toutes">Toutes</option>
-              <option value="A">A seulement</option>
-              <option value="B">B seulement</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn ghost btn-block" id="btnAddEdt">+ Ajouter au planning</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== APPEL ===================== -->
-  <section id="view-appel" class="view active">
-
-    <div class="card" id="appelAutoCard" style="border-left:4px solid var(--track);">
-      <h2>🎯 Appel maintenant</h2>
-      <div id="appelAutoContent"></div>
-    </div>
-
-    <div class="card" id="appelSetupCard">
-      <h2>Nouvel appel</h2>
-      <div class="row wrap" style="margin-bottom:10px;">
-        <div class="grow" style="min-width:130px;">
-          <label class="field-label">Classe</label>
-          <select id="appelClassSelect"></select>
-        </div>
-        <div class="grow" style="min-width:130px;">
-          <label class="field-label">Date</label>
-          <input type="date" id="appelDate">
-        </div>
-      </div>
-      <label class="field-label" for="appelActiviteSelect">Activité (obligatoire)</label>
-      <select id="appelActiviteSelect" style="margin-bottom:10px;"></select>
-      <button class="btn primary btn-block" id="btnStartAppel">+ Créer l'appel</button>
-      <div class="hint" id="appelActiviteHint"></div>
-    </div>
-
-    <div class="card" id="appelLiveCard" style="display:none;">
-      <div class="row wrap" style="margin-bottom:10px;">
-        <div class="grow" style="min-width:160px;">
-          <label class="field-label" for="appelLiveActiviteSelect">Activité de cette séance</label>
-          <select id="appelLiveActiviteSelect"></select>
-        </div>
-      </div>
-      <div class="row" style="justify-content:space-between;">
-        <h2 id="appelLiveTitle" style="margin:0;"></h2>
-        <button class="close-x" id="btnCloseAppel">✕</button>
-      </div>
-
-      <div id="micZone" class="mic-wrap"></div>
-
-      <div class="row wrap" style="margin:10px 0 4px;gap:8px;">
-        <button class="btn ghost small" id="btnMarkAllPresent">Tout présent</button>
-        <button class="btn ghost small" id="btnResetAppel">Réinitialiser</button>
-      </div>
-
-      <div id="rosterList"></div>
-
-      <button class="btn primary btn-block" id="btnFinishAppel" style="margin-top:12px;">Terminer l'appel</button>
-      <div id="appelSummary"></div>
-    </div>
-
-    <div class="card">
-      <h2>Appels précédents</h2>
-      <div id="pastSessions"><div class="empty">Aucun appel enregistré pour l'instant.</div></div>
-    </div>
-  </section>
-
-  <!-- ===================== SUIVI ===================== -->
-  <section id="view-suivi" class="view">
-    <div class="card">
-      <h2>Statistiques par activité</h2>
-      <div class="row wrap" style="margin-bottom:8px;">
-        <div class="grow" style="min-width:120px;">
-          <label class="field-label">Classe</label>
-          <select id="statsClassSelect"></select>
-        </div>
-      </div>
-      <label class="field-label">Activité</label>
-      <select id="statsActiviteSelect" style="margin-bottom:10px;"></select>
-      <div id="statsTableWrap"><div class="empty">Choisis une activité pour voir les statistiques.</div></div>
-    </div>
-  </section>
-
-
-  <!-- ===================== REGLAGES ===================== -->
-  <section id="view-reglages" class="view">
-    <div class="card">
-      <h2>Google Sheet comme base de données</h2>
-      <p class="hint" style="margin-bottom:10px;">
-        Toutes les données (classes, appels, activités, suivi) sont lues et écrites dans ton Google Sheet
-        via une petite passerelle Apps Script que tu déploies une fois. Voir le guide fourni à côté de ce fichier.
-      </p>
-      <label class="field-label" for="sheetsUrl">URL de l'application web Apps Script</label>
-      <input type="text" id="sheetsUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" style="margin-bottom:8px;">
-      <label class="field-label" for="sheetsToken">Jeton secret (facultatif, doit correspondre à TOKEN dans le script)</label>
-      <input type="text" id="sheetsToken" placeholder="ex : monclasse2026" style="margin-bottom:10px;">
-      <div class="row wrap">
-        <button class="btn primary grow" id="btnSaveConfig">Enregistrer et se connecter</button>
-        <button class="btn ghost grow" id="btnSyncNow">Synchroniser maintenant</button>
-      </div>
-      <div class="hint" id="reglagesStatus" style="margin-top:10px;"></div>
-    </div>
-    <div class="card">
-      <h2>Bon à savoir</h2>
-      <div class="hint">
-        • Sans URL configurée, l'application fonctionne quand même, en local sur cet appareil.<br>
-        • Si le Sheet est injoignable (pas de réseau), les dernières données synchronisées restent affichées et modifiables ; la synchronisation reprend automatiquement au prochain changement.<br>
-        • Le jeton n'est qu'une protection basique : toute personne avec le lien de l'application web et le jeton peut lire/écrire les données.
-      </div>
-    </div>
-  </section>
-
+  </div>
 </main>
 
-<div class="toast" id="toast"></div>
+<!-- ===================== MODAL PARAMÈTRES ===================== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>⚙️ Paramètres</h2>
+      <button class="btn icon small" id="btnCloseModal">✕</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="eleves">Élèves</button>
+      <button class="tab" data-tab="prononciation">Prononciation</button>
+      <button class="tab" data-tab="activites">Activités</button>
+      <button class="tab" data-tab="edt">Emploi du temps</button>
+      <button class="tab" data-tab="connexion">Connexion</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- ÉLÈVES -->
+      <div class="tab-panel active" id="panel-eleves">
+        <div class="hint">Importe un fichier CSV (colonnes : nom;prenom;classe — séparateur ; ou ,) ou ajoute les élèves manuellement.</div>
+        <div class="row">
+          <input type="file" id="fileCsv" accept=".csv,.txt">
+          <button class="btn small" id="btnAjoutEleve">+ Ajouter un élève</button>
+        </div>
+        <div id="listeEleves" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- PRONONCIATION -->
+      <div class="tab-panel" id="panel-prononciation">
+        <div class="hint">Pour chaque élève, indique comment tu prononces son prénom à l'oral si la reconnaissance vocale risque de mal l'orthographier (ex : "Maël" → "mayel, mael"). Plusieurs variantes possibles, séparées par des virgules. Laisse vide si le prénom standard suffit.</div>
+        <div id="listeProno"></div>
+      </div>
+
+      <!-- ACTIVITÉS -->
+      <div class="tab-panel" id="panel-activites">
+        <div class="hint">Définis les activités pratiquées par classe et leur période (utilisé pour le suivi dispensé / affaires oubliées et pour les statistiques).</div>
+        <div class="row">
+          <button class="btn small" id="btnAjoutActivite">+ Ajouter une activité</button>
+        </div>
+        <div id="listeActivites" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- EMPLOI DU TEMPS -->
+      <div class="tab-panel" id="panel-edt">
+        <div class="hint">Renseigne ton emploi du temps pour que l'appli ouvre automatiquement la bonne classe. "Semaine 1 / Semaine 2" gère l'alternance quinzaine ; choisis "Les deux" si le cours a lieu toutes les semaines.</div>
+        <div class="row">
+          <button class="btn small" id="btnAjoutCreneau">+ Ajouter un créneau</button>
+        </div>
+        <div id="listeEdt" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- CONNEXION -->
+      <div class="tab-panel" id="panel-connexion">
+        <div class="hint">Colle ici l'URL de ton application web Google Apps Script (se termine par <code>/exec</code>).</div>
+        <input type="url" id="inputUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" style="width:100%;">
+        <div class="row" style="margin-top:10px;">
+          <button class="btn small" id="btnTestConnexion">Tester la connexion</button>
+          <span class="status" id="connexionStatus"></span>
+        </div>
+
+        <div class="hint" style="margin-top:18px;">Date de référence pour l'alternance des semaines : indique une date qui correspond à une <b>semaine 1</b> (un lundi de préférence). L'appli calcule ensuite automatiquement si on est en semaine 1 ou semaine 2.</div>
+        <input type="date" id="inputSemaine1Ref">
+
+        <div class="hint" style="margin-top:18px;">Vacances scolaires (Zone C) — actualisées automatiquement chaque nuit côté Google Sheet. Tu peux aussi forcer une actualisation ou corriger manuellement une ligne.</div>
+        <div class="row">
+          <button class="btn small" id="btnRefreshVacances">🔄 Actualiser les vacances</button>
+          <button class="btn small" id="btnAjoutVacance">+ Ajouter une période</button>
+          <span class="status" id="vacancesMajStatus"></span>
+        </div>
+        <div id="listeVacances" style="margin-top:12px;"></div>
+      </div>
+
+    </div>
+    <footer class="modal-foot">
+      <button class="btn" id="btnAnnulerModal">Annuler</button>
+      <button class="btn primary" id="btnSauverModal">Enregistrer</button>
+    </footer>
+  </div>
+</div>
 
 <script>
-(function(){
-"use strict";
+/* =====================================================================
+   ÉTAT & PERSISTANCE LOCALE
+===================================================================== */
+const LS_KEY = 'appelEPS_data_v1';
 
-/* ---------------------------------------------------------------
-   STATE
---------------------------------------------------------------- */
-let DATA = {
-  classes: {},      // classId -> {id,name,students:[{id,prenom,nom}]}
-  seances: {},       // seanceId -> {id,classId,date,activiteId,status:'open'|'done',students:{studentId:{presence,dispense,pratiquant,oubli}}}
-  activites: {},      // activiteId -> {id,classId,nom,periods:[{debut,fin}]}
-  edt: {}            // edtId -> {id,classId,jour,heureDebut,duree,semaine:'A'|'B'|'toutes'}
-};
-let SETTINGS = { zone: 'C', semaineRentree: 'A' };
-let currentAppelId = null;
-let recognizing = false;
-let recognizer = null;
-let lastMatchedStudentId = null;
-
-/* ---------------------------------------------------------------
-   VACANCES SCOLAIRES 2026-2027 (officiel, arrêté du 22 octobre 2025)
-   et calcul des semaines A/B
---------------------------------------------------------------- */
-const VACANCES_2026_2027 = {
-  commun: [
-    { nom:'Toussaint', debut:'2026-10-17', fin:'2026-11-02' },
-    { nom:'Noël',       debut:'2026-12-19', fin:'2027-01-04' },
-    { nom:'Ascension (pont)', debut:'2027-05-06', fin:'2027-05-10' },
-    { nom:'Été',        debut:'2027-07-03', fin:'2027-08-31' }
-  ],
-  A: [
-    { nom:'Hiver',     debut:'2027-02-13', fin:'2027-03-01' },
-    { nom:'Printemps', debut:'2027-04-10', fin:'2027-04-26' }
-  ],
-  B: [
-    { nom:'Hiver',     debut:'2027-02-20', fin:'2027-03-08' },
-    { nom:'Printemps', debut:'2027-04-17', fin:'2027-05-03' }
-  ],
-  C: [
-    { nom:'Hiver',     debut:'2027-02-06', fin:'2027-02-22' },
-    { nom:'Printemps', debut:'2027-04-03', fin:'2027-04-19' }
-  ]
-};
-const RENTREE_LUNDI = '2026-08-31'; // lundi de la semaine de la rentrée (mardi 1er sept. 2026), = semaine de référence
-
-function estEnVacances(dateISO, zone){
-  const liste = [...VACANCES_2026_2027.commun, ...(VACANCES_2026_2027[zone]||[])];
-  return liste.find(v => dateISO >= v.debut && dateISO < v.fin) || null;
-}
-function mondayOfISO(dateISO){
-  const d = new Date(dateISO+'T00:00:00');
-  const day = d.getDay(); // 0=dim,1=lun,...
-  const diff = (day===0 ? -6 : 1-day);
-  d.setDate(d.getDate()+diff);
-  return d;
-}
-function semaineDe(dateISO){
-  const ref = mondayOfISO(RENTREE_LUNDI);
-  const cible = mondayOfISO(dateISO);
-  const diffSemaines = Math.round((cible - ref) / (7*86400000));
-  const pair = ((diffSemaines % 2) + 2) % 2 === 0;
-  const rentreeEstA = SETTINGS.semaineRentree === 'A';
-  if(pair) return rentreeEstA ? 'A' : 'B';
-  return rentreeEstA ? 'B' : 'A';
-}
-
-const $ = (sel) => document.querySelector(sel);
-
-/* Stockage persistant local (localStorage) — fonctionne quand le fichier est ouvert
-   directement dans le navigateur (double-clic, GitHub Pages, ENT...), contrairement
-   à window.storage qui n'existe que dans l'aperçu Claude. */
-const storage = {
-  async get(key){
-    try{
-      const v = localStorage.getItem('appel-eps:'+key);
-      if(v===null || v===undefined) return null;
-      return { key, value:v };
-    }catch(e){ return null; }
-  },
-  async set(key, value){
-    try{ localStorage.setItem('appel-eps:'+key, value); return { key, value }; }
-    catch(e){ return null; }
-  },
-  async delete(key){
-    try{ localStorage.removeItem('appel-eps:'+key); return { key, deleted:true }; }
-    catch(e){ return null; }
-  }
-};
-const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-const uid = (p) => p + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-
-/* Icône "main levée" (élève présent qui répond à l'appel) — dessinée pour hériter
-   de la couleur du bouton (currentColor), comme le sifflet de l'en-tête */
-const ICON_HAND = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;">
-  <path d="M8 11.5V5.2a1.3 1.3 0 0 1 2.6 0v5.8"/>
-  <path d="M10.6 10.8V4.3a1.3 1.3 0 0 1 2.6 0v6.5"/>
-  <path d="M13.2 11V5.6a1.3 1.3 0 0 1 2.6 0v6.9"/>
-  <path d="M15.8 12.2v-2a1.3 1.3 0 0 1 2.6 0V15a6 6 0 0 1-6 6h-1.2c-1.9 0-2.9-.6-4-1.9l-3-3.5c-.6-.8-.5-1.7.2-2.3.7-.6 1.6-.5 2.3.2l1.3 1.4"/>
-</svg>`;
-
-/* ---------------------------------------------------------------
-   STORAGE — Google Sheet (source de vérité) + cache local (secours hors-ligne)
---------------------------------------------------------------- */
-let CONFIG = { url:'', token:'' };
-
-async function loadConfig(){
-  try{
-    const r = await storage.get('sheets-config');
-    if(r) CONFIG = Object.assign({url:'',token:''}, JSON.parse(r.value));
-  }catch(e){}
-}
-async function saveConfigToStorage(){
-  try{ await storage.set('sheets-config', JSON.stringify(CONFIG), false); }catch(e){}
-}
-async function loadCache(){
-  try{
-    const r = await storage.get('data-cache');
-    if(r){
-      const c = JSON.parse(r.value);
-      DATA.classes = c.classes||{};
-      DATA.activites = c.activites||{};
-      DATA.seances = c.seances||{};
-      DATA.edt = c.edt||{};
-      SETTINGS = Object.assign({zone:'C', semaineRentree:'A'}, c.settings||{});
-      return true;
-    }
-  }catch(e){}
-  return false;
-}
-async function saveCache(){
-  try{
-    await storage.set('data-cache', JSON.stringify({
-      classes: DATA.classes, activites: DATA.activites, seances: DATA.seances,
-      edt: DATA.edt, settings: SETTINGS
-    }), false);
-  }catch(e){}
-}
-
-function setSyncStatus(kind, msg){
-  const el = $('#headerSub');
-  el.className = 'sub status-'+kind;
-  el.innerHTML = '<span class="status-dot '+kind+'"></span>'+msg;
-  const rs = $('#reglagesStatus');
-  if(rs) rs.textContent = msg;
-}
-
-async function fetchFromSheet(){
-  const u = new URL(CONFIG.url);
-  u.searchParams.set('action','load');
-  if(CONFIG.token) u.searchParams.set('token', CONFIG.token);
-  const res = await fetch(u.toString());
-  const json = await res.json();
-  if(json.error) throw new Error(json.error);
-  return json;
-}
-// Protection anti-écrasement : on ne pousse jamais de données vers le Sheet tant
-// qu'on n'a pas confirmé au moins une fois l'état réel du Sheet dans cette session
-// (évite d'écraser des données existantes avec un état local vide/incomplet, par
-// exemple juste après une reconnexion avant que le premier chargement soit fini).
-let remoteConfirmed = false;
-
-async function pushToSheet(){
-  if(!remoteConfirmed){
-    throw new Error('pas encore synchronisé depuis le Sheet — resynchronise avant de sauvegarder');
-  }
-  const payload = {
-    action:'save',
-    token: CONFIG.token||'',
-    data: { classes: DATA.classes, activites: DATA.activites, seances: DATA.seances, edt: DATA.edt, settings: SETTINGS }
+function defaultState(){
+  return {
+    eleves: [],            // {id, nom, prenom, classe, prononciation}
+    emploiDuTemps: [],     // {id, jour(1-5), heureDebut, heureFin, classe, semaine('1'|'2'|'both')}
+    activites: [],         // {id, classe, activite, dateDebut, dateFin}
+    vacances: [],          // {nom, debut, fin}
+    vacancesMAJ: null,
+    config: { appsScriptUrl: '', semaine1Ref: '', zoneVacances: 'Zone C' }
   };
-  const res = await fetch(CONFIG.url, {
-    method:'POST',
-    headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify(payload)
+}
+
+let state = loadState();
+// état de travail (non encore sauvegardé) pour la modale paramètres
+let draft = null;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return Object.assign(defaultState(), parsed);
+  }catch(e){ return defaultState(); }
+}
+function saveState(){
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
+}
+function uid(){ return 'id-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
+
+/* =====================================================================
+   OUTILS DATES
+===================================================================== */
+function pad2(n){ return String(n).padStart(2,'0'); }
+function toISODate(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function parseISODate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function startOfWeekMonday(d){
+  const dt = new Date(d);
+  const day = (dt.getDay()+6)%7; // lundi=0
+  dt.setDate(dt.getDate()-day);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+function computeSemaine(dateISO){
+  if(!state.config.semaine1Ref) return null;
+  const ref = startOfWeekMonday(parseISODate(state.config.semaine1Ref));
+  const cur = startOfWeekMonday(parseISODate(dateISO));
+  const diffWeeks = Math.round((cur - ref) / (7*24*3600*1000));
+  const mod = ((diffWeeks % 2) + 2) % 2;
+  return mod === 0 ? '1' : '2';
+}
+function getVacanceDuJour(dateISO){
+  const d = parseISODate(dateISO).getTime();
+  return state.vacances.find(v=>{
+    const deb = parseISODate(v.debut).getTime();
+    const fin = parseISODate(v.fin).getTime();
+    return d>=deb && d<=fin;
   });
-  const json = await res.json();
-  if(json.error) throw new Error(json.error);
 }
 
-async function loadAll(){
-  await loadConfig();
-  if(!CONFIG.url){
-    await loadCache();
-    migrateActivites();
-    setSyncStatus('none', 'Non connecté à un Google Sheet (onglet Réglages)');
-    return;
-  }
-  setSyncStatus('sync', 'Connexion au Google Sheet…');
-  try{
-    const remote = await fetchFromSheet();
-    DATA.classes = remote.classes||{};
-    DATA.activites = remote.activites||{};
-    DATA.seances = remote.seances||{};
-    DATA.edt = remote.edt||{};
-    SETTINGS = Object.assign({zone:'C', semaineRentree:'A'}, remote.settings||{});
-    migrateActivites();
-    remoteConfirmed = true;
-    await saveCache();
-    setSyncStatus('ok', 'Synchronisé avec Google Sheets');
-  }catch(err){
-    console.warn(err);
-    const had = await loadCache();
-    migrateActivites();
-    setSyncStatus('error', had ? 'Hors ligne — dernières données locales affichées' : ('Connexion au Sheet impossible : '+err.message));
-  }
-}
-
-let saveTimer=null;
-function saveAll(){
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async ()=>{
-    await saveCache();
-    if(!CONFIG.url) return;
-    setSyncStatus('sync', 'Synchronisation…');
-    try{
-      await pushToSheet();
-      setSyncStatus('ok', 'Synchronisé avec Google Sheets');
-    }catch(err){
-      console.warn(err);
-      setSyncStatus('error', 'Échec de synchronisation ('+err.message+') — nouvel essai au prochain changement');
-    }
-  }, 500);
-}
-// Sauvegarde immédiate et confirmée (sans attendre le délai de regroupement),
-// utilisée pour les actions ponctuelles importantes comme l'enregistrement
-// d'une prononciation, où l'utilisateur doit savoir tout de suite si c'est bien passé.
-async function saveNow(){
-  clearTimeout(saveTimer);
-  await saveCache();
-  if(!CONFIG.url) return true; // pas de Sheet configuré : le cache local suffit
-  setSyncStatus('sync', 'Synchronisation…');
-  try{
-    await pushToSheet();
-    setSyncStatus('ok', 'Synchronisé avec Google Sheets');
-    return true;
-  }catch(err){
-    console.warn(err);
-    setSyncStatus('error', 'Échec de synchronisation ('+err.message+')');
-    return false;
-  }
-}
-
-function renderReglagesTab(){
-  $('#sheetsUrl').value = CONFIG.url||'';
-  $('#sheetsToken').value = CONFIG.token||'';
-}
-$('#btnSaveConfig').addEventListener('click', async ()=>{
-  CONFIG.url = $('#sheetsUrl').value.trim();
-  CONFIG.token = $('#sheetsToken').value.trim();
-  await saveConfigToStorage();
-  toast('Réglages enregistrés');
-  await loadAll();
-  renderClasses(); renderAppelTab(); renderSuiviTab();
-});
-$('#btnSyncNow').addEventListener('click', async ()=>{
-  if(!CONFIG.url){ toast('Renseigne d\'abord une URL'); return; }
-  setSyncStatus('sync','Synchronisation manuelle…');
-  try{
-    const remote = await fetchFromSheet();
-    DATA.classes = remote.classes||{};
-    DATA.activites = remote.activites||{};
-    DATA.seances = remote.seances||{};
-    DATA.edt = remote.edt||{};
-    SETTINGS = Object.assign({zone:'C', semaineRentree:'A'}, remote.settings||{});
-    migrateActivites();
-    remoteConfirmed = true;
-    await saveCache();
-    setSyncStatus('ok','Synchronisé avec Google Sheets');
-    renderClasses(); renderParametrageActivites(); renderParametrageEdt(); renderParametrageReglages(); renderAppelTab(); renderSuiviTab();
-    toast('Données rechargées depuis le Sheet');
-  }catch(err){
-    setSyncStatus('error', 'Échec : '+err.message);
-  }
-});
-
-/* ---------------------------------------------------------------
-   HELPERS
---------------------------------------------------------------- */
-function normalize(str){
-  return (str||'').toString().toLowerCase()
+/* =====================================================================
+   NORMALISATION / RECONNAISSANCE VOCALE
+===================================================================== */
+function normalize(s){
+  return (s||'').toString().toLowerCase()
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9\s-]/g,'').trim();
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ').trim();
 }
-function toast(msg){
-  const t = $('#toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(t._h);
-  t._h = setTimeout(()=>t.classList.remove('show'), 2200);
-}
-function todayISO(){
-  const d = new Date();
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
-}
-function fmtDate(iso){
-  if(!iso) return '';
-  const [y,m,d] = iso.split('-');
-  return d+'/'+m+'/'+y;
-}
-function classList(){
-  return Object.values(DATA.classes).sort((a,b)=>a.name.localeCompare(b.name,'fr'));
-}
-function studentsOf(classId){
-  const c = DATA.classes[classId];
-  return c ? c.students.slice().sort((a,b)=>(a.nom||'').localeCompare(b.nom||'','fr') || a.prenom.localeCompare(b.prenom,'fr')) : [];
-}
-function activitesOf(classId){
-  return Object.values(DATA.activites).filter(a=>a.classId===classId)
-    .sort((a,b)=>earliestStart(a).localeCompare(earliestStart(b)));
-}
-function earliestStart(act){
-  const periods = act.periods||[];
-  if(periods.length===0) return '9999-99-99';
-  return periods.map(p=>p.debut).sort()[0];
-}
-// Une activité peut avoir plusieurs périodes, et plusieurs activités peuvent
-// être actives en même temps sur une même période : on retourne donc un tableau.
-function activitesActiveOn(classId, dateISO){
-  return activitesOf(classId).filter(a=>(a.periods||[]).some(p=>dateISO>=p.debut && dateISO<=p.fin));
-}
-function fmtPeriods(act){
-  return (act.periods||[]).map(p=>fmtDate(p.debut)+'–'+fmtDate(p.fin)).join(', ') || '(aucune période)';
-}
-// Migration : les anciennes activités enregistrées avec un seul debut/fin direct
-// (avant la gestion multi-périodes) sont converties en periods:[{debut,fin}]
-function migrateActivites(){
-  Object.values(DATA.activites).forEach(a=>{
-    if(!a.periods){
-      a.periods = (a.debut && a.fin) ? [{debut:a.debut, fin:a.fin}] : [];
-      delete a.debut; delete a.fin;
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
     }
-  });
-}
-
-/* ---------------------------------------------------------------
-   TAB NAVIGATION
---------------------------------------------------------------- */
-$$('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    $$('.tab-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    $$('.view').forEach(v=>v.classList.remove('active'));
-    $('#view-'+btn.dataset.view).classList.add('active');
-    if(btn.dataset.view==='parametrage'){ renderClasses(); renderParametrageActivites(); renderParametrageEdt(); renderParametrageReglages(); }
-    if(btn.dataset.view==='appel') renderAppelTab();
-    if(btn.dataset.view==='suivi') renderSuiviTab();
-    if(btn.dataset.view==='reglages') renderReglagesTab();
-  });
-});
-
-/* ---------------------------------------------------------------
-   CLASSES TAB
---------------------------------------------------------------- */
-function refreshClassSelects(){
-  const opts = classList().map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-  ['#manualClassSelect','#appelClassSelect','#paramActiviteClassSelect','#statsClassSelect','#newEdtClasse'].forEach(sel=>{
-    const el = $(sel);
-    const prev = el.value;
-    el.innerHTML = opts || '<option value="">— aucune classe —</option>';
-    if(prev && DATA.classes[prev]) el.value = prev;
-  });
-}
-function escapeHtml(s){
-  return (s||'').toString().replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-let openClassIds = new Set();
-function renderClasses(){
-  refreshClassSelects();
-  const wrap = $('#classesList');
-  const classes = classList();
-  const speechOk = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  if(classes.length===0){
-    wrap.innerHTML = `<div class="empty"><b>Aucune classe importée</b>Importe un fichier CSV ci-dessus pour commencer.</div>`;
-    return;
   }
-  wrap.innerHTML = classes.map(c=>{
-    const students = studentsOf(c.id);
-    const rows = students.map(s=>{
-      const oral = s.oral||[];
-      const chips = oral.map((o,idx)=>`<span class="chip on" style="border-color:#2b5b8c;color:#2b5b8c;background:#eaf2fb;">🔊 ${escapeHtml(o)} <button class="icon-btn" style="padding:0 0 0 4px;font-size:.9rem;" data-del-oral="${idx}" data-sid="${s.id}" data-class="${c.id}">✕</button></span>`).join('');
-      return `
-      <div class="student-row" data-sid="${s.id}" style="flex-direction:column;align-items:stretch;gap:6px;">
-        <div class="row" style="justify-content:space-between;">
-          <span>${escapeHtml(s.prenom)} ${escapeHtml(s.nom||'')}</span>
-          <button class="icon-btn" data-del-student="${s.id}" data-class="${c.id}">Suppr.</button>
-        </div>
-        <div class="row wrap" style="gap:6px;">
-          ${speechOk ? `<button class="icon-btn" style="border:1.5px solid var(--line);border-radius:8px;" data-rec-oral="${s.id}" data-class="${c.id}">🎤 Enregistrer la prononciation</button>` : ''}
-          ${chips}
-          ${(!oral.length) ? '<span class="hint" style="margin:0;">Aucune prononciation enregistrée — la reconnaissance utilisera l\'orthographe (moins fiable).</span>' : ''}
-        </div>
-      </div>`;
-    }).join('') || '<div class="empty">Aucun élève.</div>';
-    return `
-    <details class="card class-card" data-class-id="${c.id}" ${openClassIds.has(c.id)?'open':''}>
-      <summary>
-        <span class="name">${escapeHtml(c.name)}</span>
-        <span class="count">${students.length} élève(s) · <button class="icon-btn" data-del-class="${c.id}">supprimer la classe</button></span>
-      </summary>
-      ${rows}
-    </details>`;
-  }).join('');
-
-  wrap.querySelectorAll('details.class-card').forEach(det=>{
-    det.addEventListener('toggle', ()=>{
-      const cid = det.dataset.classId;
-      if(det.open) openClassIds.add(cid); else openClassIds.delete(cid);
-    });
-  });
-  wrap.querySelectorAll('[data-del-student]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      const cid = btn.dataset.class, sid = btn.dataset.delStudent;
-      DATA.classes[cid].students = DATA.classes[cid].students.filter(s=>s.id!==sid);
-      renderClasses();
-      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
-    });
-  });
-  wrap.querySelectorAll('[data-del-class]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      if(!confirm('Supprimer cette classe et ses élèves ?')) return;
-      delete DATA.classes[btn.dataset.delClass];
-      renderClasses();
-      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
-    });
-  });
-  wrap.querySelectorAll('[data-del-oral]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      const cid = btn.dataset.class, sid = btn.dataset.sid, idx = parseInt(btn.dataset.delOral,10);
-      const s = DATA.classes[cid].students.find(x=>x.id===sid);
-      if(s && s.oral) s.oral.splice(idx,1);
-      renderClasses();
-      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé — vérifie ta connexion'); });
-    });
-  });
-  wrap.querySelectorAll('[data-rec-oral]').forEach(btn=>{
-    btn.addEventListener('click', (e)=>{
-      e.preventDefault();
-      recordOralSample(btn.dataset.recOral, btn.dataset.class, btn);
-    });
-  });
+  return dp[m][n];
 }
-
-function recordOralSample(studentId, classId, btnEl){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return;
-  const rec = new SR();
-  rec.lang = 'fr-FR';
-  rec.continuous = false;
-  rec.interimResults = false;
-  const originalLabel = btnEl.textContent;
-  btnEl.textContent = '🎙️ Parle maintenant…';
-  btnEl.disabled = true;
-  let done = false;
-  const finish = ()=>{ btnEl.textContent = originalLabel; btnEl.disabled = false; };
-  rec.onresult = (e)=>{
-    done = true;
-    const transcript = normalize(e.results[0][0].transcript);
-    if(transcript){
-      const s = DATA.classes[classId].students.find(x=>x.id===studentId);
-      if(s){
-        s.oral = s.oral||[];
-        if(!s.oral.includes(transcript)) s.oral.push(transcript);
-        btnEl.textContent = '💾 Enregistrement...';
-        saveNow().then(ok=>{
-          toast(ok ? 'Prononciation enregistrée ✓' : '⚠ Non synchronisé — vérifie ta connexion et réessaie');
-          finish();
-          renderClasses();
-        });
-        return;
+function aliasesFor(eleve){
+  const list = [eleve.prenom, eleve.nom, eleve.prenom+' '+eleve.nom];
+  if(eleve.prononciation) list.push(...eleve.prononciation.split(',').map(s=>s.trim()));
+  return list.filter(Boolean).map(normalize);
+}
+// Cherche dans le texte transcrit les élèves de la classe correspondant
+function matchElevesInText(text, elevesClasse){
+  const norm = normalize(text);
+  const tokens = norm.split(' ').filter(t=>t.length>1);
+  const found = new Set();
+  elevesClasse.forEach(el=>{
+    const aliases = aliasesFor(el);
+    for(const alias of aliases){
+      if(!alias) continue;
+      if(norm.includes(alias)){ found.add(el.id); return; }
+      // comparaison token par token (tolère petites erreurs de reconnaissance)
+      const aliasTokens = alias.split(' ');
+      for(const at of aliasTokens){
+        if(at.length<3) continue;
+        for(const t of tokens){
+          if(t===at || levenshtein(t,at)<=1){ found.add(el.id); return; }
+        }
       }
     }
-    finish();
-    renderClasses();
-  };
-  rec.onerror = (e)=>{
-    if(!done){
-      finish();
-      if(e.error==='no-speech') toast('Rien entendu — réessaie en parlant juste après avoir appuyé');
-      else toast('Erreur micro : '+e.error);
-    }
-  };
-  rec.onend = ()=>{ if(!done) finish(); };
-  try{ rec.start(); }catch(err){ finish(); toast('Impossible de démarrer le micro'); }
-}
-
-function parseCsv(text){
-  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
-  if(lines.length===0) return [];
-  const sep = lines[0].includes(';') ? ';' : ',';
-  let start = 0;
-  const firstCols = lines[0].split(sep).map(c=>normalize(c));
-  if(firstCols.some(c=>c.includes('prenom')||c.includes('nom')||c.includes('classe'))) start = 1;
-  const out = [];
-  for(let i=start;i<lines.length;i++){
-    const cols = lines[i].split(sep).map(c=>c.trim().replace(/^"|"$/g,''));
-    if(cols.length===0 || !cols[0]) continue;
-    out.push({ prenom: cols[0]||'', nom: cols[1]||'', oral: [] });
-  }
-  return out;
-}
-
-// Charge la bibliothèque de lecture Excel uniquement quand elle est nécessaire
-// (fichier .xlsx/.xls choisi) — le CSV, lui, reste 100% hors ligne sans dépendance.
-let xlsxLibPromise = null;
-function ensureXlsxLib(){
-  if(window.XLSX) return Promise.resolve();
-  if(xlsxLibPromise) return xlsxLibPromise;
-  xlsxLibPromise = new Promise((resolve, reject)=>{
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-    s.onload = ()=>resolve();
-    s.onerror = ()=>reject(new Error('Impossible de charger le lecteur Excel (connexion internet requise pour importer un .xlsx)'));
-    document.head.appendChild(s);
   });
-  return xlsxLibPromise;
-}
-function parseExcelRowsToStudents(rows){
-  // rows = tableau de tableaux (comme retourné par XLSX sheet_to_json avec header:1)
-  if(rows.length===0) return [];
-  let start = 0;
-  const firstCols = (rows[0]||[]).map(c=>normalize(String(c||'')));
-  if(firstCols.some(c=>c.includes('prenom')||c.includes('nom')||c.includes('classe'))) start = 1;
-  const out = [];
-  for(let i=start;i<rows.length;i++){
-    const cols = rows[i]||[];
-    const prenom = (cols[0]!==undefined && cols[0]!==null) ? String(cols[0]).trim() : '';
-    const nom = (cols[1]!==undefined && cols[1]!==null) ? String(cols[1]).trim() : '';
-    if(!prenom) continue;
-    out.push({ prenom, nom, oral: [] });
-  }
-  return out;
+  return found;
 }
 
-function finishImport(name, rows, nameInput, fileInput){
-  if(rows.length===0){ toast('Fichier vide ou illisible'); return; }
-  let cls = Object.values(DATA.classes).find(c=>normalize(c.name)===normalize(name));
-  if(!cls){
-    cls = { id: uid('cls'), name, students: [] };
-    DATA.classes[cls.id] = cls;
-  }
-  rows.forEach(r=>{
-    cls.students.push({ id: uid('stu'), prenom: r.prenom, nom: r.nom, oral: [] });
-  });
-  saveNow().then(ok=>{
-    nameInput.value=''; fileInput.value='';
-    toast(ok ? rows.length+' élève(s) importé(s) dans '+name : '⚠ Import local ok, mais non synchronisé avec le Sheet');
-    renderClasses();
-  });
+/* =====================================================================
+   INIT UI
+===================================================================== */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+function init(){
+  $('#selDate').value = toISODate(new Date());
+  refreshHeaderBadges();
+  populateClasseSelect();
+  autoSelectClasse();
+  renderTableEleves();
+  bindEvents();
 }
 
-$('#btnImportCsv').addEventListener('click', ()=>{
-  const nameInput = $('#csvClassName');
-  const fileInput = $('#csvFile');
-  const name = nameInput.value.trim();
-  if(!name){ toast('Indique un nom de classe'); return; }
-  const file = fileInput.files[0];
-  if(!file){ toast('Choisis un fichier'); return; }
-  const isExcel = /\.(xlsx|xls)$/i.test(file.name);
-
-  if(isExcel){
-    toast('Chargement du lecteur Excel…');
-    ensureXlsxLib().then(()=>{
-      const reader = new FileReader();
-      reader.onload = (ev)=>{
-        try{
-          const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
-          const firstSheet = wb.Sheets[wb.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(firstSheet, {header:1, defval:''});
-          finishImport(name, parseExcelRowsToStudents(rows), nameInput, fileInput);
-        }catch(err){
-          toast('Erreur de lecture du fichier Excel : '+err.message);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }).catch(err=>{ toast(err.message); });
-  }else{
-    const reader = new FileReader();
-    reader.onload = (ev)=>{
-      finishImport(name, parseCsv(ev.target.result), nameInput, fileInput);
-    };
-    reader.readAsText(file, 'UTF-8');
-  }
-});
-
-$('#btnAddStudent').addEventListener('click', ()=>{
-  const cid = $('#manualClassSelect').value;
-  const prenom = $('#manualPrenom').value.trim();
-  const nom = $('#manualNom').value.trim();
-  if(!cid){ toast('Crée ou importe d\'abord une classe'); return; }
-  if(!prenom){ toast('Indique un prénom'); return; }
-  DATA.classes[cid].students.push({ id: uid('stu'), prenom, nom, oral: [] });
-  $('#manualPrenom').value=''; $('#manualNom').value='';
-  renderClasses();
-  saveNow().then(ok=>{ toast(ok ? 'Élève ajouté ✓' : '⚠ Ajouté localement, non synchronisé'); });
-});
-
-/* ---------------------------------------------------------------
-   APPEL TAB
---------------------------------------------------------------- */
-let UI_STATE = { lastClassId: '' };
-async function loadUiState(){
-  try{
-    const r = await storage.get('ui-state');
-    if(r) UI_STATE = Object.assign({lastClassId:''}, JSON.parse(r.value));
-  }catch(e){}
-}
-async function saveUiState(){
-  try{ await storage.set('ui-state', JSON.stringify(UI_STATE), false); }catch(e){}
+function jourSemaineFR(date){
+  return date.getDay(); // 0=dimanche...6=samedi
 }
 
-function renderAppelTab(){
-  refreshClassSelects();
-  if(!$('#appelDate').value) $('#appelDate').value = todayISO();
-  const sel = $('#appelClassSelect');
-  if(!sel.value && UI_STATE.lastClassId && DATA.classes[UI_STATE.lastClassId]){
-    sel.value = UI_STATE.lastClassId;
-  }
-  refreshAppelActiviteSelect();
-  renderPastSessions();
-  renderAppelAuto();
-  if(currentAppelId && DATA.seances[currentAppelId]){
-    openAppelCard(currentAppelId);
-  }
-}
-$('#appelClassSelect').addEventListener('change', ()=>{
-  UI_STATE.lastClassId = $('#appelClassSelect').value;
-  saveUiState();
-  refreshAppelActiviteSelect();
-  renderPastSessions();
-});
-$('#appelDate').addEventListener('change', refreshAppelActiviteSelect);
-
-/* ---------------------------------------------------------------
-   DÉTECTION AUTOMATIQUE DE LA CLASSE (emploi du temps + semaine + vacances)
---------------------------------------------------------------- */
-function detecterClasseActuelle(){
-  const now = new Date();
-  const dateISO = todayISO();
-  const vac = estEnVacances(dateISO, SETTINGS.zone);
-  if(vac) return { vacances: vac };
-  const joursIdx = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
-  const jour = joursIdx[now.getDay()];
-  const minutesActuelles = now.getHours()*60+now.getMinutes();
-  const semaine = semaineDe(dateISO);
-  const matches = edtList().filter(e=>{
-    if(e.jour!==jour) return false;
-    if(e.semaine!=='toutes' && e.semaine!==semaine) return false;
-    const [h,m] = (e.heureDebut||'0:0').split(':').map(Number);
-    const debut = h*60+m;
-    const fin = debut + (e.duree||55);
-    return minutesActuelles>=debut && minutesActuelles<fin;
-  });
-  return { matches, jour, semaine };
-}
-
-function renderAppelAuto(){
-  const wrap = $('#appelAutoContent');
-  if(Object.keys(DATA.edt).length===0){
-    wrap.innerHTML = '<div class="hint">Aucun emploi du temps configuré — renseigne-le dans l\'onglet Paramétrage pour activer la détection automatique. En attendant, choisis ta classe manuellement ci-dessous.</div>';
-    return;
-  }
-  const info = detecterClasseActuelle();
-  if(info.vacances){
-    wrap.innerHTML = `<div class="hint">📅 Vacances scolaires (${escapeHtml(info.vacances.nom)}, Zone ${SETTINGS.zone}) — pas de cours aujourd'hui.</div>`;
-    return;
-  }
-  if(!info.matches || info.matches.length===0){
-    wrap.innerHTML = `<div class="hint">Aucun cours prévu maintenant (${JOURS_LABELS[info.jour]||info.jour}, semaine ${info.semaine}) d'après l'emploi du temps. Choisis ta classe manuellement ci-dessous.</div>`;
-    return;
-  }
-  wrap.innerHTML = info.matches.map(e=>{
-    const cls = DATA.classes[e.classId];
-    if(!cls) return '';
-    return `<button class="btn primary btn-block" style="margin-bottom:6px;" data-auto-class="${e.classId}">
-      Faire l'appel — ${escapeHtml(cls.name)} <span style="opacity:.8;">(${e.heureDebut}, semaine ${info.semaine})</span>
-    </button>`;
-  }).join('');
-  wrap.querySelectorAll('[data-auto-class]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      $('#appelClassSelect').value = btn.dataset.autoClass;
-      UI_STATE.lastClassId = btn.dataset.autoClass;
-      saveUiState();
-      refreshAppelActiviteSelect();
-      renderPastSessions();
-      $('#btnStartAppel').scrollIntoView({behavior:'smooth', block:'center'});
-    });
-  });
-}
-
-function refreshAppelActiviteSelect(){
-  const cid = $('#appelClassSelect').value;
-  const date = $('#appelDate').value;
-  const sel = $('#appelActiviteSelect');
-  const btn = $('#btnStartAppel');
-  const hint = $('#appelActiviteHint');
-  if(!cid){
-    sel.innerHTML = '<option value="">— choisis d\'abord une classe —</option>';
-    btn.disabled = true;
-    hint.textContent = '';
-    return;
-  }
-  const acts = activitesOf(cid);
-  if(acts.length===0){
-    sel.innerHTML = '<option value="">— aucune activité pour cette classe —</option>';
-    btn.disabled = true;
-    hint.textContent = 'Crée d\'abord une activité pour cette classe dans l\'onglet Paramétrage (l\'appel doit toujours être rattaché à une activité).';
-    return;
-  }
-  const activeIds = new Set(activitesActiveOn(cid, date).map(a=>a.id));
-  sel.innerHTML = acts.map(a=>`<option value="${a.id}" ${activeIds.has(a.id)?'selected':''}>${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('');
-  btn.disabled = false;
-  if(activeIds.size===0){
-    hint.textContent = 'Aucune activité n\'est active à cette date d\'après ses périodes — vérifie que c\'est la bonne avant de créer l\'appel.';
-  }else if(activeIds.size>1){
-    hint.textContent = 'Plusieurs activités sont actives à cette date : choisis la bonne dans la liste.';
-  }else{
-    hint.textContent = '';
-  }
-}
-
-$('#btnStartAppel').addEventListener('click', ()=>{
-  const cid = $('#appelClassSelect').value;
-  const date = $('#appelDate').value || todayISO();
-  const activiteId = $('#appelActiviteSelect').value;
-  if(!cid){ toast('Sélectionne une classe'); return; }
-  if(!activiteId){ toast('Choisis une activité — l\'appel doit y être rattaché'); return; }
-  const students = studentsOf(cid);
-  if(students.length===0){ toast('Cette classe n\'a pas d\'élèves'); return; }
-  const seance = {
-    id: uid('seance'), classId: cid, date, activiteId,
-    status: 'open', students: {}
-  };
-  students.forEach(s=>{
-    seance.students[s.id] = { presence:'pending', dispense:false, pratiquant:false, oubli:false };
-  });
-  DATA.seances[seance.id] = seance;
-  saveAll();
-  openAppelCard(seance.id);
-});
-
-// S'assure que tous les élèves actuels de la classe ont bien une entrée dans cet
-// appel (utile si des élèves ont été ajoutés à la classe après la création de l'appel)
-function syncSeanceRoster(seance){
-  let changed = false;
-  studentsOf(seance.classId).forEach(s=>{
-    if(!seance.students[s.id]){
-      seance.students[s.id] = { presence:'pending', dispense:false, pratiquant:false, oubli:false };
-      changed = true;
-    }
-  });
-  return changed;
-}
-
-function openAppelCard(seanceId){
-  currentAppelId = seanceId;
-  const seance = DATA.seances[seanceId];
-  const cls = DATA.classes[seance.classId];
-  $('#appelSetupCard').style.display='none';
-  $('#appelLiveCard').style.display='block';
-  $('#appelLiveTitle').textContent = cls.name+' · '+fmtDate(seance.date);
-  if(syncSeanceRoster(seance)) saveAll();
-  renderLiveActiviteSelect(seance);
-  renderMicZone();
-  renderRoster();
-  renderAppelSummary();
-}
-
-function renderLiveActiviteSelect(seance){
-  const acts = activitesOf(seance.classId);
-  const sel = $('#appelLiveActiviteSelect');
-  if(acts.length===0){
-    sel.innerHTML = '<option value="">— aucune activité pour cette classe —</option>';
-    return;
-  }
-  sel.innerHTML = '<option value="">— non rattaché —</option>' +
-    acts.map(a=>`<option value="${a.id}" ${seance.activiteId===a.id?'selected':''}>${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('');
-}
-$('#appelLiveActiviteSelect').addEventListener('change', ()=>{
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  seance.activiteId = $('#appelLiveActiviteSelect').value || null;
-  saveAll();
-  toast(seance.activiteId ? 'Activité mise à jour' : 'Appel détaché de toute activité');
-});
-
-$('#btnCloseAppel').addEventListener('click', ()=>{
-  stopRecognition();
-  currentAppelId = null;
-  $('#appelSetupCard').style.display='block';
-  $('#appelLiveCard').style.display='none';
-  renderPastSessions();
-});
-
-function renderMicZone(){
-  const zone = $('#micZone');
-  const supported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
-  if(!supported){
-    zone.innerHTML = `<div class="hint" style="text-align:center;">
-      La reconnaissance vocale n'est pas disponible sur ce navigateur.<br>Utilise les boutons Présent / Absent sur chaque élève.
-    </div>`;
-    return;
-  }
-  zone.innerHTML = `
-    <button class="mic-btn" id="btnMic">🎤</button>
-    <div class="mic-caption" id="micCaption">Appuie et parle : dis les prénoms des élèves présents.</div>
-    <div class="transcript" id="micTranscript"></div>
-  `;
-  $('#btnMic').addEventListener('click', toggleRecognition);
-}
-
-function toggleRecognition(){
-  if(recognizing){ stopRecognition(); return; }
-  startRecognition();
-}
-function startRecognition(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return;
-  recognizer = new SR();
-  recognizer.lang = 'fr-FR';
-  recognizer.continuous = true;
-  recognizer.interimResults = true;
-  recognizer.onresult = (e)=>{
-    let finalText='', interimText='';
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const t = e.results[i][0].transcript;
-      if(e.results[i].isFinal) finalText += ' '+t; else interimText += ' '+t;
-    }
-    const combined = (finalText+' '+interimText).trim();
-    const capt = $('#micTranscript');
-    if(capt) capt.textContent = combined;
-    // Analyse dès le texte intermédiaire (avant la pause de fin de phrase) pour
-    // marquer présent le plus vite possible, sans attendre la finalisation
-    if(combined) processSpokenText(combined);
-  };
-  recognizer.onerror = (e)=>{
-    if(e.error==='no-speech') return;
-    toast('Erreur micro : '+e.error);
-    stopRecognition();
-  };
-  recognizer.onend = ()=>{
-    if(recognizing){
-      try{ recognizer.start(); }catch(err){ recognizing=false; updateMicUi(); }
-    }
-  };
-  try{
-    recognizer.start();
-    recognizing = true;
-    updateMicUi();
-  }catch(err){ toast('Impossible de démarrer le micro'); }
-}
-function stopRecognition(){
-  recognizing = false;
-  if(recognizer){ try{ recognizer.stop(); }catch(e){} }
-  updateMicUi();
-}
-function updateMicUi(){
-  const btn = $('#btnMic');
-  const cap = $('#micCaption');
-  if(!btn) return;
-  btn.classList.toggle('listening', recognizing);
-  btn.textContent = recognizing ? '⏸' : '🎤';
-  if(cap) cap.textContent = recognizing ? 'Écoute en cours… dis les prénoms au fur et à mesure.' : 'Appuie et parle : dis les prénoms des élèves présents.';
-}
-
-/* ---- Correspondance floue (tolère les variantes d'orthographe des prénoms) ---- */
-function levenshtein(a, b){
-  const la = a.length, lb = b.length;
-  if(la===0) return lb;
-  if(lb===0) return la;
-  let prev = new Array(lb+1);
-  let cur = new Array(lb+1);
-  for(let j=0;j<=lb;j++) prev[j]=j;
-  for(let i=1;i<=la;i++){
-    cur[0]=i;
-    for(let j=1;j<=lb;j++){
-      const cost = a[i-1]===b[j-1] ? 0 : 1;
-      cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+cost);
-    }
-    [prev,cur] = [cur,prev];
-  }
-  return prev[lb];
-}
-function fuzzyThreshold(len){
-  if(len<=4) return 1;
-  return 2;
-}
-function sameStart(a,b){
-  // exige la même lettre de départ : deux prénoms qui ne commencent pas pareil
-  // (ex. Evanne / Yoan) ont très peu de chances d'être confondus à l'oral
-  return a && b && a[0]===b[0];
-}
-function namesMatch(gram, target){
-  if(!gram || !target) return false;
-  if(gram===target) return true;
-  if(target.length>=3 && gram.includes(target)) return true;
-  if(sameStart(gram,target) && Math.abs(gram.length-target.length)<=3){
-    if(levenshtein(gram,target) <= fuzzyThreshold(target.length)) return true;
-  }
-  return false;
-}
-
-/* ---- Clé phonétique simplifiée (français) ----
-   Réduit un mot à une approximation de sa sonorité, pour rapprocher des
-   orthographes très différentes qui se prononcent pareil (utile pour les
-   prénoms rares ou inventés : "Kaïs"/"Kayce", "Jehyan"/"Jean"...) */
-function phoneticKey(str){
-  let t = normalize(str).replace(/\s+/g,'');
-  if(!t) return '';
-  t = t.replace(/eau/g,'o').replace(/au/g,'o');
-  t = t.replace(/ph/g,'f');
-  t = t.replace(/th/g,'t');
-  t = t.replace(/ch/g,'x');
-  t = t.replace(/qu/g,'k');
-  t = t.replace(/gu(?=[eiy])/g,'g');
-  t = t.replace(/g(?=[eiy])/g,'j');
-  t = t.replace(/[cç](?=[eiy])/g,'s');
-  t = t.replace(/c/g,'k');
-  t = t.replace(/oi/g,'wa');
-  t = t.replace(/ai|ei/g,'e');
-  t = t.replace(/ou/g,'u');
-  t = t.replace(/y/g,'i');
-  t = t.replace(/^h/,'').replace(/h/g,'');
-  t = t.replace(/x/g,'ks');
-  t = t.replace(/([a-z])\1+/g,'$1'); // double lettres -> simple
-  t = t.replace(/e$/,''); // e final souvent muet
-  t = t.replace(/s$/,''); // s final souvent muet
-  return t;
-}
-function getDuplicatePhonetic(classId){
-  const counts = {};
-  studentsOf(classId).forEach(s=>{
-    const k = phoneticKey(s.prenom);
-    counts[k] = (counts[k]||0)+1;
-  });
-  return new Set(Object.keys(counts).filter(k=>k && counts[k]>1));
-}
-function getDuplicatePrenoms(classId){
-  const counts = {};
-  studentsOf(classId).forEach(s=>{
-    const np = normalize(s.prenom);
-    counts[np] = (counts[np]||0)+1;
-  });
-  return new Set(Object.keys(counts).filter(k=>counts[k]>1));
-}
-
-function processSpokenText(text){
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  syncSeanceRoster(seance);
-  const words = normalize(text).split(/\s+/).filter(Boolean);
-  const students = studentsOf(seance.classId);
-  const dupPrenoms = getDuplicatePrenoms(seance.classId);
-  // fenêtres de 1 à 3 mots pour capter prénom+nom même si dits ensemble
-  const grams = [];
-  for(let i=0;i<words.length;i++){
-    grams.push(words[i]);
-    if(i+1<words.length) grams.push(words[i]+' '+words[i+1]);
-    if(i+2<words.length) grams.push(words[i]+' '+words[i+1]+' '+words[i+2]);
-  }
-  let matchedAny = false;
-  const pending = ()=>students.filter(s=>seance.students[s.id].presence!=='present');
-
-  // Passe 0 : prononciation enregistrée, correspondance exacte — la plus fiable,
-  // fonctionne même pour des prénoms proches (Mathis / Matisse) car propre à chaque élève
-  // (comparaison "compacte" : les espaces sont ignorés pour absorber les découpages
-  // différents d'un même mot par la reconnaissance, ex. "nathin gael" / "nathingael")
-  const compact = (s)=>s.replace(/\s+/g,'');
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    const oral = s.oral||[];
-    if(oral.length===0) return;
-    const oralCompact = oral.map(compact);
-    if(grams.some(g=>oral.includes(g) || oralCompact.includes(compact(g)))){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 0b : prononciation enregistrée, tolérance sur les lettres (proportionnelle à la
-  // longueur), en comparaison compacte — seulement si la correspondance est unique parmi
-  // les élèves pas encore présents (pas d'ambiguïté)
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    const oral = s.oral||[];
-    if(oral.length===0) return;
-    const oralCompact = oral.map(compact);
-    const isClose = (g)=>{
-      const gc = compact(g);
-      return oralCompact.some(o => sameStart(gc,o) && Math.abs(gc.length-o.length)<=2 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
-    };
-    const candidateGrams = grams.filter(isClose);
-    if(candidateGrams.length===0) return;
-    // vérifie qu'aucun autre élève en attente n'est aussi proche de ce même gram
-    const ambiguous = pending().some(other=>{
-      if(other.id===s.id) return false;
-      const oOral = (other.oral||[]).map(compact);
-      if(oOral.length===0) return false;
-      return candidateGrams.some(g=>{
-        const gc = compact(g);
-        return oOral.some(o => sameStart(gc,o) && Math.abs(gc.length-o.length)<=2 && levenshtein(gc,o)<=fuzzyThreshold(o.length));
-      });
-    });
-    if(!ambiguous){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 0c : prononciation enregistrée, correspondance PHONÉTIQUE — pour les
-  // prénoms rares/inventés où la reconnaissance orthographie différemment à
-  // chaque fois (ex. "Kaïs" reconnu tantôt "kaisse", tantôt "kaicce")
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    const oral = s.oral||[];
-    if(oral.length===0) return;
-    const oralKeys = oral.map(phoneticKey).filter(Boolean);
-    if(oralKeys.length===0) return;
-    const candidateGrams = grams.filter(g=>{
-      const gk = phoneticKey(g);
-      return gk && oralKeys.includes(gk);
-    });
-    if(candidateGrams.length===0) return;
-    const ambiguous = pending().some(other=>{
-      if(other.id===s.id) return false;
-      const oKeys = (other.oral||[]).map(phoneticKey).filter(Boolean);
-      if(oKeys.length===0) return false;
-      return candidateGrams.some(g=>oKeys.includes(phoneticKey(g)));
-    });
-    if(!ambiguous){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-  // Passe 1 : nom complet (prénom + nom) — fiable, résout aussi les doublons,
-  // utilisée pour les élèves sans prononciation enregistrée
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    if((s.oral||[]).length>0) return; // déjà couvert par passe 0/0b
-    const full = (normalize(s.prenom)+' '+normalize(s.nom)).trim();
-    if(!normalize(s.nom)) return;
-    if(grams.some(g=>namesMatch(g, full))){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 2 : nom de famille seul — utile quand le prénom est en doublon
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    if((s.oral||[]).length>0) return;
-    const nn = normalize(s.nom);
-    if(nn.length<2) return;
-    if(grams.some(g=>namesMatch(g, nn))){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 3 : prénom seul, tolérant aux variantes — seulement pour les élèves sans
-  // prononciation enregistrée, et seulement si ce prénom n'est pas en doublon
-  const stillPendingPrenoms = {};
-  pending().forEach(s=>{
-    const np = normalize(s.prenom);
-    stillPendingPrenoms[np] = (stillPendingPrenoms[np]||0)+1;
-  });
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    if((s.oral||[]).length>0) return;
-    const np = normalize(s.prenom);
-    if(stillPendingPrenoms[np]>1) return; // doublon non résolu : on attend le nom
-    if(grams.some(g=>namesMatch(g, np))){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  // Passe 3b : prénom seul, correspondance PHONÉTIQUE — pour les prénoms rares/
-  // inventés sans prononciation enregistrée, et non ambigus phonétiquement
-  const dupPhonetic = getDuplicatePhonetic(seance.classId);
-  pending().forEach(s=>{
-    const entry = seance.students[s.id];
-    if(entry.presence==='present') return;
-    if((s.oral||[]).length>0) return;
-    const pk = phoneticKey(s.prenom);
-    if(!pk || dupPhonetic.has(pk)) return; // ambigu : deux prénoms sonnent pareil
-    if(grams.some(g=>phoneticKey(g)===pk)){
-      entry.presence='present'; matchedAny=true; lastMatchedStudentId=s.id;
-    }
-  });
-
-  if(matchedAny){
-    saveAll();
-    renderRoster();
-    renderAppelSummary();
-    if(navigator.vibrate) navigator.vibrate(40);
-  }
-}
-
-function renderRoster(){
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  syncSeanceRoster(seance);
-  const students = studentsOf(seance.classId);
-  const act = seance.activiteId ? DATA.activites[seance.activiteId] : null;
-  const dupPrenoms = getDuplicatePrenoms(seance.classId);
-  $('#rosterList').innerHTML = students.map(s=>{
-    const entry = seance.students[s.id] || {presence:'pending',dispense:false,pratiquant:false,oubli:false};
-    const justMatched = s.id===lastMatchedStudentId && entry.presence==='present';
-    const isDup = dupPrenoms.has(normalize(s.prenom)) && entry.presence!=='present';
-    const dupBadge = isDup ? '<span class="chip on oubli" style="margin-left:6px;">⚠ prénom en doublon — dis le nom</span>' : '';
-    const oralBadge = (s.oral&&s.oral.length) ? '<span title="Prononciation enregistrée" style="margin-left:6px;">🔊</span>' : '';
-    const extra = (entry.presence==='present') ? `
-      <div class="extra-row">
-        <button class="chip icon-chip ${entry.dispense?'on dispense':''}" data-sid="${s.id}" data-field="dispense" title="Dispensé">✚</button>
-        <button class="chip icon-chip ${entry.oubli?'on oubli':''}" data-sid="${s.id}" data-field="oubli" title="Affaires oubliées">👟</button>
-      </div>` : '';
-    return `
-    <div class="roster-item ${justMatched?'just-matched':''}" data-row="${s.id}">
-      <div class="roster-top">
-        <span class="roster-name">${escapeHtml(s.prenom)} ${escapeHtml(s.nom||'')}${oralBadge}${dupBadge}</span>
-        <div class="roster-actions">
-          <button class="toggle-btn icon-toggle ${entry.presence==='present'?'on-present':''}" data-sid="${s.id}" data-field="presence" data-val="present" title="Présent">${ICON_HAND}</button>
-          <button class="toggle-btn ${entry.presence==='absent'?'on-absent':''}" data-sid="${s.id}" data-field="presence" data-val="absent">Absent</button>
-        </div>
-      </div>
-      ${extra}
-    </div>`;
-  }).join('');
-
-  $('#rosterList').querySelectorAll('[data-field="presence"]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const sid = btn.dataset.sid, val = btn.dataset.val;
-      const entry = seance.students[sid];
-      entry.presence = (entry.presence===val) ? 'pending' : val;
-      saveAll(); renderRoster(); renderAppelSummary();
-    });
-  });
-  $('#rosterList').querySelectorAll('[data-field]:not([data-field="presence"])').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const sid = btn.dataset.sid, field = btn.dataset.field;
-      const entry = seance.students[sid];
-      entry[field] = !entry[field];
-      saveAll(); renderRoster();
-    });
-  });
-}
-
-
-$('#btnMarkAllPresent').addEventListener('click', ()=>{
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  Object.values(seance.students).forEach(e=>{ if(e.presence==='pending') e.presence='present'; });
-  saveAll(); renderRoster(); renderAppelSummary();
-});
-$('#btnResetAppel').addEventListener('click', ()=>{
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  if(!confirm('Réinitialiser les statuts de cet appel ?')) return;
-  Object.values(seance.students).forEach(e=>{ e.presence='pending'; e.dispense=false; e.pratiquant=false; e.oubli=false; });
-  saveAll(); renderRoster(); renderAppelSummary();
-});
-
-function renderAppelSummary(){
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  const students = studentsOf(seance.classId);
-  const total = students.length;
-  const presentCount = students.filter(s=>seance.students[s.id].presence==='present').length;
-  const absents = students.filter(s=>seance.students[s.id].presence!=='present');
-  $('#appelSummary').innerHTML = `
-    <div class="summary-box">
-      <b>${presentCount} / ${total}</b> présent(s) marqué(s).
-      ${absents.length ? '<div style="margin-top:6px;">Non appelés / absents : '+absents.map(s=>`<span class="abs-name">${escapeHtml(s.prenom)}</span>`).join('')+'</div>' : '<div style="margin-top:6px;">Tout le monde a été appelé.</div>'}
-    </div>`;
-}
-
-$('#btnFinishAppel').addEventListener('click', ()=>{
-  const seance = DATA.seances[currentAppelId];
-  if(!seance) return;
-  const students = studentsOf(seance.classId);
-  students.forEach(s=>{
-    if(seance.students[s.id].presence==='pending') seance.students[s.id].presence='absent';
-  });
-  seance.status = 'done';
-  stopRecognition();
-  saveNow().then(ok=>{
-    toast(ok ? 'Appel terminé et enregistré ✓' : '⚠ Terminé, mais non synchronisé — vérifie ta connexion');
-    currentAppelId = null;
-    $('#appelSetupCard').style.display='block';
-    $('#appelLiveCard').style.display='none';
-    renderPastSessions();
-  });
-});
-
-function renderPastSessions(){
-  const cid = $('#appelClassSelect').value;
-  const wrap = $('#pastSessions');
-  let sessions = Object.values(DATA.seances);
-  if(cid) sessions = sessions.filter(s=>s.classId===cid);
-  sessions.sort((a,b)=>b.date.localeCompare(a.date));
-  if(sessions.length===0){
-    wrap.innerHTML = '<div class="empty">Aucun appel enregistré pour l\'instant.</div>';
-    return;
-  }
-  wrap.innerHTML = sessions.slice(0,30).map(s=>{
-    const cls = DATA.classes[s.classId];
-    if(!cls) return '';
-    const total = cls.students.length;
-    const present = Object.values(s.students).filter(e=>e.presence==='present').length;
-    return `<div class="session-item">
-      <span>${escapeHtml(cls.name)} · ${fmtDate(s.date)} ${s.status==='open'?'(en cours)':''}</span>
-      <span>
-        <span class="status-pill present">${present}/${total}</span>
-        <button class="icon-btn" data-open-seance="${s.id}">ouvrir</button>
-        <button class="icon-btn" data-del-seance="${s.id}">suppr.</button>
-      </span>
-    </div>`;
-  }).join('');
-  wrap.querySelectorAll('[data-open-seance]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const sid = btn.dataset.openSeance;
-      const s = DATA.seances[sid];
-      $('#appelClassSelect').value = s.classId;
-      $('#appelDate').value = s.date;
-      openAppelCard(sid);
-    });
-  });
-  wrap.querySelectorAll('[data-del-seance]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if(!confirm('Supprimer cet appel ?')) return;
-      delete DATA.seances[btn.dataset.delSeance];
-      saveAll(); renderPastSessions();
-    });
-  });
-}
-
-/* ---------------------------------------------------------------
-   SUIVI TAB
---------------------------------------------------------------- */
-function renderSuiviTab(){
-  refreshClassSelects();
-  refreshStatsActiviteSelect();
-}
-$('#statsClassSelect').addEventListener('change', refreshStatsActiviteSelect);
-
-function renderParametrageActivites(){
-  refreshClassSelects();
-  renderActivitesForClass();
-}
-$('#paramActiviteClassSelect').addEventListener('change', renderActivitesForClass);
-
-/* ---------------------------------------------------------------
-   RÉGLAGES ZONE / SEMAINE A-B
---------------------------------------------------------------- */
-function renderParametrageReglages(){
-  $('#settingZone').value = SETTINGS.zone;
-  $('#settingSemaineRentree').value = SETTINGS.semaineRentree;
-  updateSemaineActuelleHint();
-}
-function updateSemaineActuelleHint(){
-  const today = todayISO();
-  const vac = estEnVacances(today, SETTINGS.zone);
-  const hint = $('#semaineActuelleHint');
+function refreshHeaderBadges(){
+  const dateISO = $('#selDate').value;
+  const d = parseISODate(dateISO);
+  const semaine = computeSemaine(dateISO);
+  $('#badgeDate').textContent = d.toLocaleDateString('fr-FR',{weekday:'long', day:'2-digit', month:'long'}) + (semaine? ' · S'+semaine : '');
+  const vac = getVacanceDuJour(dateISO);
+  const badgeClasse = $('#badgeClasse');
   if(vac){
-    hint.textContent = `Aujourd'hui : vacances (${vac.nom}), Zone ${SETTINGS.zone}.`;
-  }else{
-    hint.textContent = `Aujourd'hui : semaine ${semaineDe(today)}, Zone ${SETTINGS.zone}.`;
+    badgeClasse.className='badge vacances';
+    badgeClasse.textContent = '🏖 Vacances : '+vac.nom;
+  } else {
+    badgeClasse.className='badge classe';
   }
 }
-$('#settingZone').addEventListener('change', ()=>{
-  SETTINGS.zone = $('#settingZone').value;
-  updateSemaineActuelleHint();
-  saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
-});
-$('#settingSemaineRentree').addEventListener('change', ()=>{
-  SETTINGS.semaineRentree = $('#settingSemaineRentree').value;
-  updateSemaineActuelleHint();
-  saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
-});
 
-/* ---------------------------------------------------------------
-   EMPLOI DU TEMPS
---------------------------------------------------------------- */
-const JOURS_LABELS = { lundi:'Lundi', mardi:'Mardi', mercredi:'Mercredi', jeudi:'Jeudi', vendredi:'Vendredi', samedi:'Samedi' };
-const JOURS_ORDRE = ['lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+function classesDisponibles(){
+  const set = new Set(state.eleves.map(e=>e.classe).filter(Boolean));
+  state.emploiDuTemps.forEach(c=>{ if(c.classe) set.add(c.classe); });
+  return Array.from(set).sort();
+}
 
-function edtList(){
-  return Object.values(DATA.edt).sort((a,b)=>{
-    const d = JOURS_ORDRE.indexOf(a.jour) - JOURS_ORDRE.indexOf(b.jour);
-    if(d!==0) return d;
-    return (a.heureDebut||'').localeCompare(b.heureDebut||'');
+function populateClasseSelect(){
+  const sel = $('#selClasse');
+  const current = sel.value;
+  sel.innerHTML = classesDisponibles().map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(current) sel.value = current;
+}
+
+function autoSelectClasse(){
+  const dateISO = $('#selDate').value;
+  if(getVacanceDuJour(dateISO)) return; // pas de cours
+  const d = parseISODate(dateISO);
+  const jour = jourSemaineFR(d); // 0=dim
+  const jourEDT = jour===0?7:jour; // on garde 1=lundi..7=dimanche mais on n'utilise que 1-5
+  const semaine = computeSemaine(dateISO);
+  const now = new Date();
+  const nowMinutes = now.getHours()*60+now.getMinutes();
+  const creneaux = state.emploiDuTemps.filter(c=>{
+    if(Number(c.jour) !== jourEDT) return false;
+    if(c.semaine && c.semaine!=='both' && semaine && c.semaine!==semaine) return false;
+    return true;
+  });
+  if(creneaux.length===0) return;
+  // Choisit le créneau en cours, sinon le premier de la journée
+  let choix = creneaux.find(c=>{
+    const [h1,m1]=c.heureDebut.split(':').map(Number);
+    const [h2,m2]=c.heureFin.split(':').map(Number);
+    const debM=h1*60+m1, finM=h2*60+m2;
+    return nowMinutes>=debM && nowMinutes<=finM;
+  });
+  if(!choix) choix = creneaux.sort((a,b)=>a.heureDebut.localeCompare(b.heureDebut))[0];
+  if(choix && classesDisponibles().includes(choix.classe)){
+    $('#selClasse').value = choix.classe;
+  }
+}
+
+function activiteCouranteFor(classe, dateISO){
+  const d = parseISODate(dateISO).getTime();
+  return state.activites.find(a=> a.classe===classe &&
+    parseISODate(a.dateDebut).getTime()<=d && parseISODate(a.dateFin).getTime()>=d);
+}
+
+/* =====================================================================
+   TABLE APPEL DU JOUR
+===================================================================== */
+let appelCourant = {}; // eleveId -> {present, dispense, affairesOubliees}
+
+function renderTableEleves(){
+  const classe = $('#selClasse').value;
+  const dateISO = $('#selDate').value;
+  const eleves = state.eleves.filter(e=>e.classe===classe)
+    .sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom));
+  const box = $('#listeAppel');
+  box.innerHTML='';
+  $('#emptyEleves').style.display = eleves.length? 'none':'block';
+
+  const activite = activiteCouranteFor(classe, dateISO);
+  $('#activiteCourante').textContent = activite ? '🏐 '+activite.activite : '';
+  $('#activiteCourante').style.display = activite ? 'inline-block':'none';
+
+  eleves.forEach(el=>{
+    if(!appelCourant[el.id]) appelCourant[el.id] = {present:false, dispense:false, affairesOubliees:false};
+    const st = appelCourant[el.id];
+    const card = document.createElement('div');
+    card.className = 'eleve-card' + (st.present ? ' present':'');
+    card.innerHTML = `
+      <div class="eleve-row" data-id="${el.id}">
+        <span class="present-toggle">${st.present?'✓':''}</span>
+        <span class="eleve-nom">${el.prenom} ${el.nom}</span>
+      </div>
+      ${st.present ? `
+      <div class="eleve-actions">
+        <button class="pill-btn${st.affairesOubliees?' on':''}" data-id="${el.id}" data-field="affairesOubliees">👟 Affaires</button>
+        <button class="pill-btn dispense${st.dispense?' on':''}" data-id="${el.id}" data-field="dispense">❌ Dispensé</button>
+      </div>` : ''}
+    `;
+    box.appendChild(card);
+  });
+
+  box.querySelectorAll('.eleve-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const id = row.dataset.id;
+      appelCourant[id].present = !appelCourant[id].present;
+      renderTableEleves();
+    });
+  });
+  box.querySelectorAll('.pill-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = btn.dataset.id, field = btn.dataset.field;
+      appelCourant[id][field] = !appelCourant[id][field];
+      renderTableEleves();
+    });
   });
 }
-function renderParametrageEdt(){
-  refreshClassSelects();
-  const wrap = $('#edtList');
-  const items = edtList();
-  if(items.length===0){
-    wrap.innerHTML = '<div class="empty">Aucun créneau dans l\'emploi du temps.</div>';
+
+function resetAppelCourant(){
+  appelCourant = {};
+}
+
+/* =====================================================================
+   RECONNAISSANCE VOCALE
+===================================================================== */
+let recognition = null, listening = false;
+function setupSpeech(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    $('#transcript').textContent = "Reconnaissance vocale non disponible sur ce navigateur (essaie Chrome).";
+    $('#btnMic').disabled = true;
     return;
   }
-  wrap.innerHTML = items.map(e=>{
-    const cls = DATA.classes[e.classId];
-    const semLabel = e.semaine==='toutes' ? '' : (' · Semaine '+e.semaine);
-    return `
-    <div class="session-item" data-edt="${e.id}">
-      <span>${JOURS_LABELS[e.jour]||e.jour} ${e.heureDebut} (${e.duree} min) · <b>${cls?escapeHtml(cls.name):'?'}</b>${semLabel}</span>
-      <button class="icon-btn" data-del-edt="${e.id}">suppr.</button>
-    </div>`;
-  }).join('');
-  wrap.querySelectorAll('[data-del-edt]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      delete DATA.edt[btn.dataset.delEdt];
-      renderParametrageEdt();
-      saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
+  recognition = new SR();
+  recognition.lang = 'fr-FR';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (event)=>{
+    let finalText='';
+    for(let i=event.resultIndex;i<event.results.length;i++){
+      const res = event.results[i];
+      if(res.isFinal) finalText += res[0].transcript + ' ';
+      else $('#transcript').textContent = '… '+res[0].transcript;
+    }
+    if(finalText.trim()){
+      const classe = $('#selClasse').value;
+      const elevesClasse = state.eleves.filter(e=>e.classe===classe);
+      const found = matchElevesInText(finalText, elevesClasse);
+      if(found.size){
+        found.forEach(id=>{
+          if(!appelCourant[id]) appelCourant[id]={present:false,dispense:false,affairesOubliees:false};
+          appelCourant[id].present = true;
+        });
+        renderTableEleves();
+      }
+      $('#transcript').textContent = '✓ « '+finalText.trim()+' »';
+    }
+  };
+  recognition.onerror = (e)=>{
+    $('#transcript').textContent = 'Erreur micro : '+e.error;
+  };
+  recognition.onend = ()=>{
+    if(listening){ try{ recognition.start(); }catch(e){} } // relance en continu
+  };
+}
+
+function toggleMic(){
+  if(!recognition) return;
+  const btn = $('#btnMic');
+  if(listening){
+    listening=false;
+    recognition.stop();
+    btn.classList.remove('listening'); btn.classList.add('off');
+  } else {
+    listening=true;
+    try{ recognition.start(); }catch(e){}
+    btn.classList.add('listening'); btn.classList.remove('off');
+    $('#transcript').textContent = "Écoute en cours… annonce les prénoms.";
+  }
+}
+
+/* =====================================================================
+   SYNCHRONISATION GOOGLE SHEET
+===================================================================== */
+async function apiGet(action, params={}){
+  if(!state.config.appsScriptUrl) throw new Error('URL Apps Script non configurée');
+  const url = new URL(state.config.appsScriptUrl);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+  const resp = await fetch(url.toString());
+  return resp.json();
+}
+async function apiPost(action, payload={}){
+  if(!state.config.appsScriptUrl) throw new Error('URL Apps Script non configurée');
+  const resp = await fetch(state.config.appsScriptUrl, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({action, payload})
+  });
+  return resp.json();
+}
+
+async function syncFromSheet(){
+  const statusEl = $('#syncStatus');
+  statusEl.textContent = 'Synchronisation…'; statusEl.className='status';
+  try{
+    const data = await apiGet('getAll');
+    if(data.error) throw new Error(data.error);
+    state.eleves = data.eleves || [];
+    state.emploiDuTemps = data.emploiDuTemps || [];
+    state.activites = data.activites || [];
+    state.vacances = data.vacances || [];
+    state.vacancesMAJ = data.vacancesMAJ || null;
+    saveState();
+    populateClasseSelect();
+    autoSelectClasse();
+    refreshHeaderBadges();
+    renderTableEleves();
+    statusEl.textContent = '✓ Synchronisé'; statusEl.className='status ok';
+  }catch(e){
+    statusEl.textContent = '✗ '+e.message; statusEl.className='status err';
+  }
+}
+
+async function pushAll(){
+  await apiPost('saveEleves', {eleves: state.eleves});
+  await apiPost('saveEmploiDuTemps', {emploiDuTemps: state.emploiDuTemps});
+  await apiPost('saveActivites', {activites: state.activites});
+  await apiPost('saveConfig', {cle:'semaine1Ref', valeur: state.config.semaine1Ref});
+  await apiPost('saveConfig', {cle:'zoneVacances', valeur: state.config.zoneVacances});
+}
+
+/* =====================================================================
+   MODALE PARAMÈTRES
+===================================================================== */
+function openModal(){
+  draft = JSON.parse(JSON.stringify(state)); // copie de travail
+  $('#modalOverlay').classList.add('open');
+  $('#inputUrl').value = draft.config.appsScriptUrl || '';
+  $('#inputSemaine1Ref').value = draft.config.semaine1Ref || '';
+  renderElevesPanel();
+  renderPrononciationPanel();
+  renderActivitesPanel();
+  renderEdtPanel();
+  renderVacancesPanel();
+  updateVacancesMajLabel();
+}
+function closeModal(){ $('#modalOverlay').classList.remove('open'); }
+
+function switchTab(name){
+  $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  $$('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+name));
+}
+
+// ---- Élèves ----
+function renderElevesPanel(){
+  const box = $('#listeEleves');
+  box.innerHTML='';
+  draft.eleves.forEach((el)=>{
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      <input type="text" value="${el.nom}" placeholder="Nom" data-f="nom">
+      <input type="text" value="${el.prenom}" placeholder="Prénom" data-f="prenom">
+      <input type="text" value="${el.classe}" placeholder="Classe" style="max-width:90px;" data-f="classe">
+      <button class="btn icon small" data-del>🗑</button>
+    `;
+    row.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('input', ()=>{ el[inp.dataset.f]=inp.value; });
     });
+    row.querySelector('[data-del]').addEventListener('click', ()=>{
+      draft.eleves = draft.eleves.filter(e=>e.id!==el.id);
+      renderElevesPanel(); renderPrononciationPanel();
+    });
+    box.appendChild(row);
   });
 }
-$('#btnAddEdt').addEventListener('click', ()=>{
-  const classId = $('#newEdtClasse').value;
-  const jour = $('#newEdtJour').value;
-  const heureDebut = $('#newEdtHeure').value;
-  const duree = parseInt($('#newEdtDuree').value, 10) || 55;
-  const semaine = $('#newEdtSemaine').value;
-  if(!classId){ toast('Sélectionne une classe'); return; }
-  if(!heureDebut){ toast('Indique une heure de début'); return; }
-  const e = { id: uid('edt'), classId, jour, heureDebut, duree, semaine };
-  DATA.edt[e.id] = e;
-  renderParametrageEdt();
-  saveNow().then(ok=>{ toast(ok ? 'Créneau ajouté ✓' : '⚠ Non synchronisé'); });
-});
+function ajouterEleve(){
+  draft.eleves.push({id:uid(), nom:'', prenom:'', classe:'', prononciation:''});
+  renderElevesPanel();
+}
+function importCsv(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const text = reader.result;
+    const sep = text.includes(';') ? ';' : ',';
+    text.split(/\r?\n/).forEach(line=>{
+      const l = line.trim();
+      if(!l) return;
+      const parts = l.split(sep).map(s=>s.trim());
+      if(parts.length<2) return;
+      const [nom, prenom, classe] = parts;
+      if(/^nom$/i.test(nom)) return; // ignore ligne d'en-tête
+      draft.eleves.push({id:uid(), nom, prenom: prenom||'', classe: classe||'', prononciation:''});
+    });
+    renderElevesPanel(); renderPrononciationPanel();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
 
-function renderActivitesForClass(){
-  const cid = $('#paramActiviteClassSelect').value;
-  const wrap = $('#activitesForClass');
-  if(!cid){ wrap.innerHTML=''; return; }
-  const acts = activitesOf(cid);
-  if(acts.length===0){
-    wrap.innerHTML = '<div class="empty">Aucune activité définie pour cette classe.</div>';
-  }else{
-    wrap.innerHTML = acts.map(a=>{
-      const periodsHtml = (a.periods||[]).map((p,idx)=>`
-        <div class="row" style="justify-content:space-between;padding:3px 0;">
-          <span class="hint" style="margin:0;">${fmtDate(p.debut)} → ${fmtDate(p.fin)}</span>
-          <button class="icon-btn" data-del-period="${idx}" data-act="${a.id}">✕</button>
-        </div>`).join('') || '<div class="hint">Aucune période — cette activité n\'apparaîtra comme active à aucune date.</div>';
-      return `
-      <div class="card activite-card" style="margin-bottom:8px;padding:10px 12px;">
-        <div class="row" style="justify-content:space-between;">
-          <b>${escapeHtml(a.nom)}</b>
-          <button class="icon-btn" data-del-act="${a.id}">supprimer l'activité</button>
-        </div>
-        ${periodsHtml}
-        <div class="row wrap" style="gap:6px;margin-top:6px;">
-          <input type="date" class="grow" style="min-width:110px;" data-new-period-debut="${a.id}">
-          <input type="date" class="grow" style="min-width:110px;" data-new-period-fin="${a.id}">
-          <button class="btn ghost small" data-add-period="${a.id}">+ période</button>
-        </div>
-      </div>`;
-    }).join('');
+// ---- Prononciation ----
+function renderPrononciationPanel(){
+  const box = $('#listeProno');
+  box.innerHTML='';
+  if(draft.eleves.length===0){ box.innerHTML='<div class="empty">Ajoute d\'abord des élèves.</div>'; return; }
+  draft.eleves.forEach(el=>{
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      <span style="flex:0 0 160px;">${el.prenom} ${el.nom} <span style="color:var(--muted);font-size:12px;">(${el.classe||'?'})</span></span>
+      <input type="text" value="${el.prononciation||''}" placeholder="variantes de prononciation, séparées par des virgules">
+    `;
+    row.querySelector('input').addEventListener('input', e=>{ el.prononciation = e.target.value; });
+    box.appendChild(row);
+  });
+}
 
-    wrap.querySelectorAll('[data-del-act]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        if(!confirm('Supprimer cette activité ? (les données déjà enregistrées restent liées)')) return;
-        delete DATA.activites[btn.dataset.delAct];
-        renderActivitesForClass();
-        saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
-      });
+// ---- Activités ----
+function renderActivitesPanel(){
+  const box = $('#listeActivites');
+  box.innerHTML='';
+  draft.activites.forEach(a=>{
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      <input type="text" value="${a.classe}" placeholder="Classe" style="max-width:90px;" data-f="classe">
+      <input type="text" value="${a.activite}" placeholder="Activité" data-f="activite">
+      <input type="date" value="${a.dateDebut||''}" data-f="dateDebut">
+      <input type="date" value="${a.dateFin||''}" data-f="dateFin">
+      <button class="btn icon small" data-del>🗑</button>
+    `;
+    row.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>{ a[inp.dataset.f]=inp.value; }));
+    row.querySelector('[data-del]').addEventListener('click', ()=>{
+      draft.activites = draft.activites.filter(x=>x.id!==a.id);
+      renderActivitesPanel();
     });
-    wrap.querySelectorAll('[data-del-period]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const act = DATA.activites[btn.dataset.act];
-        if(!act) return;
-        act.periods.splice(parseInt(btn.dataset.delPeriod,10),1);
-        renderActivitesForClass();
-        saveNow().then(ok=>{ if(!ok) toast('⚠ Non synchronisé'); });
-      });
+    box.appendChild(row);
+  });
+}
+function ajouterActivite(){
+  draft.activites.push({id:uid(), classe:'', activite:'', dateDebut:'', dateFin:''});
+  renderActivitesPanel();
+}
+
+// ---- Emploi du temps ----
+const JOURS = [{v:1,l:'Lundi'},{v:2,l:'Mardi'},{v:3,l:'Mercredi'},{v:4,l:'Jeudi'},{v:5,l:'Vendredi'}];
+function renderEdtPanel(){
+  const box = $('#listeEdt');
+  box.innerHTML='';
+  draft.emploiDuTemps.forEach(c=>{
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      <select data-f="jour" style="max-width:100px;">${JOURS.map(j=>`<option value="${j.v}" ${Number(c.jour)===j.v?'selected':''}>${j.l}</option>`).join('')}</select>
+      <input type="time" value="${c.heureDebut||''}" data-f="heureDebut">
+      <input type="time" value="${c.heureFin||''}" data-f="heureFin">
+      <input type="text" value="${c.classe}" placeholder="Classe" style="max-width:90px;" data-f="classe">
+      <select data-f="semaine" style="max-width:130px;">
+        <option value="both" ${c.semaine==='both'?'selected':''}>Les deux semaines</option>
+        <option value="1" ${c.semaine==='1'?'selected':''}>Semaine 1</option>
+        <option value="2" ${c.semaine==='2'?'selected':''}>Semaine 2</option>
+      </select>
+      <button class="btn icon small" data-del>🗑</button>
+    `;
+    row.querySelectorAll('input,select').forEach(inp=>inp.addEventListener('input', ()=>{ c[inp.dataset.f]=inp.value; }));
+    row.querySelector('[data-del]').addEventListener('click', ()=>{
+      draft.emploiDuTemps = draft.emploiDuTemps.filter(x=>x.id!==c.id);
+      renderEdtPanel();
     });
-    wrap.querySelectorAll('[data-add-period]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const actId = btn.dataset.addPeriod;
-        const act = DATA.activites[actId];
-        const debutEl = wrap.querySelector(`[data-new-period-debut="${actId}"]`);
-        const finEl = wrap.querySelector(`[data-new-period-fin="${actId}"]`);
-        const debut = debutEl.value, fin = finEl.value;
-        if(!debut || !fin || debut>fin){ toast('Dates de période invalides'); return; }
-        act.periods = act.periods||[];
-        act.periods.push({debut, fin});
-        renderActivitesForClass();
-        saveNow().then(ok=>{ toast(ok ? 'Période ajoutée ✓' : '⚠ Non synchronisé'); });
-      });
+    box.appendChild(row);
+  });
+}
+function ajouterCreneau(){
+  draft.emploiDuTemps.push({id:uid(), jour:1, heureDebut:'08:00', heureFin:'09:00', classe:'', semaine:'both'});
+  renderEdtPanel();
+}
+
+// ---- Vacances ----
+function renderVacancesPanel(){
+  const box = $('#listeVacances');
+  box.innerHTML='';
+  draft.vacances.forEach((v,idx)=>{
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      <input type="text" value="${v.nom}" placeholder="Nom (ex: Vacances de la Toussaint)" data-f="nom">
+      <input type="date" value="${v.debut}" data-f="debut">
+      <input type="date" value="${v.fin}" data-f="fin">
+      <button class="btn icon small" data-del>🗑</button>
+    `;
+    row.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>{ v[inp.dataset.f]=inp.value; }));
+    row.querySelector('[data-del]').addEventListener('click', ()=>{
+      draft.vacances.splice(idx,1);
+      renderVacancesPanel();
     });
+    box.appendChild(row);
+  });
+}
+function ajouterVacance(){
+  draft.vacances.push({nom:'', debut:'', fin:''});
+  renderVacancesPanel();
+}
+function updateVacancesMajLabel(){
+  const el = $('#vacancesMajStatus');
+  el.textContent = draft.vacancesMAJ ? 'Actualisées le '+new Date(draft.vacancesMAJ).toLocaleString('fr-FR') : 'Jamais actualisées';
+}
+
+/* =====================================================================
+   VUE SUIVI (statistiques par classe + activité)
+===================================================================== */
+function switchMainView(view){
+  $$('.main-nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  $('#view-appel').style.display = view==='appel' ? '':'none';
+  $('#view-suivi').style.display = view==='suivi' ? '':'none';
+  if(view==='suivi'){ populateClasseSuivi(); }
+}
+
+function populateClasseSuivi(){
+  const sel = $('#selClasseSuivi');
+  const current = sel.value;
+  sel.innerHTML = classesDisponibles().map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(current) sel.value = current;
+  populateActiviteSuivi();
+}
+
+function populateActiviteSuivi(){
+  const classe = $('#selClasseSuivi').value;
+  const sel = $('#selActiviteSuivi');
+  const activites = state.activites.filter(a=>a.classe===classe);
+  sel.innerHTML = activites.map(a=>`<option value="${a.activite}">${a.activite} (${a.dateDebut} → ${a.dateFin})</option>`).join('');
+}
+
+async function calculerSuivi(){
+  const classe = $('#selClasseSuivi').value;
+  const activite = $('#selActiviteSuivi').value;
+  const tbody = $('#tableSuivi tbody');
+  const meta = $('#suiviMeta');
+  if(!classe || !activite){ meta.textContent='Choisis une classe et une activité.'; return; }
+  meta.textContent = 'Calcul en cours…';
+  try{
+    const data = await apiGet('getStats', {classe, activite});
+    if(data.error) throw new Error(data.error);
+    const parEleve = (data.stats && data.stats.parEleve) || {};
+    const seances = (data.stats && data.stats.seances) || 0;
+    const eleves = state.eleves.filter(e=>e.classe===classe)
+      .sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom));
+    tbody.innerHTML='';
+    eleves.forEach(el=>{
+      const s = parEleve[el.id] || {presences:0, dispense:0, affairesOubliees:0};
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${el.prenom} ${el.nom}</td><td>${s.presences}</td><td>${s.affairesOubliees}</td><td>${s.dispense}</td>`;
+      tbody.appendChild(tr);
+    });
+    $('#emptySuivi').style.display = eleves.length ? 'none':'block';
+    meta.textContent = seances + ' séance(s) prise(s) en compte pour « '+activite+' ».';
+  }catch(e){
+    meta.textContent = '✗ '+e.message+' (vérifie la connexion dans Paramètres)';
   }
 }
 
-$('#btnAddActivite').addEventListener('click', ()=>{
-  const cid = $('#paramActiviteClassSelect').value;
-  const nom = $('#newActiviteNom').value.trim();
-  const debut = $('#newActiviteDebut').value;
-  const fin = $('#newActiviteFin').value;
-  if(!cid){ toast('Sélectionne une classe'); return; }
-  const existing = activitesOf(cid);
-  if(existing.length>=5){ toast('Maximum 5 activités par classe'); return; }
-  if(!nom){ toast('Indique un nom d\'activité'); return; }
-  if(!debut || !fin || debut>fin){ toast('Dates de début/fin invalides'); return; }
-  const act = { id: uid('act'), classId: cid, nom, periods: [{debut, fin}] };
-  DATA.activites[act.id] = act;
-  $('#newActiviteNom').value=''; $('#newActiviteDebut').value=''; $('#newActiviteFin').value='';
-  renderActivitesForClass();
-  saveNow().then(ok=>{ toast(ok ? 'Activité ajoutée ✓' : '⚠ Non synchronisé'); });
-});
+/* =====================================================================
+   ÉVÉNEMENTS
+===================================================================== */
+function bindEvents(){
+  $$('.main-nav-btn').forEach(b=>b.addEventListener('click', ()=>switchMainView(b.dataset.view)));
 
-function refreshStatsActiviteSelect(){
-  const cid = $('#statsClassSelect').value;
-  const sel = $('#statsActiviteSelect');
-  const acts = cid ? activitesOf(cid) : Object.values(DATA.activites);
-  sel.innerHTML = acts.length
-    ? acts.map(a=>`<option value="${a.id}">${escapeHtml(a.nom)} (${fmtPeriods(a)})</option>`).join('')
-    : '<option value="">— aucune activité —</option>';
-  renderStatsTable();
+  $('#selClasse').addEventListener('change', ()=>{ resetAppelCourant(); renderTableEleves(); });
+  $('#selDate').addEventListener('change', ()=>{
+    resetAppelCourant();
+    refreshHeaderBadges();
+    autoSelectClasse();
+    renderTableEleves();
+  });
+
+  $('#btnMic').addEventListener('click', toggleMic);
+
+  $('#selClasseSuivi').addEventListener('change', populateActiviteSuivi);
+  $('#btnCalculerSuivi').addEventListener('click', calculerSuivi);
+
+  $('#btnSaveAppel').addEventListener('click', async ()=>{
+    const classe = $('#selClasse').value, dateISO = $('#selDate').value;
+    const appels = Object.entries(appelCourant).map(([eleveId,st])=>({eleveId, present:st.present}));
+    const suivi = Object.entries(appelCourant).map(([eleveId,st])=>({eleveId, dispense:st.dispense, affairesOubliees:st.affairesOubliees}));
+    const activite = activiteCouranteFor(classe, dateISO);
+    const statusEl = $('#appelStatus');
+    statusEl.textContent = 'Enregistrement…'; statusEl.className='status';
+    try{
+      await apiPost('saveAppel', {date:dateISO, classe, appels});
+      if(activite){
+        await apiPost('saveSuivi', {date:dateISO, classe, activite: activite.activite, suivi});
+      }
+      statusEl.textContent = '✓ Appel enregistré'; statusEl.className='status ok';
+    }catch(e){
+      statusEl.textContent = '✗ '+e.message+' (vérifie la connexion dans Paramètres)'; statusEl.className='status err';
+    }
+  });
+
+  $('#btnSync').addEventListener('click', syncFromSheet);
+  $('#btnSettings').addEventListener('click', openModal);
+  $('#btnCloseModal').addEventListener('click', closeModal);
+  $('#btnAnnulerModal').addEventListener('click', closeModal);
+
+  $$('.tab').forEach(t=>t.addEventListener('click', ()=>switchTab(t.dataset.tab)));
+
+  $('#btnAjoutEleve').addEventListener('click', ajouterEleve);
+  $('#fileCsv').addEventListener('change', e=>{ if(e.target.files[0]) importCsv(e.target.files[0]); e.target.value=''; });
+  $('#btnAjoutActivite').addEventListener('click', ajouterActivite);
+  $('#btnAjoutCreneau').addEventListener('click', ajouterCreneau);
+  $('#btnAjoutVacance').addEventListener('click', ajouterVacance);
+
+  $('#btnTestConnexion').addEventListener('click', async ()=>{
+    const el = $('#connexionStatus');
+    el.textContent='Test…'; el.className='status';
+    const urlBackup = state.config.appsScriptUrl;
+    state.config.appsScriptUrl = $('#inputUrl').value.trim();
+    try{
+      const data = await apiGet('getAll');
+      if(data.error) throw new Error(data.error);
+      el.textContent='✓ Connexion réussie'; el.className='status ok';
+    }catch(e){
+      el.textContent='✗ '+e.message; el.className='status err';
+    }
+    state.config.appsScriptUrl = urlBackup;
+  });
+
+  $('#btnRefreshVacances').addEventListener('click', async ()=>{
+    const el = $('#vacancesMajStatus');
+    el.textContent='Actualisation…';
+    try{
+      state.config.appsScriptUrl = $('#inputUrl').value.trim() || state.config.appsScriptUrl;
+      const data = await apiPost('refreshVacances', {});
+      if(data.error) throw new Error(data.error);
+      draft.vacances = data.vacances || [];
+      draft.vacancesMAJ = new Date().toISOString();
+      renderVacancesPanel();
+      updateVacancesMajLabel();
+    }catch(e){
+      el.textContent='✗ '+e.message;
+    }
+  });
+
+  $('#btnSauverModal').addEventListener('click', async ()=>{
+    draft.config.appsScriptUrl = $('#inputUrl').value.trim();
+    draft.config.semaine1Ref = $('#inputSemaine1Ref').value;
+    state = draft;
+    saveState();
+    populateClasseSelect();
+    autoSelectClasse();
+    refreshHeaderBadges();
+    renderTableEleves();
+    closeModal();
+    if(state.config.appsScriptUrl){
+      const statusEl = $('#syncStatus');
+      statusEl.textContent='Envoi vers le Sheet…';
+      try{
+        await pushAll();
+        statusEl.textContent='✓ Synchronisé'; statusEl.className='status ok';
+      }catch(e){
+        statusEl.textContent='✗ '+e.message; statusEl.className='status err';
+      }
+    }
+  });
 }
-$('#statsActiviteSelect').addEventListener('change', renderStatsTable);
 
-function renderStatsTable(){
-  const actId = $('#statsActiviteSelect').value;
-  const wrap = $('#statsTableWrap');
-  if(!actId || !DATA.activites[actId]){
-    wrap.innerHTML = '<div class="empty">Choisis une activité pour voir les statistiques.</div>';
-    return;
-  }
-  const act = DATA.activites[actId];
-  const students = studentsOf(act.classId);
-  const seances = Object.values(DATA.seances).filter(s=>s.activiteId===actId);
-  if(seances.length===0){
-    wrap.innerHTML = '<div class="empty">Aucun appel n\'a encore été fait pendant cette activité.</div>';
-    return;
-  }
-  const rows = students.map(s=>{
-    let seancesCount=0, absences=0, dispenses=0, oublis=0;
-    seances.forEach(se=>{
-      const e = se.students[s.id];
-      if(!e) return;
-      seancesCount++;
-      if(e.presence==='absent') absences++;
-      if(e.dispense) dispenses++;
-      if(e.oubli) oublis++;
-    });
-    return {s, seancesCount, absences, dispenses, oublis};
-  }).sort((a,b)=>(a.s.nom||'').localeCompare(b.s.nom||'','fr') || a.s.prenom.localeCompare(b.s.prenom,'fr'));
-
-  wrap.innerHTML = `
-    <div class="hint" style="margin-bottom:8px;">${seances.length} séance(s) enregistrée(s). Périodes : ${fmtPeriods(act)}.</div>
-    <table class="stats">
-      <colgroup>
-        <col class="col-name"><col class="col-stat"><col class="col-stat"><col class="col-stat"><col class="col-stat">
-      </colgroup>
-      <thead><tr>
-        <th style="text-align:left;">Élève</th>
-        <th title="Séances">Séa.</th>
-        <th title="Absences">Abs.</th>
-        <th class="icon-col" title="Dispensé">✚</th>
-        <th class="icon-col" title="Affaires oubliées">👟</th>
-      </tr></thead>
-      <tbody>
-        ${rows.map(r=>`
-          <tr>
-            <td class="name-cell" title="${escapeHtml(r.s.prenom)}">${escapeHtml(r.s.prenom)}</td>
-            <td>${r.seancesCount}</td>
-            <td class="${r.absences>0?'warn':''}">${r.absences}</td>
-            <td class="${r.dispenses>0?'warn':''}">${r.dispenses}</td>
-            <td class="${r.oublis>0?'warn':''}">${r.oublis}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`;
-}
-
-/* ---------------------------------------------------------------
-   INIT
---------------------------------------------------------------- */
-async function init(){
-  await loadUiState();
-  await loadAll();
-  refreshClassSelects();
-  $('#appelDate').value = todayISO();
-  renderClasses();
-  renderParametrageActivites();
-  renderParametrageEdt();
-  renderParametrageReglages();
-  renderAppelTab();
-  renderSuiviTab();
-}
+setupSpeech();
 init();
-
-})();
 </script>
 </body>
 </html>
