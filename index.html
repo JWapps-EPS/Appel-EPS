@@ -83,6 +83,7 @@ td.w{color:#b45309;font-weight:700}td.k{color:var(--ko);font-weight:700}
   </div>
   <div id="a-heard" class="heard"></div>
   <div id="a-res"></div>
+  <div class="bar" style="justify-content:flex-end"><button id="a-del" class="btn danger" style="flex:0 0 auto;font-size:14px;padding:6px 12px">🗑 Effacer cet appel</button></div>
   <div id="a-count" class="count"></div>
   <ul id="a-list" class="list"></ul>
   <p class="hint">À l'oral, dites les prénoms des présents (ou prénom + nom en cas d'homonyme). Mots-clés avant le prénom : « <b>oubli</b> Lucas » = matériel oublié, « <b>inapte</b> Léa » = inapte, « <b>absent</b> Tom » = absent. « Terminer l'appel » marque absents tous les élèves non cités.</p>
@@ -132,7 +133,7 @@ td.w{color:#b45309;font-weight:700}td.k{color:var(--ko);font-weight:700}
       <div id="p-eleves"></div>
 
       <h3>Périodes et activités</h3>
-      <p class="hint">Jusqu'à 2 activités par période. Pendant l'appel, l'activité est proposée selon la date.</p>
+      <p class="hint">Jusqu'à 2 APS par période. Si la période a 2 APS, indiquez le jour de chacune (ex : Badminton le lundi, Natation le jeudi) : l'APS est alors choisie automatiquement selon la date de l'appel.</p>
       <div id="p-periodes"></div>
       <div class="bar">
         <button id="p-padd" class="btn">+ Ajouter une période</button>
@@ -179,7 +180,15 @@ const cmp=(a,b)=>(a.nom+' '+a.prenom).localeCompare(b.nom+' '+b.prenom,'fr');
 const elevesOf=cid=>S.eleves.filter(e=>e.classeId===cid).sort(cmp);
 const periodesOf=cid=>S.periodes.filter(p=>p.classeId===cid).sort((a,b)=>a.num-b.num);
 function activitesOf(cid){const s=new Set();periodesOf(cid).forEach(p=>[p.activite1,p.activite2].forEach(a=>a&&s.add(a)));S.appels.forEach(a=>a.classeId===cid&&a.activite&&s.add(a.activite));return[...s]}
-function activitesDuJour(cid,date){const p=periodesOf(cid).find(p=>p.debut&&p.fin&&date>=p.debut&&date<=p.fin);return p?[p.activite1,p.activite2].filter(Boolean):[]}
+function activitesDuJour(cid,date){
+  const p=periodesOf(cid).find(p=>p.debut&&p.fin&&date>=p.debut&&date<=p.fin);if(!p)return[];
+  const [y,m,d]=date.split('-'),dow=String(new Date(y,m-1,d).getDay());
+  const l=[{a:p.activite1,j:p.jour1||''},{a:p.activite2,j:p.jour2||''}].filter(x=>x.a);
+  const score=x=>x.j===dow?0:x.j===''?1:2; // 0 = bon jour, 1 = tous les jours, 2 = autre jour
+  return l.sort((a,b)=>score(a)-score(b)).map(x=>x.a);
+}
+const JOURS=[['','Tous les jours'],['1','Lundi'],['2','Mardi'],['3','Mercredi'],['4','Jeudi'],['5','Vendredi'],['6','Samedi']];
+const jourSel=(f,v)=>`<select data-f="${f}" style="flex:0 1 150px">${JOURS.map(([k,t])=>`<option value="${k}" ${String(v||'')===k?'selected':''}>${t}</option>`).join('')}</select>`;
 function toast(m,ms=2600){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',ms)}
 
 /* ================== SYNCHRO GOOGLE SHEET ================== */
@@ -308,6 +317,14 @@ function commitAppel(){
   timers[k]=setTimeout(()=>enqueue({action:'saveAppel',date,classeId,activite,lignes:any?lignes:[]}),1000);
 }
 $('a-all').onclick=()=>{elevesOf(CUR.classeId).forEach(e=>{const l=line(e.id);if(!l.present)l.present='P'});commitAppel();renderAppel()};
+$('a-del').onclick=()=>{
+  const{classeId,date}=CUR;if(!classeId)return;
+  const saved=S.appels.some(a=>a.classeId===classeId&&a.date===date);
+  if(!saved&&!Object.values(CUR.l).some(l=>l.present)){toast('Aucun appel à effacer pour cette date.');return}
+  const c=S.classes.find(c=>c.id===classeId);
+  if(!confirm(`Effacer l'appel du ${fdate(date)} (${c?c.nom:''}) ?\nPrésences, oublis et inaptitudes de cette séance seront supprimés.`))return;
+  stopMic();CUR.l={};commitAppel();openAppel();toast('Appel effacé');
+};
 $('a-end').onclick=()=>{
   stopMic();const el=elevesOf(CUR.classeId);if(!el.length)return;
   const abs=[];el.forEach(e=>{const l=line(e.id);if(!l.present)l.present='A';if(l.present==='A')abs.push(fullName(e))});
@@ -428,12 +445,13 @@ function renderParam(){
   $('p-eleves').innerHTML=el.map(e=>`<div class="el"><span><b>${esc(e.nom)}</b> ${esc(e.prenom)}</span><button data-id="${e.id}" title="Retirer">✕</button></div>`).join('')||'<p class="hint">Aucun élève pour l\'instant.</p>';
   $('p-periodes').innerHTML=periodesOf(c.id).map(p=>`<div class="per" data-n="${p.num}"><div class="per-h">Période ${p.num}</div>
     <div class="bar"><label>Du<input type="date" data-f="debut" value="${esc(p.debut)}"></label><label>Au<input type="date" data-f="fin" value="${esc(p.fin)}"></label></div>
-    <div class="bar"><input data-f="activite1" list="dl-act" placeholder="Activité 1" value="${esc(p.activite1)}"><input data-f="activite2" list="dl-act" placeholder="Activité 2 (facultatif)" value="${esc(p.activite2)}"></div></div>`).join('');
+    <div class="bar"><input data-f="activite1" list="dl-act" placeholder="APS 1" value="${esc(p.activite1)}">${jourSel('jour1',p.jour1)}</div>
+    <div class="bar"><input data-f="activite2" list="dl-act" placeholder="APS 2 (facultatif)" value="${esc(p.activite2)}">${jourSel('jour2',p.jour2)}</div></div>`).join('');
 }
 $('p-new').onclick=()=>{
   const nom=$('p-newname').value.trim();if(!nom){$('p-newname').focus();return}
   const id=uid('c');S.classes.push({id,nom});
-  for(let n=1;n<=5;n++)S.periodes.push({classeId:id,num:n,debut:'',fin:'',activite1:'',activite2:''});
+  for(let n=1;n<=5;n++)S.periodes.push({classeId:id,num:n,debut:'',fin:'',activite1:'',activite2:'',jour1:'',jour2:''});
   CFG.cls=id;$('p-newname').value='';saveClasseLater(id);renderAll();toast('Classe « '+nom+' » créée');
 };
 $('p-nom').onchange=e=>{const c=S.classes.find(c=>c.id===CFG.cls);c.nom=e.target.value.trim()||c.nom;saveClasseLater(c.id);fillClassSelects()};
@@ -458,7 +476,7 @@ $('p-eleves').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   S.eleves=S.eleves.filter(x=>x.id!==b.dataset.id);saveClasseLater(CFG.cls);renderParam();openAppel()};
 $('p-periodes').onchange=e=>{const f=e.target.dataset.f;if(!f)return;const n=Number(e.target.closest('.per').dataset.n);
   const p=S.periodes.find(p=>p.classeId===CFG.cls&&Number(p.num)===n);p[f]=e.target.value.trim();saveClasseLater(CFG.cls);openAppel()};
-$('p-padd').onclick=()=>{const ps=periodesOf(CFG.cls);S.periodes.push({classeId:CFG.cls,num:(ps.length?Number(ps[ps.length-1].num):0)+1,debut:'',fin:'',activite1:'',activite2:''});saveClasseLater(CFG.cls);renderParam()};
+$('p-padd').onclick=()=>{const ps=periodesOf(CFG.cls);S.periodes.push({classeId:CFG.cls,num:(ps.length?Number(ps[ps.length-1].num):0)+1,debut:'',fin:'',activite1:'',activite2:'',jour1:'',jour2:''});saveClasseLater(CFG.cls);renderParam()};
 $('p-pdel').onclick=()=>{const ps=periodesOf(CFG.cls);if(!ps.length)return;const last=ps[ps.length-1];
   if((last.activite1||last.debut)&&!confirm('Retirer la période '+last.num+' ?'))return;
   S.periodes=S.periodes.filter(p=>p!==last);saveClasseLater(CFG.cls);renderParam()};
