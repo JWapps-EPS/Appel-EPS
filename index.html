@@ -1,536 +1,1512 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Appel EPS</title>
 <style>
-:root{--bg:#f4f6f8;--card:#fff;--ink:#1f2933;--mut:#6b7785;--line:#e3e8ee;--acc:#0f766e;--ok:#16a34a;--ko:#dc2626;--soft:#f1f4f7}
-*{box-sizing:border-box}
-body{margin:0;font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);padding-bottom:80px}
-header{position:sticky;top:0;z-index:5;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
-header h1{font-size:18px;margin:0}
-.sync{font-size:13px;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:99px;cursor:pointer;white-space:nowrap}
-main{max-width:760px;margin:0 auto;padding:12px}
-.tab{display:none}.tab.active{display:block}
-nav{position:fixed;bottom:0;left:0;right:0;z-index:5;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav button{flex:1;border:0;background:none;padding:8px 4px 10px;font:inherit;font-size:13px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer}
-nav button b{font-size:22px;font-weight:normal}
-nav button.on{color:var(--acc);font-weight:700}
-.bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
-.bar>*{flex:1 1 130px}
-label{display:flex;flex-direction:column;font-size:13px;color:var(--mut);gap:3px}
-select,input{font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);min-width:0;width:100%}
-.btn{font:inherit;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);cursor:pointer;text-align:center}
-.btn.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
-.btn.danger{color:var(--ko);border-color:#f3c4c4}
-.btn.mic.live{background:var(--ko);border-color:var(--ko);color:#fff;animation:pulse 1.2s infinite}
-@keyframes pulse{50%{opacity:.7}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
-.card h2{font-size:17px;margin:0 0 10px}.card h3{font-size:15px;margin:16px 0 8px}
-.hint{font-size:13px;color:var(--mut)}
-.heard{min-height:22px;font-size:14px;color:var(--mut);font-style:italic;margin:4px 2px 8px}
-.heard b{color:var(--ok);font-style:normal}
-.count{font-size:14px;margin:0 2px 8px;font-weight:600}
-.list{list-style:none;margin:0;padding:0}
-.row{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-left:6px solid #cbd2d9;border-radius:12px;padding:6px 8px;margin-bottom:6px;transition:background .4s}
-.row.P{border-left-color:var(--ok)}.row.A{border-left-color:var(--ko);background:#fff6f6}
-.row.flash{background:#bbf7d0}
-.row .name{flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis}
-.row .name small{font-weight:400;color:var(--mut)}
-.ic{width:48px;height:48px;flex:none;border:0;border-radius:12px;background:var(--soft);display:grid;place-items:center;cursor:pointer;padding:0;font-size:26px;line-height:1}
-.ic svg{width:30px;height:30px}
-.ic:disabled{opacity:.18;cursor:default}
-.shoe{filter:grayscale(1);opacity:.45}
-.shoe.on{filter:none;opacity:1;background:#fde2e2;box-shadow:inset 0 0 0 2px var(--ko)}
-.hosp{color:#b8c0c8}.hosp.on{color:var(--ko);background:#fde2e2;box-shadow:inset 0 0 0 2px var(--ko)}
-.res{border-radius:12px;padding:10px 12px;margin-bottom:10px;background:#ecfdf5;border:1px solid #a7f3d0;font-size:15px}
-.res.ko{background:#fff1f2;border-color:#fecdd3}
-.empty{text-align:center;color:var(--mut);padding:30px 10px}
-.tw{overflow-x:auto;border-radius:12px;border:1px solid var(--line);margin-bottom:12px}
-table{width:100%;border-collapse:collapse;background:var(--card);font-size:14px}
-th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-th{background:#eef2f5;font-size:12px;color:var(--mut);font-weight:600}
-tfoot td{font-weight:700;background:#f8fafb}
-td.w{color:#b45309;font-weight:700}td.k{color:var(--ko);font-weight:700}
-.seance{display:flex;justify-content:space-between;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:6px;cursor:pointer;font-size:14px}
-.seance span{color:var(--mut)}
-.el{display:flex;justify-content:space-between;align-items:center;padding:6px 4px;border-bottom:1px solid var(--line)}
-.el button{border:0;background:none;color:var(--ko);font-size:18px;cursor:pointer;padding:2px 8px}
-.per{border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;background:#fafbfc}
-.per-h{font-weight:700;margin-bottom:6px}
-.per .bar{margin-bottom:6px}
-#toast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);background:#1f2933;color:#fff;padding:10px 16px;border-radius:10px;max-width:90vw;display:none;z-index:20;font-size:14px}
+  :root{
+    --bg:#f4f6f8; --card:#ffffff; --ink:#1c2733; --muted:#6b7785;
+    --accent:#2563eb; --accent-ink:#ffffff; --green:#16a34a; --red:#dc2626;
+    --amber:#d97706; --border:#e2e8f0; --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  header{background:var(--card);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:20;}
+  header h1{font-size:18px;margin:0;flex:0 0 auto;}
+  .badge{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;}
+  .badge.classe{background:#e0e7ff;color:#3730a3;}
+  .badge.date{background:#f1f5f9;color:var(--muted);}
+  .badge.vacances{background:#fee2e2;color:#991b1b;}
+  .spacer{flex:1;}
+  button{cursor:pointer;font-family:inherit;}
+  .btn{border:1px solid var(--border);background:var(--card);border-radius:9px;padding:9px 14px;font-size:14px;font-weight:600;color:var(--ink);}
+  .btn:hover{background:#f8fafc;}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+  .btn.primary:hover{background:#1d4ed8;}
+  .btn.icon{padding:9px 11px;font-size:16px;}
+  main{max-width:900px;margin:20px auto;padding:0 16px 60px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  select,input[type=text],input[type=date],input[type=time],input[type=url],textarea{
+    padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink);
+  }
+  table{width:100%;border-collapse:collapse;margin-top:10px;}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--border);font-size:14px;}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;}
+  tr.present{background:#f0fdf4;}
+  tr.absent td:first-child{color:var(--muted);}
+  input[type=checkbox]{width:18px;height:18px;}
+  .main-nav{max-width:900px;margin:14px auto 0;padding:0 16px;display:flex;gap:6px;}
+  .main-nav-btn{flex:0 0 auto;border:1px solid var(--border);background:var(--card);border-radius:9px 9px 0 0;padding:9px 16px;font-size:14px;font-weight:600;color:var(--muted);border-bottom:none;}
+  .main-nav-btn.active{color:var(--accent);background:var(--card);}
+  .view{}
+  .eleve-card{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;margin-top:8px;background:#fff;transition:background .15s;}
+  .eleve-card.present{background:#f0fdf4;border-color:#bbf7d0;}
+  .eleve-row{display:flex;align-items:center;gap:10px;cursor:pointer;}
+  .eleve-nom{flex:1;font-size:15px;font-weight:600;}
+  .present-toggle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border);background:#fff;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;}
+  .eleve-card.present .present-toggle{background:var(--green);border-color:var(--green);}
+  .eleve-actions{display:flex;gap:8px;padding-left:36px;}
+  .pill-btn{border:1px solid var(--border);background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;gap:5px;}
+  .pill-btn.on{background:var(--amber);border-color:var(--amber);color:#fff;}
+  .pill-btn.dispense.on{background:var(--red);border-color:var(--red);}
+  .mic-zone{display:flex;align-items:center;gap:12px;margin:14px 0;flex-wrap:wrap;}
+  .mic-btn{width:56px;height:56px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:22px;display:flex;align-items:center;justify-content:center;}
+  .mic-btn.off{background:#94a3b8;}
+  .mic-btn.listening{animation:pulse 1.2s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(220,38,38,.5);}70%{box-shadow:0 0 0 14px rgba(220,38,38,0);}100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}}
+  #transcript{font-size:13px;color:var(--muted);flex:1;min-width:200px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding:30px 14px;z-index:100;overflow:auto;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border-radius:var(--radius);max-width:720px;width:100%;padding:0;max-height:calc(100vh - 60px);display:flex;flex-direction:column;}
+  .modal-head{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .modal-head h2{margin:0;font-size:17px;flex:1;}
+  .tabs{display:flex;gap:4px;padding:10px 16px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .tab{padding:9px 12px;font-size:13px;font-weight:600;color:var(--muted);border:none;background:none;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--accent);border-color:var(--accent);}
+  .tab-body{padding:18px 20px;overflow:auto;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .hint{font-size:12.5px;color:var(--muted);margin:4px 0 12px;line-height:1.5;}
+  .list-item{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);}
+  .list-item input{flex:1;min-width:0;}
+  .small{font-size:12px;padding:5px 9px;}
+  .status{font-size:12.5px;color:var(--muted);}
+  .status.ok{color:var(--green);}
+  .status.err{color:var(--red);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .file-drop{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;color:var(--muted);font-size:13.5px;}
+  footer.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+  .empty{color:var(--muted);font-size:13.5px;padding:10px 0;}
+  .btn.danger{color:var(--red);border-color:#fecaca;}
+  .btn.danger:hover{background:#fef2f2;}
+  .appel-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:14px;}
+  .appel-row .spacer{flex:1;}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .chip{border:1px solid var(--border);background:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--ink);}
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .chip.warn{border-color:var(--red);color:var(--red);}
+  .chip.warn.active{background:var(--red);color:#fff;}
+  .chip.add{border-style:dashed;color:var(--accent);}
+  .preview{border:1px solid var(--border);background:#f8fafc;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13.5px;}
+  .preview ul{margin:6px 0 4px 18px;padding:0;}
+  .tag-new{background:#dcfce7;color:#166534;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700;}
+  .list-item.dup{background:#fffbeb;}
+  .dup-tag{font-size:11px;color:var(--amber);font-weight:700;white-space:nowrap;}
+  .list-item select.move{max-width:110px;}
+  .prono-head{margin-top:14px;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
 </style>
 </head>
 <body>
-<header><h1>Appel EPS</h1><span id="sync" class="sync" title="Synchroniser"></span></header>
+
+<header>
+  <h1>🏃 Appel EPS</h1>
+  <span class="badge date" id="badgeDate"></span>
+  <span class="badge classe" id="badgeClasse">—</span>
+  <div class="spacer"></div>
+  <span class="status" id="syncStatus"></span>
+  <button class="btn icon" id="btnSync" title="Synchroniser avec Google Sheet">🔄</button>
+  <button class="btn icon" id="btnSettings" title="Paramètres">⚙️</button>
+</header>
+
+<nav class="main-nav">
+  <button class="main-nav-btn active" data-view="appel">📋 Appel</button>
+  <button class="main-nav-btn" data-view="suivi">📊 Suivi</button>
+</nav>
 
 <main>
-<!-- ============ APPEL ============ -->
-<section id="tab-appel" class="tab active">
-  <div class="bar">
-    <select id="a-classe"></select>
-    <input type="date" id="a-date">
-    <select id="a-act"></select>
-  </div>
-  <div class="bar">
-    <button id="a-mic" class="btn mic">🎤 Appel vocal</button>
-    <button id="a-all" class="btn">Tous présents</button>
-    <button id="a-end" class="btn primary">Terminer l'appel</button>
-  </div>
-  <div id="a-heard" class="heard"></div>
-  <div id="a-res"></div>
-  <div class="bar" style="justify-content:flex-end"><button id="a-del" class="btn danger" style="flex:0 0 auto;font-size:14px;padding:6px 12px">🗑 Effacer cet appel</button></div>
-  <div id="a-count" class="count"></div>
-  <ul id="a-list" class="list"></ul>
-  <p class="hint">À l'oral, dites les prénoms des présents (ou prénom + nom en cas d'homonyme). Mots-clés avant le prénom : « <b>oubli</b> Lucas » = matériel oublié, « <b>inapte</b> Léa » = inapte, « <b>absent</b> Tom » = absent. « Terminer l'appel » marque absents tous les élèves non cités.</p>
-</section>
-
-<!-- ============ BILAN ============ -->
-<section id="tab-bilan" class="tab">
-  <div class="bar">
-    <select id="b-classe"></select>
-    <select id="b-act"></select>
-  </div>
-  <div id="b-out"></div>
-</section>
-
-<!-- ============ PARAMÈTRES ============ -->
-<section id="tab-param" class="tab">
-  <div class="card">
-    <h2>Classes</h2>
-    <div class="bar">
-      <select id="p-classe"></select>
-    </div>
-    <div class="bar">
-      <input id="p-newname" placeholder="Nom de la nouvelle classe (ex : 5e B)">
-      <button id="p-new" class="btn primary" style="flex:0 0 auto">+ Créer</button>
-    </div>
-  </div>
-
-  <div id="p-edit">
+  <!-- ===================== VUE APPEL ===================== -->
+  <div class="view" id="view-appel">
     <div class="card">
-      <h2>Classe sélectionnée</h2>
-      <div class="bar">
-        <label>Nom de la classe<input id="p-nom"></label>
-        <button id="p-del" class="btn danger" style="flex:0 0 auto;align-self:flex-end">Supprimer</button>
+      <div class="row">
+        <label for="selClasse" style="font-size:13px;color:var(--muted);">Classe</label>
+        <select id="selClasse"></select>
+        <label for="selDate" style="font-size:13px;color:var(--muted);margin-left:10px;">Date</label>
+        <input type="date" id="selDate">
+        <div class="spacer"></div>
+        <span id="activiteCourante" class="badge date"></span>
       </div>
 
-      <h3>Élèves (<span id="p-nb">0</span>)</h3>
-      <div class="bar">
-        <input id="p-enom" placeholder="NOM">
-        <input id="p-epre" placeholder="Prénom">
-        <button id="p-eadd" class="btn" style="flex:0 0 auto">Ajouter</button>
+      <div class="mic-zone">
+        <button class="mic-btn off" id="btnMic" title="Appel à l'oral">🎤</button>
+        <div id="transcript">Appuie sur le micro puis annonce les prénoms des élèves présents, ou coche-les manuellement ci-dessous.</div>
       </div>
-      <div class="bar">
-        <label class="btn" style="flex-direction:row;justify-content:center;color:var(--ink);font-size:16px">📄 Importer un fichier Excel / CSV
-          <input type="file" id="p-file" accept=".xlsx,.xls,.ods,.csv,.txt" hidden></label>
-      </div>
-      <p class="hint">Colonnes « Nom » et « Prénom », ou une seule colonne « NOM Prénom » (export Pronote). Les doublons sont ignorés.</p>
-      <div id="p-eleves"></div>
 
-      <h3>Périodes et activités</h3>
-      <p class="hint">Jusqu'à 2 APS par période. Si la période a 2 APS, indiquez le jour de chacune (ex : Badminton le lundi, Natation le jeudi) : l'APS est alors choisie automatiquement selon la date de l'appel.</p>
-      <div id="p-periodes"></div>
-      <div class="bar">
-        <button id="p-padd" class="btn">+ Ajouter une période</button>
-        <button id="p-pdel" class="btn danger">− Retirer la dernière</button>
+      <div id="listeAppel"></div>
+      <div class="empty" id="emptyEleves" style="display:none;">Aucun élève dans cette classe. Ajoute-les dans Paramètres → Élèves.</div>
+
+      <div class="row" style="margin-top:16px;">
+        <button class="btn primary" id="btnSaveAppel">💾 Enregistrer l'appel du jour</button>
+        <button class="btn danger" id="btnDeleteAppel" title="Efface l'appel de cette classe pour cette date (écran + Google Sheet)">🗑 Supprimer cet appel</button>
+        <span class="status" id="appelStatus"></span>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>Connexion Google Sheet</h2>
-    <label>URL de l'application Web Apps Script (…/exec)<input id="p-url" placeholder="https://script.google.com/macros/s/…/exec"></label>
-    <div style="height:8px"></div>
-    <label>Jeton (le même que dans Code.gs)<input id="p-token" placeholder="change-moi"></label>
-    <div style="height:10px"></div>
-    <div class="bar"><button id="p-test" class="btn primary">Connecter et synchroniser</button></div>
-    <p class="hint">Sans connexion, l'appli fonctionne en local sur cet appareil. Une fois connectée, chaque modification est envoyée au Sheet (mise en file d'attente si pas de réseau).</p>
+  <!-- ===================== VUE SUIVI ===================== -->
+  <div class="view" id="view-suivi" style="display:none;">
+    <div class="card">
+      <div class="row">
+        <label style="font-size:13px;color:var(--muted);">Classe</label>
+        <select id="selClasseSuivi"></select>
+        <label style="font-size:13px;color:var(--muted);margin-left:10px;">Activité</label>
+        <select id="selActiviteSuivi"></select>
+        <button class="btn primary small" id="btnCalculerSuivi">Calculer</button>
+      </div>
+      <div class="hint" id="suiviMeta"></div>
+      <table id="tableSuivi">
+        <thead>
+          <tr><th>Élève</th><th style="width:90px;">Présences</th><th style="width:110px;">👟 Affaires oubliées</th><th style="width:90px;">❌ Dispensé</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty" id="emptySuivi">Choisis une classe et une activité, puis clique sur Calculer.</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <b>Appels enregistrés</b>
+        <span class="hint" style="margin:0;">pour la classe choisie ci-dessus</span>
+        <div class="spacer"></div>
+        <button class="btn small" id="btnListeAppels">Afficher la liste</button>
+      </div>
+      <div id="listeAppelsEnregistres"></div>
+    </div>
   </div>
-</section>
 </main>
 
-<nav>
-  <button data-t="appel" class="on"><b>✅</b>Appel</button>
-  <button data-t="bilan"><b>📊</b>Bilan</button>
-  <button data-t="param"><b>⚙️</b>Paramètres</button>
-</nav>
-<div id="toast"></div>
-<datalist id="dl-act"></datalist>
+<!-- ===================== MODAL PARAMÈTRES ===================== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>⚙️ Paramètres</h2>
+      <button class="btn icon small" id="btnCloseModal">✕</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active" data-tab="eleves">Élèves</button>
+      <button class="tab" data-tab="prononciation">Prononciation</button>
+      <button class="tab" data-tab="activites">Activités</button>
+      <button class="tab" data-tab="edt">Emploi du temps</button>
+      <button class="tab" data-tab="connexion">Connexion</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- ÉLÈVES -->
+      <div class="tab-panel active" id="panel-eleves">
+        <div class="hint">Travaille <b>une classe à la fois</b> : choisis (ou crée) la classe, puis importe ou ajoute ses élèves. La classe n'est jamais saisie à la main pour chaque élève, donc impossible de mélanger deux classes par erreur.</div>
+        <div id="classeChips" class="chips"></div>
+        <div id="classeForm" class="row" style="display:none;margin-top:10px;">
+          <input type="text" id="classeInput" placeholder="Nom de la classe (ex : 5A)" style="max-width:220px;">
+          <button class="btn primary small" id="classeFormOk">Créer la classe</button>
+          <button class="btn small" id="classeFormCancel">Annuler</button>
+        </div>
+        <div class="row" style="margin-top:12px;">
+          <label class="btn small" for="fileCsv" id="lblImport">📂 Importer un CSV</label>
+          <input type="file" id="fileCsv" accept=".csv,.txt" style="display:none;">
+          <span class="status" id="elevesMsg"></span>
+        </div>
+        <div class="hint" style="margin-top:6px;">Colonnes du CSV : nom;prénom (et éventuellement classe). Un aperçu s'affiche avant tout import.</div>
+        <div id="importPreview" class="preview" style="display:none;"></div>
+        <div id="classeBloc" style="display:none;margin-top:14px;">
+          <div class="row">
+            <b id="classeTitre" style="font-size:16px;"></b>
+            <div class="spacer"></div>
+            <div id="classeActions" class="row">
+              <button class="btn small" id="btnRenameClasse">✏️ Renommer</button>
+              <button class="btn small" id="btnDelClasse">🗑 Supprimer la classe</button>
+              <button class="btn small" id="btnAjoutEleve">+ Ajouter un élève</button>
+            </div>
+          </div>
+        </div>
+        <div id="listeEleves" style="margin-top:8px;"></div>
+      </div>
+
+      <!-- PRONONCIATION -->
+      <div class="tab-panel" id="panel-prononciation">
+        <div class="hint">Pour chaque élève, indique comment tu prononces son prénom à l'oral si la reconnaissance vocale risque de mal l'orthographier (ex : "Maël" → "mayel, mael"). Plusieurs variantes possibles, séparées par des virgules. Laisse vide si le prénom standard suffit.</div>
+        <div id="listeProno"></div>
+      </div>
+
+      <!-- ACTIVITÉS -->
+      <div class="tab-panel" id="panel-activites">
+        <div class="hint">Définis les activités pratiquées par classe et leur période (utilisé pour le suivi dispensé / affaires oubliées et pour les statistiques).</div>
+        <div class="row">
+          <button class="btn small" id="btnAjoutActivite">+ Ajouter une activité</button>
+        </div>
+        <div id="listeActivites" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- EMPLOI DU TEMPS -->
+      <div class="tab-panel" id="panel-edt">
+        <div class="hint">Renseigne ton emploi du temps pour que l'appli ouvre automatiquement la bonne classe. "Semaine 1 / Semaine 2" gère l'alternance quinzaine ; choisis "Les deux" si le cours a lieu toutes les semaines.</div>
+        <div class="row">
+          <button class="btn small" id="btnAjoutCreneau">+ Ajouter un créneau</button>
+        </div>
+        <div id="listeEdt" style="margin-top:12px;"></div>
+      </div>
+
+      <!-- CONNEXION -->
+      <div class="tab-panel" id="panel-connexion">
+        <div class="hint">Colle ici l'URL de ton application web Google Apps Script (se termine par <code>/exec</code>).</div>
+        <input type="url" id="inputUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" style="width:100%;">
+        <div class="row" style="margin-top:10px;">
+          <button class="btn small" id="btnTestConnexion">Tester la connexion</button>
+          <span class="status" id="connexionStatus"></span>
+        </div>
+
+        <div class="hint" style="margin-top:18px;">Moteur de reconnaissance vocale pour l'appel à l'oral. <b>Albert</b> (IA de l'État) transcrit chaque phrase via ton Google Apps Script ; il faut y avoir ajouté ta clé (propriété de script <code>ALBERT_API_KEY</code>).</div>
+        <div class="row">
+          <select id="selMoteurVocal">
+            <option value="navigateur">Navigateur (Chrome, gratuit, direct)</option>
+            <option value="albert">Albert (IA de l'État)</option>
+          </select>
+          <button class="btn small" id="btnTestAlbert">Tester Albert</button>
+          <span class="status" id="albertTestStatus"></span>
+        </div>
+
+        <div class="hint" style="margin-top:18px;">Date de référence pour l'alternance des semaines : indique une date qui correspond à une <b>semaine 1</b> (un lundi de préférence). L'appli calcule ensuite automatiquement si on est en semaine 1 ou semaine 2.</div>
+        <input type="date" id="inputSemaine1Ref">
+
+        <div class="hint" style="margin-top:18px;">Vacances scolaires (Zone C) — actualisées automatiquement chaque nuit côté Google Sheet. Tu peux aussi forcer une actualisation ou corriger manuellement une ligne.</div>
+        <div class="row">
+          <button class="btn small" id="btnRefreshVacances">🔄 Actualiser les vacances</button>
+          <button class="btn small" id="btnAjoutVacance">+ Ajouter une période</button>
+          <span class="status" id="vacancesMajStatus"></span>
+        </div>
+        <div id="listeVacances" style="margin-top:12px;"></div>
+      </div>
+
+    </div>
+    <footer class="modal-foot">
+      <button class="btn" id="btnAnnulerModal">Annuler</button>
+      <button class="btn primary" id="btnSauverModal">Enregistrer</button>
+    </footer>
+  </div>
+</div>
 
 <script>
-/* ================== DONNÉES ================== */
-const $=id=>document.getElementById(id);
-const LS='appelEPS_v1';
-let S={classes:[],eleves:[],periodes:[],appels:[]}, CFG={url:'',token:'',cls:''}, Q=[];
-try{const d=JSON.parse(localStorage.getItem(LS)||'null');if(d){Object.assign(S,d.S||{});Object.assign(CFG,d.CFG||{});Q=d.Q||[];}}catch(e){}
-function persist(){try{localStorage.setItem(LS,JSON.stringify({S,CFG,Q}))}catch(e){}}
+/* =====================================================================
+   ÉTAT & PERSISTANCE LOCALE
+===================================================================== */
+const LS_KEY = 'appelEPS_data_v1';
 
-const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
-const fdate=d=>{const [y,m,j]=d.split('-');return new Date(y,m-1,j).toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'})};
-const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
-const fullName=e=>`${e.prenom} ${e.nom}`.trim();
-const cmp=(a,b)=>(a.nom+' '+a.prenom).localeCompare(b.nom+' '+b.prenom,'fr');
-const elevesOf=cid=>S.eleves.filter(e=>e.classeId===cid).sort(cmp);
-const periodesOf=cid=>S.periodes.filter(p=>p.classeId===cid).sort((a,b)=>a.num-b.num);
-function activitesOf(cid){const s=new Set();periodesOf(cid).forEach(p=>[p.activite1,p.activite2].forEach(a=>a&&s.add(a)));S.appels.forEach(a=>a.classeId===cid&&a.activite&&s.add(a.activite));return[...s]}
-function activitesDuJour(cid,date){
-  const p=periodesOf(cid).find(p=>p.debut&&p.fin&&date>=p.debut&&date<=p.fin);if(!p)return[];
-  const [y,m,d]=date.split('-'),dow=String(new Date(y,m-1,d).getDay());
-  const l=[{a:p.activite1,j:p.jour1||''},{a:p.activite2,j:p.jour2||''}].filter(x=>x.a);
-  const score=x=>x.j===dow?0:x.j===''?1:2; // 0 = bon jour, 1 = tous les jours, 2 = autre jour
-  return l.sort((a,b)=>score(a)-score(b)).map(x=>x.a);
+function defaultState(){
+  return {
+    eleves: [],            // {id, nom, prenom, classe, prononciation}
+    emploiDuTemps: [],     // {id, jour(1-5), heureDebut, heureFin, classe, semaine('1'|'2'|'both')}
+    activites: [],         // {id, classe, activite, dateDebut, dateFin}
+    vacances: [],          // {nom, debut, fin}
+    vacancesMAJ: null,
+    pendingDeletes: [],     // classes supprimées, à effacer aussi du Google Sheet
+    config: { appsScriptUrl: '', semaine1Ref: '', zoneVacances: 'Zone C', moteurVocal: 'navigateur' }
+  };
 }
-const JOURS=[['','Tous les jours'],['1','Lundi'],['2','Mardi'],['3','Mercredi'],['4','Jeudi'],['5','Vendredi'],['6','Samedi']];
-const jourSel=(f,v)=>`<select data-f="${f}" style="flex:0 1 150px">${JOURS.map(([k,t])=>`<option value="${k}" ${String(v||'')===k?'selected':''}>${t}</option>`).join('')}</select>`;
-function toast(m,ms=2600){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',ms)}
 
-/* ================== SYNCHRO GOOGLE SHEET ================== */
-let flushing=false,lastErr='';
-async function api(body){
-  const r=await fetch(CFG.url,{method:'POST',body:JSON.stringify({...body,token:CFG.token})});
-  const j=await r.json(); if(!j.ok) throw new Error(j.error||'Erreur serveur'); return j;
-}
-const keyOf=op=>op.action==='saveAppel'?'a|'+op.date+'|'+op.classeId:'c|'+(op.classe?op.classe.id:op.id);
-function enqueue(op){op._k=keyOf(op);Q=Q.filter(o=>o._k!==op._k);Q.push(op);persist();flush()}
-async function flush(){
-  if(flushing||!CFG.url||!Q.length){setSync();return}
-  flushing=true;setSync();
-  try{while(Q.length){const op=Q[0];const{_k,...b}=op;await api(b);Q=Q.filter(o=>o!==op);persist();}lastErr='';}
-  catch(e){lastErr=e.message||'hors ligne';}
-  finally{flushing=false;setSync();}
-}
-function setSync(){
-  const s=$('sync');
-  if(!CFG.url) s.textContent='💾 Local';
-  else if(flushing) s.textContent='⏳ Envoi…';
-  else if(lastErr) s.textContent='⚠️ '+(Q.length?Q.length+' en attente':'Erreur');
-  else if(Q.length) s.textContent='⏳ '+Q.length+' en attente';
-  else s.textContent='✓ Synchronisé';
-  s.title=lastErr||'Cliquer pour synchroniser';
-}
-async function pull(){
-  if(!CFG.url)return;
-  await flush(); if(Q.length)return;
-  try{const j=await api({action:'getAll'});S=j.data;S.periodes.forEach(p=>p.num=Number(p.num));lastErr='';persist();renderAll();}
-  catch(e){lastErr=e.message;}
-  setSync();
-}
-function classeOp(cid){return{action:'saveClasse',classe:S.classes.find(c=>c.id===cid),eleves:S.eleves.filter(e=>e.classeId===cid),periodes:S.periodes.filter(p=>p.classeId===cid)}}
-const timers={};
-function saveClasseLater(cid){persist();clearTimeout(timers[cid]);timers[cid]=setTimeout(()=>{if(S.classes.find(c=>c.id===cid))enqueue(classeOp(cid))},1200)}
-function pushAll(){
-  S.classes.forEach(c=>enqueue(classeOp(c.id)));
-  const g={};S.appels.forEach(a=>(g[a.date+'|'+a.classeId]||(g[a.date+'|'+a.classeId]=[])).push(a));
-  Object.values(g).forEach(l=>enqueue({action:'saveAppel',date:l[0].date,classeId:l[0].classeId,activite:l[0].activite,
-    lignes:l.map(({eleveId,eleve,present,oubli,inapte})=>({eleveId,eleve,present,oubli,inapte}))}));
-}
-$('sync').onclick=()=>pull();
-addEventListener('online',flush);
-setInterval(()=>{if(Q.length)flush()},30000);
+let state = loadState();
+// état de travail (non encore sauvegardé) pour la modale paramètres
+let draft = null;
 
-/* ================== NAVIGATION ================== */
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>showTab(b.dataset.t));
-function showTab(t){
-  document.querySelectorAll('.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+t));
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  if(t!=='appel')stopMic();
-  if(t==='bilan')renderBilan();
-  scrollTo(0,0);
+function loadState(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    return Object.assign(defaultState(), parsed);
+  }catch(e){ return defaultState(); }
 }
-function fillClassSelects(){
-  S.classes.sort((a,b)=>a.nom.localeCompare(b.nom,'fr',{numeric:true}));
-  if(!S.classes.find(c=>c.id===CFG.cls))CFG.cls=S.classes[0]?.id||'';
-  const o=S.classes.map(c=>`<option value="${c.id}">${esc(c.nom)}</option>`).join('')||'<option value="">— aucune classe —</option>';
-  ['a-classe','b-classe','p-classe'].forEach(id=>{$(id).innerHTML=o;$(id).value=CFG.cls});
+function saveState(){
+  localStorage.setItem(LS_KEY, JSON.stringify(state));
 }
-['a-classe','b-classe','p-classe'].forEach(id=>$(id).onchange=e=>{CFG.cls=e.target.value;persist();fillClassSelects();openAppel();renderBilan();renderParam()});
-function renderAll(){fillClassSelects();openAppel();renderBilan();renderParam();setSync()}
+function uid(){ return 'id-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
 
-/* ================== APPEL ================== */
-const IC={
- P:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#16a34a"/><path d="M6.5 12.5l3.5 3.5 7.5-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
- A:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#dc2626"/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>',
- U:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="#9aa5b1" stroke-width="2" stroke-dasharray="3 3"/></svg>',
- H:'<svg viewBox="0 0 24 24"><path d="M9 2.5h6v6.5h6.5v6H15v6.5H9V15H2.5V9H9z" fill="currentColor"/></svg>'
-};
-let CUR={classeId:'',date:today(),activite:'',l:{}};
-$('a-date').value=today();
-
-function openAppel(){
-  stopMic();
-  const cid=CFG.cls,date=$('a-date').value||today();$('a-date').value=date;
-  const ex=S.appels.filter(a=>a.classeId===cid&&a.date===date);
-  CUR={classeId:cid,date,activite:ex[0]?.activite||'',l:{}};
-  ex.forEach(a=>CUR.l[a.eleveId]={present:a.present,oubli:a.oubli,inapte:a.inapte});
-  const jour=activitesDuJour(cid,date),autres=activitesOf(cid).filter(a=>!jour.includes(a));
-  if(!CUR.activite)CUR.activite=jour[0]||'';
-  if(CUR.activite&&!jour.includes(CUR.activite)&&!autres.includes(CUR.activite))autres.push(CUR.activite);
-  const o=a=>`<option value="${esc(a)}">${esc(a)}</option>`;
-  $('a-act').innerHTML=(jour.length?'':'<option value="">— Activité —</option>')+jour.map(o).join('')
-    +(autres.length?`<optgroup label="Autres activités">${autres.map(o).join('')}</optgroup>`:'');
-  $('a-act').value=CUR.activite;
-  $('a-heard').textContent='';$('a-res').innerHTML='';
-  renderAppel();
+/* =====================================================================
+   OUTILS DATES
+===================================================================== */
+function pad2(n){ return String(n).padStart(2,'0'); }
+function toISODate(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function parseISODate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function startOfWeekMonday(d){
+  const dt = new Date(d);
+  const day = (dt.getDay()+6)%7; // lundi=0
+  dt.setDate(dt.getDate()-day);
+  dt.setHours(0,0,0,0);
+  return dt;
 }
-$('a-date').onchange=openAppel;
-$('a-act').onchange=e=>{CUR.activite=e.target.value;commitAppel()};
-
-function renderAppel(){
-  const el=elevesOf(CUR.classeId);
-  if(!el.length){$('a-list').innerHTML=`<li class="empty">${S.classes.length?'Aucun élève dans cette classe.':'Aucune classe.'}<br>Rendez-vous dans ⚙️ Paramètres.</li>`;$('a-count').textContent='';return}
-  let p=0,a=0,u=0,o=0,i=0;
-  $('a-list').innerHTML=el.map(e=>{
-    const l=CUR.l[e.id]||{},st=l.present||'';
-    st==='P'?p++:st==='A'?a++:u++; if(l.oubli)o++; if(l.inapte)i++;
-    const dis=st!=='P'?'disabled':'';
-    return `<li class="row ${st}" data-id="${e.id}">
-      <span class="name">${esc(e.prenom)} <small>${esc(e.nom)}</small></span>
-      <button class="ic" data-act="st" title="Présent / absent">${IC[st||'U']}</button>
-      <button class="ic shoe ${l.oubli?'on':''}" data-act="oubli" title="Matériel oublié" ${dis}>👟</button>
-      <button class="ic hosp ${l.inapte?'on':''}" data-act="inapte" title="Inapte" ${dis}>${IC.H}</button></li>`;
-  }).join('');
-  $('a-count').innerHTML=`✅ ${p} &nbsp;❌ ${a} &nbsp;<span style="color:var(--mut)">◌ ${u} non appelé${u>1?'s':''}</span> &nbsp;👟 ${o} &nbsp;<span style="color:var(--ko)">✚</span> ${i}`;
+function computeSemaine(dateISO){
+  if(!state.config.semaine1Ref) return null;
+  const ref = startOfWeekMonday(parseISODate(state.config.semaine1Ref));
+  const cur = startOfWeekMonday(parseISODate(dateISO));
+  const diffWeeks = Math.round((cur - ref) / (7*24*3600*1000));
+  const mod = ((diffWeeks % 2) + 2) % 2;
+  return mod === 0 ? '1' : '2';
 }
-function line(id){return CUR.l[id]||(CUR.l[id]={present:'',oubli:'',inapte:''})}
-$('a-list').onclick=e=>{
-  const b=e.target.closest('button');if(!b||b.disabled)return;
-  const l=line(b.closest('li').dataset.id),k=b.dataset.act;
-  if(k==='st'){l.present=l.present==='P'?'A':'P';if(l.present==='A'){l.oubli='';l.inapte=''}}
-  else l[k]=l[k]?'':'1';
-  commitAppel();renderAppel();
-};
-function commitAppel(){
-  const{classeId,date,activite}=CUR;if(!classeId)return;
-  const lignes=elevesOf(classeId).map(e=>{const l=CUR.l[e.id]||{};return{eleveId:e.id,eleve:fullName(e),present:l.present||'',oubli:l.oubli||'',inapte:l.inapte||''}});
-  const any=lignes.some(l=>l.present);
-  S.appels=S.appels.filter(a=>!(a.date===date&&a.classeId===classeId));
-  if(any)lignes.forEach(l=>S.appels.push({date,classeId,activite,...l}));
-  persist();
-  const k='a|'+date+'|'+classeId;clearTimeout(timers[k]);
-  timers[k]=setTimeout(()=>enqueue({action:'saveAppel',date,classeId,activite,lignes:any?lignes:[]}),1000);
-}
-$('a-all').onclick=()=>{elevesOf(CUR.classeId).forEach(e=>{const l=line(e.id);if(!l.present)l.present='P'});commitAppel();renderAppel()};
-$('a-del').onclick=()=>{
-  const{classeId,date}=CUR;if(!classeId)return;
-  const saved=S.appels.some(a=>a.classeId===classeId&&a.date===date);
-  if(!saved&&!Object.values(CUR.l).some(l=>l.present)){toast('Aucun appel à effacer pour cette date.');return}
-  const c=S.classes.find(c=>c.id===classeId);
-  if(!confirm(`Effacer l'appel du ${fdate(date)} (${c?c.nom:''}) ?\nPrésences, oublis et inaptitudes de cette séance seront supprimés.`))return;
-  stopMic();CUR.l={};commitAppel();openAppel();toast('Appel effacé');
-};
-$('a-end').onclick=()=>{
-  stopMic();const el=elevesOf(CUR.classeId);if(!el.length)return;
-  const abs=[];el.forEach(e=>{const l=line(e.id);if(!l.present)l.present='A';if(l.present==='A')abs.push(fullName(e))});
-  commitAppel();renderAppel();
-  $('a-res').innerHTML=abs.length
-    ?`<div class="res ko"><b>${abs.length} absent${abs.length>1?'s':''} :</b> ${abs.map(esc).join(', ')}</div>`
-    :'<div class="res">Tout le monde est présent 👍</div>';
-  scrollTo({top:0,behavior:'smooth'});
-};
-
-/* ================== APPEL VOCAL ================== */
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let rec=null,listening=false,INDEX=[];
-const MODS={oubli:'oubli',oublie:'oubli',oublies:'oubli',affaire:'oubli',affaires:'oubli',tenue:'oubli',materiel:'oubli',
-  inapte:'inapte',inaptes:'inapte',dispense:'inapte',dispensee:'inapte',blesse:'inapte',blessee:'inapte',
-  absent:'absent',absente:'absent',absents:'absent'};
-function lev(a,b){if(a===b)return 0;const m=a.length,n=b.length;let p=Array.from({length:n+1},(_,j)=>j);
-  for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
-const tol=k=>k.length<4?0:k.length<7?1:2;
-function buildIndex(){
-  const el=elevesOf(CUR.classeId),cp={},cn={};
-  el.forEach(e=>{const p=norm(e.prenom),n=norm(e.nom);cp[p]=(cp[p]||0)+1;cn[n]=(cn[n]||0)+1});
-  INDEX=[];
-  el.forEach(e=>{const p=norm(e.prenom),n=norm(e.nom);
-    if(p&&n){INDEX.push({k:p+' '+n,e});INDEX.push({k:n+' '+p,e})}
-    if(p&&cp[p]===1)INDEX.push({k:p,e});
-    if(n&&cn[n]===1&&!cp[n])INDEX.push({k:n,e});
+function getVacanceDuJour(dateISO){
+  const d = parseISODate(dateISO).getTime();
+  return state.vacances.find(v=>{
+    const deb = parseISODate(v.debut).getTime();
+    const fin = parseISODate(v.fin).getTime();
+    return d>=deb && d<=fin;
   });
-  INDEX.forEach(x=>x.w=x.k.split(' ').length);
 }
-function matchWords(w){
-  const found=[];let mod='',i=0;
-  while(i<w.length){
-    if(MODS[w[i]]){mod=MODS[w[i]];i++;continue}
-    let best=null;
-    for(let len=Math.min(5,w.length-i);len>=1&&!best;len--){
-      const ph=w.slice(i,i+len).join(' ');let bd=99;
-      INDEX.forEach(x=>{if(x.w!==len)return;const d=lev(ph,x.k);if(d<=tol(x.k)&&d<bd){bd=d;best={e:x.e,len}}});
+
+/* =====================================================================
+   NORMALISATION / RECONNAISSANCE VOCALE
+===================================================================== */
+function normalize(s){
+  return (s||'').toString().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++) dp[0][j]=j;
+  for(let i=1;i<=m;i++){
+    for(let j=1;j<=n;j++){
+      dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
     }
-    if(best){found.push({e:best.e,mod});mod='';i+=best.len}else i++;
   }
+  return dp[m][n];
+}
+function aliasesFor(eleve){
+  const list = [eleve.prenom, eleve.nom, eleve.prenom+' '+eleve.nom];
+  if(eleve.prononciation) list.push(...eleve.prononciation.split(',').map(s=>s.trim()));
+  return list.filter(Boolean).map(normalize);
+}
+// Cherche dans le texte transcrit les élèves de la classe correspondant
+function matchElevesInText(text, elevesClasse){
+  const norm = normalize(text);
+  const tokens = norm.split(' ').filter(t=>t.length>1);
+  const found = new Set();
+  elevesClasse.forEach(el=>{
+    const aliases = aliasesFor(el);
+    for(const alias of aliases){
+      if(!alias) continue;
+      if(norm.includes(alias)){ found.add(el.id); return; }
+      // comparaison token par token (tolère petites erreurs de reconnaissance)
+      const aliasTokens = alias.split(' ');
+      for(const at of aliasTokens){
+        if(at.length<3) continue;
+        for(const t of tokens){
+          if(t===at || levenshtein(t,at)<=1){ found.add(el.id); return; }
+        }
+      }
+    }
+  });
   return found;
 }
-function handleSpeech(alts){
-  let found=[],txt=alts[0];
-  for(const t of alts){found=matchWords(norm(t).split(' '));if(found.length){txt=t;break}}
-  found.forEach(({e,mod})=>{const l=line(e.id);
-    if(mod==='absent'){l.present='A';l.oubli='';l.inapte=''}
-    else{l.present='P';if(mod==='oubli')l.oubli='1';if(mod==='inapte')l.inapte='1'}
-  });
-  $('a-heard').innerHTML='« '+esc(txt.trim())+' »'+(found.length?' → <b>'+found.map(f=>esc(f.e.prenom)+(f.mod&&f.mod!=='absent'?' ('+f.mod+')':f.mod==='absent'?' (absent)':'')).join(', ')+'</b>':' → personne reconnu');
-  if(!found.length)return;
-  commitAppel();renderAppel();
-  if(navigator.vibrate)navigator.vibrate(40);
-  found.forEach(({e})=>{const li=document.querySelector(`li[data-id="${e.id}"]`);if(li){li.classList.add('flash');setTimeout(()=>li.classList.remove('flash'),900)}});
-}
-function startMic(){
-  if(!SR){toast('Reconnaissance vocale indisponible ici : utilisez Chrome, Edge ou Safari récent.',4000);return}
-  if(!elevesOf(CUR.classeId).length){toast('Aucun élève dans cette classe.');return}
-  buildIndex();
-  rec=new SR();rec.lang='fr-FR';rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=4;
-  rec.onresult=ev=>{let interim='';
-    for(let k=ev.resultIndex;k<ev.results.length;k++){const r=ev.results[k];
-      if(r.isFinal)handleSpeech(Array.from(r,x=>x.transcript));else interim+=r[0].transcript}
-    if(interim)$('a-heard').textContent='… '+interim;
-  };
-  rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'){stopMic();toast('Micro refusé : autorisez-le dans le navigateur (la page doit être en https ou ouverte en local).',5000)}};
-  rec.onend=()=>{if(listening)try{rec.start()}catch(e){}};
-  listening=true;try{rec.start()}catch(e){}
-  $('a-mic').classList.add('live');$('a-mic').textContent='⏹ Arrêter l\'écoute';
-}
-function stopMic(){listening=false;if(rec)try{rec.stop()}catch(e){};rec=null;$('a-mic').classList.remove('live');$('a-mic').textContent='🎤 Appel vocal'}
-$('a-mic').onclick=()=>listening?stopMic():startMic();
 
-/* ================== BILAN ================== */
-$('b-act').onchange=renderBilan;
-function renderBilan(){
-  const cid=CFG.cls,el=elevesOf(cid),acts=activitesOf(cid),prev=$('b-act').value;
-  $('b-act').innerHTML='<option value="*">Toutes les activités</option>'+acts.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join('');
-  $('b-act').value=acts.includes(prev)?prev:'*';
-  const act=$('b-act').value;
-  const all=S.appels.filter(a=>a.classeId===cid&&a.present);
-  if(!el.length||!all.length){$('b-out').innerHTML='<div class="empty">Aucun appel enregistré pour cette classe.</div>';return}
-  let h='';
-  if(act==='*'){
-    h+='<div class="tw"><table><thead><tr><th>Activité</th><th>Séances</th><th>Présence</th><th>👟 Oublis</th><th>✚ Inaptitudes</th></tr></thead><tbody>';
-    [...acts,''].forEach(a=>{const ap=all.filter(x=>x.activite===a);if(!ap.length)return;
-      const s=new Set(ap.map(x=>x.date)).size,pr=ap.filter(x=>x.present==='P').length;
-      h+=`<tr><td>${a?esc(a):'<i>Sans activité</i>'}</td><td>${s}</td><td>${Math.round(100*pr/ap.length)} %</td><td>${ap.filter(x=>x.oubli).length}</td><td>${ap.filter(x=>x.inapte).length}</td></tr>`});
-    h+='</tbody></table></div>';
+/* =====================================================================
+   INIT UI
+===================================================================== */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+function init(){
+  $('#selDate').value = toISODate(new Date());
+  refreshHeaderBadges();
+  populateClasseSelect();
+  autoSelectClasse();
+  renderTableEleves();
+  bindEvents();
+}
+
+function jourSemaineFR(date){
+  return date.getDay(); // 0=dimanche...6=samedi
+}
+
+function refreshHeaderBadges(){
+  const dateISO = $('#selDate').value;
+  const d = parseISODate(dateISO);
+  const semaine = computeSemaine(dateISO);
+  $('#badgeDate').textContent = d.toLocaleDateString('fr-FR',{weekday:'long', day:'2-digit', month:'long'}) + (semaine? ' · S'+semaine : '');
+  const vac = getVacanceDuJour(dateISO);
+  const badgeClasse = $('#badgeClasse');
+  if(vac){
+    badgeClasse.className='badge vacances';
+    badgeClasse.textContent = '🏖 Vacances : '+vac.nom;
+  } else {
+    badgeClasse.className='badge classe';
   }
-  const ap=all.filter(a=>act==='*'||a.activite===act);
-  const dates=[...new Set(ap.map(a=>a.date))].sort().reverse();
-  const st={};ap.forEach(a=>{const s=st[a.eleveId]||(st[a.eleveId]={p:0,a:0,o:0,i:0});if(a.present==='P'){s.p++;if(a.oubli)s.o++;if(a.inapte)s.i++}else s.a++});
-  const T={p:0,a:0,o:0,i:0};
-  h+=`<div class="tw"><table><thead><tr><th>Élève</th><th>✅ Présent</th><th>❌ Absent</th><th>👟 Oublis</th><th>✚ Inapte</th></tr></thead><tbody>`;
-  el.forEach(e=>{const s=st[e.id]||{p:0,a:0,o:0,i:0};Object.keys(T).forEach(k=>T[k]+=s[k]);
-    const c=(v,w,k)=>`<td class="${v>=k?'k':v>=w?'w':''}">${v||'·'}</td>`;
-    h+=`<tr><td>${esc(e.nom)} ${esc(e.prenom)}</td><td>${s.p}/${s.p+s.a}</td>${c(s.a,1,3)}${c(s.o,1,3)}${c(s.i,1,3)}</tr>`});
-  h+=`</tbody><tfoot><tr><td>Total · ${dates.length} séance${dates.length>1?'s':''}</td><td>${T.p}</td><td>${T.a}</td><td>${T.o}</td><td>${T.i}</td></tr></tfoot></table></div>`;
-  h+='<h3 style="font-size:15px;margin:14px 2px 8px">Séances (toucher pour modifier)</h3>';
-  dates.forEach(d=>{const x=ap.filter(a=>a.date===d);
-    h+=`<div class="seance" data-d="${d}"><div><b>${fdate(d)}</b> <span>${esc(x[0].activite||'')}</span></div><div>✅${x.filter(a=>a.present==='P').length} ❌${x.filter(a=>a.present==='A').length} 👟${x.filter(a=>a.oubli).length} ✚${x.filter(a=>a.inapte).length}</div></div>`});
-  $('b-out').innerHTML=h;
 }
-$('b-out').onclick=e=>{const s=e.target.closest('.seance');if(!s)return;$('a-date').value=s.dataset.d;openAppel();showTab('appel')};
 
-/* ================== PARAMÈTRES ================== */
-const ACTS=['Athlétisme','Course de demi-fond','Relais','Course d\'orientation','Natation','Gymnastique','Acrosport','Danse','Escalade','Badminton','Tennis de table','Tennis','Basket-ball','Handball','Volley-ball','Football','Rugby','Ultimate','Lutte','Step'];
-function renderParam(){
-  const all=new Set(ACTS);S.periodes.forEach(p=>[p.activite1,p.activite2].forEach(a=>a&&all.add(a)));
-  $('dl-act').innerHTML=[...all].map(a=>`<option value="${esc(a)}">`).join('');
-  $('p-url').value=CFG.url;$('p-token').value=CFG.token;
-  const c=S.classes.find(c=>c.id===CFG.cls);
-  $('p-edit').style.display=c?'':'none';if(!c)return;
-  $('p-nom').value=c.nom;
-  const el=elevesOf(c.id);$('p-nb').textContent=el.length;
-  $('p-eleves').innerHTML=el.map(e=>`<div class="el"><span><b>${esc(e.nom)}</b> ${esc(e.prenom)}</span><button data-id="${e.id}" title="Retirer">✕</button></div>`).join('')||'<p class="hint">Aucun élève pour l\'instant.</p>';
-  $('p-periodes').innerHTML=periodesOf(c.id).map(p=>`<div class="per" data-n="${p.num}"><div class="per-h">Période ${p.num}</div>
-    <div class="bar"><label>Du<input type="date" data-f="debut" value="${esc(p.debut)}"></label><label>Au<input type="date" data-f="fin" value="${esc(p.fin)}"></label></div>
-    <div class="bar"><input data-f="activite1" list="dl-act" placeholder="APS 1" value="${esc(p.activite1)}">${jourSel('jour1',p.jour1)}</div>
-    <div class="bar"><input data-f="activite2" list="dl-act" placeholder="APS 2 (facultatif)" value="${esc(p.activite2)}">${jourSel('jour2',p.jour2)}</div></div>`).join('');
+function classesDisponibles(){
+  const set = new Set(state.eleves.map(e=>e.classe).filter(Boolean));
+  state.emploiDuTemps.forEach(c=>{ if(c.classe) set.add(c.classe); });
+  return Array.from(set).sort();
 }
-$('p-new').onclick=()=>{
-  const nom=$('p-newname').value.trim();if(!nom){$('p-newname').focus();return}
-  const id=uid('c');S.classes.push({id,nom});
-  for(let n=1;n<=5;n++)S.periodes.push({classeId:id,num:n,debut:'',fin:'',activite1:'',activite2:'',jour1:'',jour2:''});
-  CFG.cls=id;$('p-newname').value='';saveClasseLater(id);renderAll();toast('Classe « '+nom+' » créée');
-};
-$('p-nom').onchange=e=>{const c=S.classes.find(c=>c.id===CFG.cls);c.nom=e.target.value.trim()||c.nom;saveClasseLater(c.id);fillClassSelects()};
-$('p-del').onclick=()=>{
-  const c=S.classes.find(c=>c.id===CFG.cls);
-  if(!confirm(`Supprimer la classe « ${c.nom} », ses élèves et tout son historique d'appels ?`))return;
-  const id=c.id;clearTimeout(timers[id]);
-  S.classes=S.classes.filter(x=>x.id!==id);S.eleves=S.eleves.filter(x=>x.classeId!==id);
-  S.periodes=S.periodes.filter(x=>x.classeId!==id);S.appels=S.appels.filter(x=>x.classeId!==id);
-  Q=Q.filter(o=>!(o.classeId===id));enqueue({action:'deleteClasse',id});renderAll();
-};
-function addEleves(list){
-  const cid=CFG.cls,have=new Set(elevesOf(cid).map(e=>norm(e.nom+' '+e.prenom)));let n=0;
-  list.forEach(({nom,prenom})=>{nom=(nom||'').trim();prenom=(prenom||'').trim();if(!nom&&!prenom)return;
-    const k=norm(nom+' '+prenom);if(have.has(k))return;have.add(k);S.eleves.push({id:uid('e'),classeId:cid,nom,prenom});n++});
-  saveClasseLater(cid);renderParam();openAppel();return n;
-}
-$('p-eadd').onclick=()=>{const nom=$('p-enom').value,prenom=$('p-epre').value;if(!nom.trim()&&!prenom.trim())return;
-  addEleves([{nom,prenom}]);$('p-enom').value='';$('p-epre').value='';$('p-enom').focus()};
-$('p-epre').onkeydown=e=>{if(e.key==='Enter')$('p-eadd').click()};
-$('p-eleves').onclick=e=>{const b=e.target.closest('button');if(!b)return;
-  S.eleves=S.eleves.filter(x=>x.id!==b.dataset.id);saveClasseLater(CFG.cls);renderParam();openAppel()};
-$('p-periodes').onchange=e=>{const f=e.target.dataset.f;if(!f)return;const n=Number(e.target.closest('.per').dataset.n);
-  const p=S.periodes.find(p=>p.classeId===CFG.cls&&Number(p.num)===n);p[f]=e.target.value.trim();saveClasseLater(CFG.cls);openAppel()};
-$('p-padd').onclick=()=>{const ps=periodesOf(CFG.cls);S.periodes.push({classeId:CFG.cls,num:(ps.length?Number(ps[ps.length-1].num):0)+1,debut:'',fin:'',activite1:'',activite2:'',jour1:'',jour2:''});saveClasseLater(CFG.cls);renderParam()};
-$('p-pdel').onclick=()=>{const ps=periodesOf(CFG.cls);if(!ps.length)return;const last=ps[ps.length-1];
-  if((last.activite1||last.debut)&&!confirm('Retirer la période '+last.num+' ?'))return;
-  S.periodes=S.periodes.filter(p=>p!==last);saveClasseLater(CFG.cls);renderParam()};
 
-/* ---- import Excel / CSV ---- */
-function loadXLSX(){return window.XLSX?Promise.resolve():new Promise((ok,ko)=>{const s=document.createElement('script');
-  s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=ok;
-  s.onerror=()=>ko(new Error('Lecteur Excel non chargé (connexion internet requise). Enregistrez le fichier en CSV pour l\'importer hors ligne.'));document.head.appendChild(s)})}
-function parseCSV(t){const lines=t.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim());if(!lines.length)return[];
-  const sep=[';','\t',','].sort((a,b)=>lines[0].split(b).length-lines[0].split(a).length)[0];
-  return lines.map(l=>l.split(sep).map(c=>c.trim().replace(/^"(.*)"$/,'$1')))}
-function splitFull(s){const w=s.trim().split(/\s+/);let i=0;
-  while(i<w.length-1&&/\p{L}/u.test(w[i])&&w[i]===w[i].toUpperCase())i++;
-  if(i===0)return{prenom:w.slice(0,-1).join(' '),nom:w[w.length-1]};
-  return{nom:w.slice(0,i).join(' '),prenom:w.slice(i).join(' ')}}
-function rowsToEleves(rows){
-  rows=rows.map(r=>r.map(c=>String(c??'').trim())).filter(r=>r.some(Boolean));if(!rows.length)return[];
-  let iN=-1,iP=-1,iF=-1;
-  const hi=rows.slice(0,6).findIndex(r=>r.some(c=>/^(nom|pr[ée]nom|[ée]l[èe]ve)/i.test(c)));
-  if(hi>=0){const h=rows[hi].map(norm);
-    iP=h.findIndex(c=>c.startsWith('prenom'));
-    iN=h.findIndex(c=>c==='nom'||c==='nom de famille'||c==='nom d usage');
-    if(iP<0||iN<0){iP=iN=-1;iF=Math.max(0,h.findIndex(c=>c.startsWith('eleve')||c.startsWith('nom')))}
-    rows=rows.slice(hi+1);
-  }else if(rows[0].filter(Boolean).length>=2){iN=0;iP=1}else iF=0;
-  return rows.map(r=>iF>=0?(r[iF]?splitFull(r[iF]):null):{nom:r[iN],prenom:r[iP]}).filter(Boolean);
+function populateClasseSelect(){
+  const sel = $('#selClasse');
+  const current = sel.value;
+  sel.innerHTML = classesDisponibles().map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(current) sel.value = current;
 }
-$('p-file').onchange=async e=>{
-  const f=e.target.files[0];e.target.value='';if(!f)return;
+
+function autoSelectClasse(){
+  const dateISO = $('#selDate').value;
+  if(getVacanceDuJour(dateISO)) return; // pas de cours
+  const d = parseISODate(dateISO);
+  const jour = jourSemaineFR(d); // 0=dim
+  const jourEDT = jour===0?7:jour; // on garde 1=lundi..7=dimanche mais on n'utilise que 1-5
+  const semaine = computeSemaine(dateISO);
+  const now = new Date();
+  const nowMinutes = now.getHours()*60+now.getMinutes();
+  const creneaux = state.emploiDuTemps.filter(c=>{
+    if(Number(c.jour) !== jourEDT) return false;
+    if(c.semaine && c.semaine!=='both' && semaine && c.semaine!==semaine) return false;
+    return true;
+  });
+  if(creneaux.length===0) return;
+  // Choisit le créneau en cours, sinon le premier de la journée
+  let choix = creneaux.find(c=>{
+    const [h1,m1]=c.heureDebut.split(':').map(Number);
+    const [h2,m2]=c.heureFin.split(':').map(Number);
+    const debM=h1*60+m1, finM=h2*60+m2;
+    return nowMinutes>=debM && nowMinutes<=finM;
+  });
+  if(!choix) choix = creneaux.sort((a,b)=>a.heureDebut.localeCompare(b.heureDebut))[0];
+  if(choix && classesDisponibles().includes(choix.classe)){
+    $('#selClasse').value = choix.classe;
+  }
+}
+
+function activiteCouranteFor(classe, dateISO){
+  const d = parseISODate(dateISO).getTime();
+  return state.activites.find(a=> a.classe===classe &&
+    parseISODate(a.dateDebut).getTime()<=d && parseISODate(a.dateFin).getTime()>=d);
+}
+
+/* =====================================================================
+   TABLE APPEL DU JOUR
+===================================================================== */
+let appelCourant = {}; // eleveId -> {present, dispense, affairesOubliees}
+
+function renderTableEleves(){
+  const classe = $('#selClasse').value;
+  const dateISO = $('#selDate').value;
+  const eleves = state.eleves.filter(e=>e.classe===classe)
+    .sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom));
+  const box = $('#listeAppel');
+  box.innerHTML='';
+  $('#emptyEleves').style.display = eleves.length? 'none':'block';
+
+  const activite = activiteCouranteFor(classe, dateISO);
+  $('#activiteCourante').textContent = activite ? '🏐 '+activite.activite : '';
+  $('#activiteCourante').style.display = activite ? 'inline-block':'none';
+
+  eleves.forEach(el=>{
+    if(!appelCourant[el.id]) appelCourant[el.id] = {present:false, dispense:false, affairesOubliees:false};
+    const st = appelCourant[el.id];
+    const card = document.createElement('div');
+    card.className = 'eleve-card' + (st.present ? ' present':'');
+    card.innerHTML = `
+      <div class="eleve-row" data-id="${el.id}">
+        <span class="present-toggle">${st.present?'✓':''}</span>
+        <span class="eleve-nom">${el.prenom} ${el.nom}</span>
+      </div>
+      ${st.present ? `
+      <div class="eleve-actions">
+        <button class="pill-btn${st.affairesOubliees?' on':''}" data-id="${el.id}" data-field="affairesOubliees">👟 Affaires</button>
+        <button class="pill-btn dispense${st.dispense?' on':''}" data-id="${el.id}" data-field="dispense">❌ Dispensé</button>
+      </div>` : ''}
+    `;
+    box.appendChild(card);
+  });
+
+  box.querySelectorAll('.eleve-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const id = row.dataset.id;
+      appelCourant[id].present = !appelCourant[id].present;
+      renderTableEleves();
+    });
+  });
+  box.querySelectorAll('.pill-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const id = btn.dataset.id, field = btn.dataset.field;
+      appelCourant[id][field] = !appelCourant[id][field];
+      renderTableEleves();
+    });
+  });
+}
+
+function resetAppelCourant(){
+  appelCourant = {};
+}
+
+/* =====================================================================
+   RECONNAISSANCE VOCALE
+===================================================================== */
+let recognition = null, listening = false;
+
+function setMicUI(on){
+  const btn = $('#btnMic');
+  btn.classList.toggle('listening', on);
+  btn.classList.toggle('off', !on);
+}
+
+// Applique un texte reconnu (peu importe le moteur) : coche les élèves cités
+function applyTranscript(text){
+  const classe = $('#selClasse').value;
+  const elevesClasse = state.eleves.filter(e=>e.classe===classe);
+  const found = matchElevesInText(text, elevesClasse);
+  if(found.size){
+    found.forEach(id=>{
+      if(!appelCourant[id]) appelCourant[id]={present:false,dispense:false,affairesOubliees:false};
+      appelCourant[id].present = true;
+    });
+    renderTableEleves();
+  }
+  $('#transcript').textContent = '✓ « '+text.trim()+' »';
+}
+
+/* ---------- Moteur 1 : reconnaissance du navigateur (Chrome) ---------- */
+function setupSpeech(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return;
+  recognition = new SR();
+  recognition.lang = 'fr-FR';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (event)=>{
+    let finalText='';
+    for(let i=event.resultIndex;i<event.results.length;i++){
+      const res = event.results[i];
+      if(res.isFinal) finalText += res[0].transcript + ' ';
+      else $('#transcript').textContent = '… '+res[0].transcript;
+    }
+    if(finalText.trim()) applyTranscript(finalText);
+  };
+  recognition.onerror = (e)=>{
+    $('#transcript').textContent = 'Erreur micro : '+e.error;
+  };
+  recognition.onend = ()=>{
+    if(listening){ try{ recognition.start(); }catch(e){} } // relance en continu
+  };
+}
+
+function toggleMicNavigateur(){
+  if(!recognition){
+    $('#transcript').textContent = "Reconnaissance du navigateur indisponible ici (essaie Chrome) — ou choisis Albert dans Paramètres → Connexion.";
+    return;
+  }
+  if(listening){
+    listening=false;
+    recognition.stop();
+    setMicUI(false);
+  } else {
+    listening=true;
+    try{ recognition.start(); }catch(e){}
+    setMicUI(true);
+    $('#transcript').textContent = "Écoute en cours… annonce les prénoms.";
+  }
+}
+
+/* ---------- Moteur 2 : Albert (transcription via ton Google Apps Script) ---------- */
+const ALB_RATE = 16000;     // Hz envoyés à Albert
+const ALB_SILENCE_MS = 800; // silence qui clôt une phrase
+const ALB_MAX_MS = 10000;   // durée max d'un segment
+const alb = {ctx:null, stream:null, src:null, proc:null, on:false,
+             buf:[], pre:[], speaking:false, silentMs:0, noise:0, calib:0, pending:0};
+
+function mergeFloat(chunks){
+  let n = 0; chunks.forEach(c=>n+=c.length);
+  const out = new Float32Array(n); let o = 0;
+  chunks.forEach(c=>{ out.set(c,o); o+=c.length; });
+  return out;
+}
+function downsample(data, fromRate, toRate){
+  if(fromRate === toRate) return data;
+  const ratio = fromRate / toRate;
+  const len = Math.floor(data.length / ratio);
+  const out = new Float32Array(len);
+  for(let i=0;i<len;i++){
+    const pos = i*ratio, i0 = Math.floor(pos), i1 = Math.min(i0+1, data.length-1);
+    out[i] = data[i0] + (data[i1]-data[i0])*(pos-i0);
+  }
+  return out;
+}
+function encodeWav(samples, rate){
+  const buffer = new ArrayBuffer(44 + samples.length*2);
+  const v = new DataView(buffer);
+  const str = (o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i, s.charCodeAt(i)); };
+  str(0,'RIFF'); v.setUint32(4, 36+samples.length*2, true); str(8,'WAVE');
+  str(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
+  v.setUint32(24,rate,true); v.setUint32(28,rate*2,true); v.setUint16(32,2,true); v.setUint16(34,16,true);
+  str(36,'data'); v.setUint32(40, samples.length*2, true);
+  for(let i=0;i<samples.length;i++){
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(44+i*2, s<0 ? s*0x8000 : s*0x7FFF, true);
+  }
+  return new Blob([buffer], {type:'audio/wav'});
+}
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(String(r.result).split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
+
+function albertStatus(){
+  if(!alb.on) return;
+  $('#transcript').textContent = alb.pending>0
+    ? '⏳ Transcription Albert en cours…'
+    : "Écoute en cours (Albert)… annonce les prénoms, avec une petite pause entre deux phrases.";
+}
+
+async function albertSend(samples, sampleRate){
+  const wav = encodeWav(downsample(samples, sampleRate, ALB_RATE), ALB_RATE);
+  alb.pending++; albertStatus();
   try{
-    let rows;
-    if(/\.(csv|txt)$/i.test(f.name))rows=parseCSV(await f.text());
-    else{await loadXLSX();const wb=XLSX.read(await f.arrayBuffer());rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''})}
-    const list=rowsToEleves(rows);const n=addEleves(list);
-    toast(n+' élève'+(n>1?'s':'')+' importé'+(n>1?'s':'')+(list.length>n?' ('+(list.length-n)+' doublon(s) ignoré(s))':''),3500);
-  }catch(err){toast(err.message,5000)}
-};
+    const b64 = await blobToBase64(wav);
+    const res = await apiPost('transcribe', {audioBase64: b64, language:'fr'});
+    if(res.error) throw new Error(res.error);
+    if(res.text && res.text.trim()) applyTranscript(res.text);
+  }catch(e){
+    $('#transcript').textContent = '✗ Albert : '+e.message;
+  }finally{
+    alb.pending--;
+    if(alb.pending===0 && alb.on && !$('#transcript').textContent.startsWith('✓') && !$('#transcript').textContent.startsWith('✗')) albertStatus();
+  }
+}
 
-/* ---- connexion ---- */
-$('p-test').onclick=async()=>{
-  CFG.url=$('p-url').value.trim();CFG.token=$('p-token').value.trim();persist();
-  if(!CFG.url){setSync();toast('Mode local uniquement.');return}
+function albertFlush(){
+  if(!alb.buf.length) return;
+  const samples = mergeFloat(alb.buf);
+  alb.buf = []; alb.speaking = false; alb.silentMs = 0;
+  if(samples.length / alb.ctx.sampleRate < 0.3) return; // trop court : bruit
+  albertSend(samples, alb.ctx.sampleRate);
+}
+
+function onAlbertAudio(e){
+  if(!alb.on) return;
+  const data = new Float32Array(e.inputBuffer.getChannelData(0));
+  const chunkMs = data.length / alb.ctx.sampleRate * 1000;
+  let sum = 0; for(let i=0;i<data.length;i++) sum += data[i]*data[i];
+  const rms = Math.sqrt(sum/data.length);
+
+  if(alb.calib < 6){ // ~0,5 s de calibrage du bruit ambiant
+    alb.noise = (alb.noise*alb.calib + rms)/(alb.calib+1); alb.calib++;
+    return;
+  }
+  const thr = Math.max(0.012, alb.noise*3);
+
+  if(rms > thr){
+    if(!alb.speaking){ alb.speaking = true; alb.buf = alb.pre.slice(); }
+    alb.buf.push(data); alb.silentMs = 0;
+    if(alb.buf.length*chunkMs >= ALB_MAX_MS) albertFlush();
+  } else if(alb.speaking){
+    alb.buf.push(data); alb.silentMs += chunkMs;
+    if(alb.silentMs >= ALB_SILENCE_MS) albertFlush();
+  } else {
+    alb.pre.push(data); if(alb.pre.length > 4) alb.pre.shift();
+  }
+}
+
+async function startAlbert(){
+  if(!state.config.appsScriptUrl){
+    $('#transcript').textContent = "Albert passe par ton Google Apps Script : renseigne d'abord l'URL dans Paramètres → Connexion.";
+    return;
+  }
   try{
-    const j=await api({action:'getAll'});lastErr='';
-    if(!j.data.classes.length&&S.classes.length){pushAll();toast('Connecté ✓ — vos données locales sont envoyées vers le Sheet.',3500)}
-    else{S=j.data;S.periodes.forEach(p=>p.num=Number(p.num));Q=[];persist();renderAll();toast('Connecté ✓ — données chargées depuis le Sheet.')}
-  }catch(err){lastErr=err.message;toast('Échec de connexion : '+err.message,5000)}
-  setSync();
-};
+    alb.stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}});
+  }catch(e){
+    $('#transcript').textContent = 'Micro refusé ou indisponible : '+e.message;
+    return;
+  }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  alb.ctx = new AC();
+  alb.src = alb.ctx.createMediaStreamSource(alb.stream);
+  alb.proc = alb.ctx.createScriptProcessor(4096,1,1);
+  alb.proc.onaudioprocess = onAlbertAudio;
+  alb.src.connect(alb.proc); alb.proc.connect(alb.ctx.destination);
+  Object.assign(alb, {on:true, buf:[], pre:[], speaking:false, silentMs:0, noise:0, calib:0, pending:0});
+  setMicUI(true);
+  albertStatus();
+}
 
-/* ================== DÉMARRAGE ================== */
-renderAll();
-if(!S.classes.length)showTab('param');
-pull();
+function stopAlbert(){
+  if(alb.speaking) albertFlush();
+  alb.on = false;
+  try{ alb.proc.disconnect(); alb.src.disconnect(); }catch(e){}
+  if(alb.stream) alb.stream.getTracks().forEach(t=>t.stop());
+  if(alb.ctx) alb.ctx.close();
+  setMicUI(false);
+}
+
+function toggleMicAlbert(){ alb.on ? stopAlbert() : startAlbert(); }
+
+/* ---------- Bouton micro : aiguille vers le moteur choisi ---------- */
+function toggleMic(){
+  if(state.config.moteurVocal === 'albert') toggleMicAlbert();
+  else toggleMicNavigateur();
+}
+
+/* =====================================================================
+   SYNCHRONISATION GOOGLE SHEET
+===================================================================== */
+async function apiGet(action, params={}){
+  if(!state.config.appsScriptUrl) throw new Error('URL Apps Script non configurée');
+  const url = new URL(state.config.appsScriptUrl);
+  url.searchParams.set('action', action);
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,v));
+  const resp = await fetch(url.toString());
+  return resp.json();
+}
+async function apiPost(action, payload={}){
+  if(!state.config.appsScriptUrl) throw new Error('URL Apps Script non configurée');
+  const resp = await fetch(state.config.appsScriptUrl, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({action, payload})
+  });
+  return resp.json();
+}
+
+async function syncFromSheet(){
+  const statusEl = $('#syncStatus');
+  statusEl.textContent = 'Synchronisation…'; statusEl.className='status';
+  try{
+    await flushPendingDeletes();   // sinon une classe supprimée reviendrait depuis le Sheet
+    const data = await apiGet('getAll');
+    if(data.error) throw new Error(data.error);
+    state.eleves = data.eleves || [];
+    state.emploiDuTemps = data.emploiDuTemps || [];
+    state.activites = data.activites || [];
+    state.vacances = data.vacances || [];
+    state.vacancesMAJ = data.vacancesMAJ || null;
+    saveState();
+    populateClasseSelect();
+    autoSelectClasse();
+    refreshHeaderBadges();
+    renderTableEleves();
+    statusEl.textContent = '✓ Synchronisé'; statusEl.className='status ok';
+  }catch(e){
+    statusEl.textContent = '✗ '+e.message; statusEl.className='status err';
+  }
+}
+
+// Efface du Google Sheet les classes supprimées dans les paramètres (élèves, appels, suivis…)
+async function flushPendingDeletes(){
+  const liste = (state.pendingDeletes||[]).slice();
+  for(const c of liste){
+    const r = await apiPost('deleteClasse', {classe:c});
+    if(r.error) throw new Error(r.error);
+    state.pendingDeletes = state.pendingDeletes.filter(x=>x!==c);
+    saveState();
+  }
+}
+
+async function pushAll(){
+  await apiPost('saveEleves', {eleves: state.eleves});
+  await apiPost('saveEmploiDuTemps', {emploiDuTemps: state.emploiDuTemps});
+  await apiPost('saveActivites', {activites: state.activites});
+  await apiPost('saveConfig', {cle:'semaine1Ref', valeur: state.config.semaine1Ref});
+  await apiPost('saveConfig', {cle:'zoneVacances', valeur: state.config.zoneVacances});
+}
+
+/* =====================================================================
+   MODALE PARAMÈTRES
+===================================================================== */
+function openModal(){
+  draft = JSON.parse(JSON.stringify(state)); // copie de travail
+  classesVides = []; formMode = null; importPreview = null;
+  normalizeDraftClasses();                    // "5a" et "5A" deviennent une seule classe
+  classeEdition = $('#selClasse').value || '';
+  setElevesMsg('');
+  $('#modalOverlay').classList.add('open');
+  $('#inputUrl').value = draft.config.appsScriptUrl || '';
+  $('#inputSemaine1Ref').value = draft.config.semaine1Ref || '';
+  $('#selMoteurVocal').value = draft.config.moteurVocal || 'navigateur';
+  renderElevesPanel();
+  renderPrononciationPanel();
+  renderActivitesPanel();
+  renderEdtPanel();
+  renderVacancesPanel();
+  updateVacancesMajLabel();
+}
+function closeModal(){ $('#modalOverlay').classList.remove('open'); }
+
+function switchTab(name){
+  $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  $$('.tab-panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+name));
+  if(!draft) return;
+  if(name==='prononciation') renderPrononciationPanel();
+  if(name==='activites') renderActivitesPanel();   // la liste des classes a pu changer
+  if(name==='edt') renderEdtPanel();
+}
+
+// ---- Élèves : une classe à la fois (impossible de mélanger deux classes) ----
+let classeEdition = '';   // classe affichée dans l'onglet Élèves
+let classesVides = [];    // classes créées mais pas encore peuplées
+let formMode = null;      // null | 'new' | 'rename'
+let importPreview = null; // aperçu d'un import CSV en attente de validation
+const SANS_CLASSE = '__sans__';
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function cleanClasse(s){ return (s||'').toString().trim().replace(/\s+/g,' '); }
+function keyClasse(s){ return cleanClasse(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function keyNom(s){ return normalize(s); }
+
+function classesDraft(){
+  const map = new Map();
+  const add = c => { const k=keyClasse(c); if(k && !map.has(k)) map.set(k, cleanClasse(c)); };
+  draft.eleves.forEach(e=>add(e.classe));
+  classesVides.forEach(add);
+  (draft.emploiDuTemps||[]).forEach(c=>add(c.classe));
+  (draft.activites||[]).forEach(a=>add(a.classe));
+  return Array.from(map.values()).sort((a,b)=>a.localeCompare(b,'fr',{numeric:true}));
+}
+// Renvoie l'orthographe déjà utilisée pour cette classe ("5a" -> "5A"), sinon le nom nettoyé
+function canonClasse(name){
+  const k = keyClasse(name);
+  return classesDraft().find(c=>keyClasse(c)===k) || cleanClasse(name);
+}
+function normalizeDraftClasses(){
+  const classes = classesDraft();
+  const canon = n => classes.find(c=>keyClasse(c)===keyClasse(n)) || cleanClasse(n);
+  draft.eleves.forEach(e=>{ e.classe = canon(e.classe); });
+  (draft.emploiDuTemps||[]).forEach(c=>{ c.classe = canon(c.classe); });
+  (draft.activites||[]).forEach(a=>{ a.classe = canon(a.classe); });
+}
+function elevesDe(classe){
+  const k = keyClasse(classe);
+  return draft.eleves.filter(e=>keyClasse(e.classe)===k);
+}
+function elevesSansClasse(){ return draft.eleves.filter(e=>!keyClasse(e.classe)); }
+function setElevesMsg(txt, type){
+  const el = $('#elevesMsg');
+  el.textContent = txt || '';
+  el.className = 'status' + (type? ' '+type : '');
+}
+function classeSelectHTML(value, field){
+  const k = keyClasse(value);
+  const classes = classesDraft();
+  let opts = '<option value="">— classe —</option>';
+  if(value && !classes.some(c=>keyClasse(c)===k)) opts += `<option value="${esc(value)}" selected>⚠ ${esc(value)}</option>`;
+  classes.forEach(c=>{ opts += `<option value="${esc(c)}" ${keyClasse(c)===k?'selected':''}>${esc(c)}</option>`; });
+  return `<select data-f="${field}" style="max-width:110px;">${opts}</select>`;
+}
+
+function renderElevesPanel(){
+  const classes = classesDraft();
+  const sans = elevesSansClasse();
+  const dansSans = classeEdition===SANS_CLASSE;
+  if(dansSans && !sans.length) classeEdition = '';
+  if(classeEdition!==SANS_CLASSE && !classes.some(c=>keyClasse(c)===keyClasse(classeEdition))) classeEdition = classes[0] || '';
+  const enSans = classeEdition===SANS_CLASSE;
+
+  // --- puces de classes ---
+  const chips = $('#classeChips');
+  chips.innerHTML = '';
+  classes.forEach(c=>{
+    const b = document.createElement('button');
+    b.className = 'chip' + (!enSans && keyClasse(c)===keyClasse(classeEdition) ? ' active' : '');
+    b.textContent = c + ' (' + elevesDe(c).length + ')';
+    b.addEventListener('click', ()=>{ classeEdition=c; formMode=null; setElevesMsg(''); renderElevesPanel(); });
+    chips.appendChild(b);
+  });
+  if(sans.length){
+    const b = document.createElement('button');
+    b.className = 'chip warn' + (enSans ? ' active' : '');
+    b.textContent = '⚠ Sans classe (' + sans.length + ')';
+    b.addEventListener('click', ()=>{ classeEdition=SANS_CLASSE; formMode=null; setElevesMsg(''); renderElevesPanel(); });
+    chips.appendChild(b);
+  }
+  const nb = document.createElement('button');
+  nb.className = 'chip add';
+  nb.textContent = '+ Nouvelle classe';
+  nb.addEventListener('click', ()=>{ formMode='new'; renderElevesPanel(); const i=$('#classeInput'); if(i){ i.value=''; i.focus(); } });
+  chips.appendChild(nb);
+
+  // --- mini-formulaire nouvelle classe / renommer ---
+  const form = $('#classeForm');
+  form.style.display = formMode ? 'flex' : 'none';
+  $('#classeFormOk').textContent = formMode==='rename' ? 'Renommer' : 'Créer la classe';
+
+  // --- bouton d'import : indique clairement la destination ---
+  const cible = (!enSans && classeEdition) ? classeEdition : '';
+  $('#lblImport').textContent = cible ? '📂 Importer un CSV dans ' + cible : '📂 Importer un CSV (avec colonne classe)';
+
+  renderImportPreview();
+
+  // --- bloc de la classe affichée ---
+  const bloc = $('#classeBloc');
+  const liste = $('#listeEleves');
+  liste.innerHTML = '';
+  if(!classeEdition){
+    bloc.style.display = 'none';
+    liste.innerHTML = '<div class="empty">Aucune classe pour l\'instant : clique sur « + Nouvelle classe », ou importe un CSV qui contient une colonne classe.</div>';
+    return;
+  }
+  bloc.style.display = 'block';
+  $('#classeTitre').textContent = enSans ? 'Élèves sans classe' : classeEdition;
+  $('#classeActions').style.display = enSans ? 'none' : 'flex';
+
+  const eleves = enSans ? sans : elevesDe(classeEdition);
+  if(enSans){
+    liste.innerHTML = '<div class="hint" style="color:var(--red);">Ces élèves n\'ont pas de classe. Choisis leur classe avec le menu « ↪ classe » de chaque ligne (ou supprime-les).</div>';
+  }
+  // doublons dans la classe
+  const compte = {};
+  eleves.forEach(e=>{ const k=keyNom(e.nom)+'|'+keyNom(e.prenom); compte[k]=(compte[k]||0)+1; });
+
+  eleves.forEach(el=>{
+    const row = document.createElement('div');
+    const k = keyNom(el.nom)+'|'+keyNom(el.prenom);
+    const dup = (el.nom||el.prenom) && compte[k]>1;
+    row.className = 'list-item' + (dup ? ' dup' : '');
+    const autres = classes.filter(c=>keyClasse(c)!==keyClasse(el.classe));
+    row.innerHTML = `
+      <input type="text" value="${esc(el.nom)}" placeholder="Nom" data-f="nom">
+      <input type="text" value="${esc(el.prenom)}" placeholder="Prénom" data-f="prenom">
+      ${dup ? '<span class="dup-tag" title="Même nom et prénom déjà présents dans cette classe">doublon ?</span>' : ''}
+      <select class="move" title="Déplacer cet élève dans une autre classe">
+        <option value="">${enSans ? '↪ choisir la classe…' : '↪ classe'}</option>
+        ${autres.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('')}
+      </select>
+      <button class="btn icon small" data-del title="Supprimer cet élève">🗑</button>
+    `;
+    row.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('input', ()=>{ el[inp.dataset.f]=inp.value; });
+    });
+    row.querySelector('.move').addEventListener('change', e=>{
+      const dest = e.target.value;
+      if(!dest) return;
+      el.classe = dest;
+      setElevesMsg((el.prenom||'Élève')+' '+(el.nom||'')+' déplacé(e) vers '+dest+'.', 'ok');
+      renderElevesPanel(); renderPrononciationPanel();
+    });
+    row.querySelector('[data-del]').addEventListener('click', ()=>{
+      draft.eleves = draft.eleves.filter(x=>x.id!==el.id);
+      renderElevesPanel(); renderPrononciationPanel();
+    });
+    liste.appendChild(row);
+  });
+  if(!eleves.length && !enSans){
+    liste.innerHTML = '<div class="empty">Classe vide : importe un CSV ou ajoute un élève.</div>';
+  }
+}
+
+function ajouterEleve(){
+  if(!classeEdition || classeEdition===SANS_CLASSE){ setElevesMsg("Choisis d'abord une classe (ou crée-en une).", 'err'); return; }
+  draft.eleves.push({id:uid(), nom:'', prenom:'', classe:classeEdition, prononciation:''});
+  classesVides = classesVides.filter(c=>keyClasse(c)!==keyClasse(classeEdition));
+  renderElevesPanel();
+  const inputs = $$('#listeEleves .list-item [data-f="nom"]');
+  if(inputs.length) inputs[inputs.length-1].focus();
+}
+
+// --- Nouvelle classe / renommer ---
+function validerFormClasse(){
+  const nom = cleanClasse($('#classeInput').value);
+  if(!nom){ setElevesMsg('Donne un nom à la classe (ex : 5A).', 'err'); return; }
+  const existe = classesDraft().find(c=>keyClasse(c)===keyClasse(nom));
+  if(formMode==='new'){
+    if(existe){ classeEdition = existe; setElevesMsg('La classe '+existe+' existe déjà : je l\'ouvre.', ''); }
+    else { classesVides.push(nom); classeEdition = nom; setElevesMsg('Classe '+nom+' créée.', 'ok'); }
+  } else if(formMode==='rename'){
+    const ancien = classeEdition;
+    if(keyClasse(nom)!==keyClasse(ancien) && existe){
+      setElevesMsg('La classe '+existe+' existe déjà : on ne fusionne pas deux classes. Déplace plutôt les élèves un par un.', 'err');
+      return;
+    }
+    const k = keyClasse(ancien);
+    draft.eleves.forEach(e=>{ if(keyClasse(e.classe)===k) e.classe = nom; });
+    draft.emploiDuTemps.forEach(c=>{ if(keyClasse(c.classe)===k) c.classe = nom; });
+    draft.activites.forEach(a=>{ if(keyClasse(a.classe)===k) a.classe = nom; });
+    classesVides = classesVides.map(c=>keyClasse(c)===k ? nom : c);
+    classeEdition = nom;
+    setElevesMsg('Classe renommée en '+nom+'. (L\'historique déjà enregistré garde l\'ancien nom.)', 'ok');
+  }
+  formMode = null;
+  renderElevesPanel(); renderPrononciationPanel();
+}
+function supprimerClasse(){
+  const c = classeEdition;
+  if(!c || c===SANS_CLASSE) return;
+  const k = keyClasse(c);
+  const n = elevesDe(c).length;
+  if(!confirm('Supprimer DÉFINITIVEMENT la classe '+c+' ?\n\n'+n+' élève(s), ses créneaux d\'emploi du temps, ses activités, ses appels et son suivi seront effacés (aussi dans le Google Sheet, au moment de cliquer sur Enregistrer).')) return;
+  draft.eleves = draft.eleves.filter(e=>keyClasse(e.classe)!==k);
+  draft.emploiDuTemps = draft.emploiDuTemps.filter(x=>keyClasse(x.classe)!==k);
+  draft.activites = draft.activites.filter(x=>keyClasse(x.classe)!==k);
+  classesVides = classesVides.filter(x=>keyClasse(x)!==k);
+  draft.pendingDeletes = (draft.pendingDeletes||[]).filter(x=>keyClasse(x)!==k).concat([c]);
+  classeEdition = '';
+  setElevesMsg('Classe '+c+' supprimée. Clique sur « Enregistrer » pour l\'effacer aussi du Google Sheet.', 'ok');
+  renderElevesPanel(); renderPrononciationPanel();
+}
+
+// --- Import CSV avec aperçu avant validation ---
+function parseCsvEleves(text){
+  const lines = text.replace(/^﻿/,'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if(!lines.length) return [];
+  const sep = lines[0].includes(';') ? ';' : (lines[0].includes('\t') ? '\t' : ',');
+  const cut = l => l.split(sep).map(s=>s.trim().replace(/^"|"$/g,'').trim());
+  let iNom=0, iPrenom=1, iClasse=2, start=0;
+  const head = cut(lines[0]).map(keyNom);
+  if(head.some(h=>['nom','prenom','classe'].includes(h))){
+    start = 1;
+    const f = n => head.indexOf(n);
+    if(f('nom')>=0) iNom=f('nom');
+    if(f('prenom')>=0) iPrenom=f('prenom');
+    iClasse = f('classe');           // -1 si pas de colonne classe
+  }
+  const out = [];
+  for(let i=start;i<lines.length;i++){
+    const p = cut(lines[i]);
+    if(p.length<2) continue;
+    const nom = p[iNom]||'', prenom = p[iPrenom]||'';
+    if(!nom && !prenom) continue;
+    out.push({nom, prenom, classe: iClasse>=0 ? (p[iClasse]||'') : ''});
+  }
+  return out;
+}
+
+function startImport(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const rows = parseCsvEleves(String(reader.result));
+    if(!rows.length){ setElevesMsg("Aucun élève lisible dans ce fichier (colonnes attendues : nom;prenom;classe).", 'err'); return; }
+    const cible = (classeEdition && classeEdition!==SANS_CLASSE) ? classeEdition : '';
+    const existants = new Set(draft.eleves.map(e=>keyClasse(e.classe)+'|'+keyNom(e.nom)+'|'+keyNom(e.prenom)));
+    const groupes = new Map(); // keyClasse -> {classe, nouveaux:[], doublons:n, nouvelle:bool}
+    let sansDest = 0, avecColonne = 0;
+    const classesConnues = classesDraft();
+    rows.forEach(r=>{
+      let c;
+      if(cleanClasse(r.classe)){ avecColonne++; c = classesConnues.find(x=>keyClasse(x)===keyClasse(r.classe)) || cleanClasse(r.classe); }
+      else c = cible;
+      if(!c){ sansDest++; return; }
+      const k = keyClasse(c);
+      if(!groupes.has(k)) groupes.set(k, {classe:c, nouveaux:[], doublons:0, nouvelle: !classesConnues.some(x=>keyClasse(x)===k)});
+      const g = groupes.get(k);
+      const cle = k+'|'+keyNom(r.nom)+'|'+keyNom(r.prenom);
+      if(existants.has(cle)){ g.doublons++; return; }
+      existants.add(cle);
+      g.nouveaux.push({nom:r.nom, prenom:r.prenom});
+    });
+    importPreview = {groupes:Array.from(groupes.values()), sansDest, cible, ignoreCible: cible && avecColonne>0 && !groupes.has(keyClasse(cible))};
+    setElevesMsg('');
+    renderImportPreview();
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function renderImportPreview(){
+  const box = $('#importPreview');
+  if(!importPreview){ box.style.display='none'; box.innerHTML=''; return; }
+  const p = importPreview;
+  const total = p.groupes.reduce((n,g)=>n+g.nouveaux.length, 0);
+  let html = '<b>Aperçu de l\'import</b><ul>';
+  p.groupes.forEach(g=>{
+    html += `<li><b>${esc(g.classe)}</b>${g.nouvelle?' <span class="tag-new">nouvelle classe</span>':''} : ${g.nouveaux.length} élève(s) à ajouter`
+          + (g.doublons? ` · ${g.doublons} déjà présent(s), ignoré(s)` : '') + '</li>';
+  });
+  html += '</ul>';
+  if(p.groupes.length>1) html += '<div class="hint">Le fichier contient plusieurs classes : chacune est importée <b>séparément</b>, sans mélange.</div>';
+  if(p.ignoreCible) html += `<div class="hint">Le fichier indique ses propres classes : rien n'est ajouté à ${esc(p.cible)}.</div>`;
+  if(p.sansDest) html += `<div class="hint" style="color:var(--red);">${p.sansDest} ligne(s) sans classe ne seront pas importées : choisis d'abord une classe ci-dessus, ou ajoute une colonne classe dans le fichier.</div>`;
+  html += `<div class="row" style="margin-top:8px;"><button class="btn primary small" id="btnImportOk" ${total? '' : 'disabled'}>Importer ${total} élève(s)</button><button class="btn small" id="btnImportNo">Annuler</button></div>`;
+  box.innerHTML = html;
+  box.style.display = 'block';
+  $('#btnImportNo').addEventListener('click', ()=>{ importPreview=null; renderImportPreview(); });
+  $('#btnImportOk').addEventListener('click', ()=>{
+    p.groupes.forEach(g=>{
+      g.nouveaux.forEach(n=>draft.eleves.push({id:uid(), nom:n.nom, prenom:n.prenom, classe:g.classe, prononciation:''}));
+      classesVides = classesVides.filter(c=>keyClasse(c)!==keyClasse(g.classe));
+    });
+    const premiere = p.groupes.find(g=>g.nouveaux.length);
+    if(premiere && !(p.cible && p.groupes.some(g=>keyClasse(g.classe)===keyClasse(p.cible)))) classeEdition = premiere.classe;
+    importPreview = null;
+    setElevesMsg(total+' élève(s) importé(s).', 'ok');
+    renderElevesPanel(); renderPrononciationPanel();
+  });
+}
+
+// ---- Prononciation ----
+function renderPrononciationPanel(){
+  const box = $('#listeProno');
+  box.innerHTML='';
+  if(draft.eleves.length===0){ box.innerHTML='<div class="empty">Ajoute d\'abord des élèves.</div>'; return; }
+  const tries = draft.eleves.slice().sort((a,b)=>
+    (keyClasse(a.classe)).localeCompare(keyClasse(b.classe),'fr',{numeric:true}) ||
+    (a.nom+a.prenom).localeCompare(b.nom+b.prenom,'fr'));
+  let derniere = null;
+  tries.forEach(el=>{
+    const k = keyClasse(el.classe);
+    if(k!==derniere){
+      derniere = k;
+      const h = document.createElement('div');
+      h.className = 'prono-head';
+      h.textContent = cleanClasse(el.classe) || 'Sans classe';
+      box.appendChild(h);
+    }
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      <span style="flex:0 0 160px;">${esc(el.prenom)} ${esc(el.nom)}</span>
+      <input type="text" value="${esc(el.prononciation||'')}" placeholder="variantes de prononciation, séparées par des virgules">
+    `;
+    row.querySelector('input').addEventListener('input', e=>{ el.prononciation = e.target.value; });
+    box.appendChild(row);
+  });
+}
+
+// ---- Activités ----
+function renderActivitesPanel(){
+  const box = $('#listeActivites');
+  box.innerHTML='';
+  draft.activites.forEach(a=>{
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      ${classeSelectHTML(a.classe,'classe')}
+      <input type="text" value="${esc(a.activite)}" placeholder="Activité" data-f="activite">
+      <input type="date" value="${a.dateDebut||''}" data-f="dateDebut">
+      <input type="date" value="${a.dateFin||''}" data-f="dateFin">
+      <button class="btn icon small" data-del>🗑</button>
+    `;
+    row.querySelectorAll('input,select').forEach(inp=>inp.addEventListener('input', ()=>{ a[inp.dataset.f]=inp.value; }));
+    row.querySelector('[data-del]').addEventListener('click', ()=>{
+      draft.activites = draft.activites.filter(x=>x.id!==a.id);
+      renderActivitesPanel();
+    });
+    box.appendChild(row);
+  });
+}
+function ajouterActivite(){
+  draft.activites.push({id:uid(), classe:'', activite:'', dateDebut:'', dateFin:''});
+  renderActivitesPanel();
+}
+
+// ---- Emploi du temps ----
+const JOURS = [{v:1,l:'Lundi'},{v:2,l:'Mardi'},{v:3,l:'Mercredi'},{v:4,l:'Jeudi'},{v:5,l:'Vendredi'}];
+function renderEdtPanel(){
+  const box = $('#listeEdt');
+  box.innerHTML='';
+  draft.emploiDuTemps.forEach(c=>{
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      <select data-f="jour" style="max-width:100px;">${JOURS.map(j=>`<option value="${j.v}" ${Number(c.jour)===j.v?'selected':''}>${j.l}</option>`).join('')}</select>
+      <input type="time" value="${c.heureDebut||''}" data-f="heureDebut">
+      <input type="time" value="${c.heureFin||''}" data-f="heureFin">
+      ${classeSelectHTML(c.classe,'classe')}
+      <select data-f="semaine" style="max-width:130px;">
+        <option value="both" ${c.semaine==='both'?'selected':''}>Les deux semaines</option>
+        <option value="1" ${c.semaine==='1'?'selected':''}>Semaine 1</option>
+        <option value="2" ${c.semaine==='2'?'selected':''}>Semaine 2</option>
+      </select>
+      <button class="btn icon small" data-del>🗑</button>
+    `;
+    row.querySelectorAll('input,select').forEach(inp=>inp.addEventListener('input', ()=>{ c[inp.dataset.f]=inp.value; }));
+    row.querySelector('[data-del]').addEventListener('click', ()=>{
+      draft.emploiDuTemps = draft.emploiDuTemps.filter(x=>x.id!==c.id);
+      renderEdtPanel();
+    });
+    box.appendChild(row);
+  });
+}
+function ajouterCreneau(){
+  draft.emploiDuTemps.push({id:uid(), jour:1, heureDebut:'08:00', heureFin:'09:00', classe:'', semaine:'both'});
+  renderEdtPanel();
+}
+
+// ---- Vacances ----
+function renderVacancesPanel(){
+  const box = $('#listeVacances');
+  box.innerHTML='';
+  draft.vacances.forEach((v,idx)=>{
+    const row = document.createElement('div');
+    row.className='list-item';
+    row.innerHTML = `
+      <input type="text" value="${v.nom}" placeholder="Nom (ex: Vacances de la Toussaint)" data-f="nom">
+      <input type="date" value="${v.debut}" data-f="debut">
+      <input type="date" value="${v.fin}" data-f="fin">
+      <button class="btn icon small" data-del>🗑</button>
+    `;
+    row.querySelectorAll('input').forEach(inp=>inp.addEventListener('input', ()=>{ v[inp.dataset.f]=inp.value; }));
+    row.querySelector('[data-del]').addEventListener('click', ()=>{
+      draft.vacances.splice(idx,1);
+      renderVacancesPanel();
+    });
+    box.appendChild(row);
+  });
+}
+function ajouterVacance(){
+  draft.vacances.push({nom:'', debut:'', fin:''});
+  renderVacancesPanel();
+}
+function updateVacancesMajLabel(){
+  const el = $('#vacancesMajStatus');
+  el.textContent = draft.vacancesMAJ ? 'Actualisées le '+new Date(draft.vacancesMAJ).toLocaleString('fr-FR') : 'Jamais actualisées';
+}
+
+/* =====================================================================
+   VUE SUIVI (statistiques par classe + activité)
+===================================================================== */
+function switchMainView(view){
+  $$('.main-nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  $('#view-appel').style.display = view==='appel' ? '':'none';
+  $('#view-suivi').style.display = view==='suivi' ? '':'none';
+  if(view==='suivi'){ populateClasseSuivi(); }
+}
+
+function populateClasseSuivi(){
+  const sel = $('#selClasseSuivi');
+  const current = sel.value;
+  sel.innerHTML = classesDisponibles().map(c=>`<option value="${c}">${c}</option>`).join('');
+  if(current) sel.value = current;
+  populateActiviteSuivi();
+}
+
+function populateActiviteSuivi(){
+  const classe = $('#selClasseSuivi').value;
+  const sel = $('#selActiviteSuivi');
+  const activites = state.activites.filter(a=>a.classe===classe);
+  sel.innerHTML = activites.map(a=>`<option value="${a.activite}">${a.activite} (${a.dateDebut} → ${a.dateFin})</option>`).join('');
+}
+
+async function calculerSuivi(){
+  const classe = $('#selClasseSuivi').value;
+  const activite = $('#selActiviteSuivi').value;
+  const tbody = $('#tableSuivi tbody');
+  const meta = $('#suiviMeta');
+  if(!classe || !activite){ meta.textContent='Choisis une classe et une activité.'; return; }
+  meta.textContent = 'Calcul en cours…';
+  try{
+    const data = await apiGet('getStats', {classe, activite});
+    if(data.error) throw new Error(data.error);
+    const parEleve = (data.stats && data.stats.parEleve) || {};
+    const seances = (data.stats && data.stats.seances) || 0;
+    const eleves = state.eleves.filter(e=>e.classe===classe)
+      .sort((a,b)=> (a.nom+a.prenom).localeCompare(b.nom+b.prenom));
+    tbody.innerHTML='';
+    eleves.forEach(el=>{
+      const s = parEleve[el.id] || {presences:0, dispense:0, affairesOubliees:0};
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${el.prenom} ${el.nom}</td><td>${s.presences}</td><td>${s.affairesOubliees}</td><td>${s.dispense}</td>`;
+      tbody.appendChild(tr);
+    });
+    $('#emptySuivi').style.display = eleves.length ? 'none':'block';
+    meta.textContent = seances + ' séance(s) prise(s) en compte pour « '+activite+' ».';
+  }catch(e){
+    meta.textContent = '✗ '+e.message+' (vérifie la connexion dans Paramètres)';
+  }
+}
+
+/* =====================================================================
+   SUPPRIMER UN APPEL / HISTORIQUE DES APPELS
+===================================================================== */
+function dateFR(iso){
+  return parseISODate(iso).toLocaleDateString('fr-FR',{weekday:'short', day:'2-digit', month:'short', year:'numeric'});
+}
+
+async function supprimerAppelDuJour(){
+  const classe = $('#selClasse').value, dateISO = $('#selDate').value;
+  const statusEl = $('#appelStatus');
+  if(!classe){ return; }
+  if(!confirm("Supprimer l'appel de "+classe+" du "+dateFR(dateISO)+" ?\n\nLes présences et le suivi (dispensés, affaires) de ce jour seront effacés, aussi dans le Google Sheet.")) return;
+  statusEl.textContent = 'Suppression…'; statusEl.className='status';
+  try{
+    if(state.config.appsScriptUrl){
+      const r = await apiPost('deleteAppel', {date:dateISO, classe});
+      if(r.error) throw new Error(r.error);
+    }
+    resetAppelCourant();
+    renderTableEleves();
+    statusEl.textContent = state.config.appsScriptUrl ? '✓ Appel supprimé' : "✓ Écran remis à zéro (aucun Sheet connecté)";
+    statusEl.className = 'status ok';
+  }catch(e){
+    statusEl.textContent = '✗ '+e.message+' — rien n\'a été supprimé'; statusEl.className='status err';
+  }
+}
+
+async function afficherListeAppels(){
+  const classe = $('#selClasseSuivi').value;
+  const box = $('#listeAppelsEnregistres');
+  if(!classe){ box.innerHTML='<div class="empty">Choisis une classe.</div>'; return; }
+  box.innerHTML = '<div class="empty">Chargement…</div>';
+  try{
+    const data = await apiGet('listAppels', {classe});
+    if(data.error) throw new Error(data.error);
+    const liste = data.appels || [];
+    if(!liste.length){ box.innerHTML = '<div class="empty">Aucun appel enregistré pour '+esc(classe)+'.</div>'; return; }
+    box.innerHTML = '';
+    liste.forEach(a=>{
+      const row = document.createElement('div');
+      row.className = 'appel-row';
+      row.innerHTML = `<span>${esc(dateFR(a.date))}</span><span class="status">${a.presents}/${a.total} présents</span><div class="spacer"></div><button class="btn danger small">🗑 Supprimer</button>`;
+      row.querySelector('button').addEventListener('click', async ()=>{
+        if(!confirm("Supprimer l'appel de "+classe+" du "+dateFR(a.date)+" ?\n\nPrésences et suivi de ce jour seront effacés du Google Sheet.")) return;
+        try{
+          const r = await apiPost('deleteAppel', {date:a.date, classe});
+          if(r.error) throw new Error(r.error);
+          afficherListeAppels();
+        }catch(e){
+          row.querySelector('.status').textContent = '✗ '+e.message; row.querySelector('.status').className='status err';
+        }
+      });
+      box.appendChild(row);
+    });
+  }catch(e){
+    box.innerHTML = '<div class="empty" style="color:var(--red);">✗ '+esc(e.message)+' (vérifie la connexion dans Paramètres)</div>';
+  }
+}
+
+/* =====================================================================
+   ÉVÉNEMENTS
+===================================================================== */
+function bindEvents(){
+  $$('.main-nav-btn').forEach(b=>b.addEventListener('click', ()=>switchMainView(b.dataset.view)));
+
+  $('#selClasse').addEventListener('change', ()=>{ resetAppelCourant(); renderTableEleves(); });
+  $('#selDate').addEventListener('change', ()=>{
+    resetAppelCourant();
+    refreshHeaderBadges();
+    autoSelectClasse();
+    renderTableEleves();
+  });
+
+  $('#btnMic').addEventListener('click', toggleMic);
+
+  $('#selClasseSuivi').addEventListener('change', populateActiviteSuivi);
+  $('#btnCalculerSuivi').addEventListener('click', calculerSuivi);
+  $('#btnDeleteAppel').addEventListener('click', supprimerAppelDuJour);
+  $('#btnListeAppels').addEventListener('click', afficherListeAppels);
+  $('#selClasseSuivi').addEventListener('change', ()=>{ $('#listeAppelsEnregistres').innerHTML=''; });
+
+  $('#btnSaveAppel').addEventListener('click', async ()=>{
+    const classe = $('#selClasse').value, dateISO = $('#selDate').value;
+    const appels = Object.entries(appelCourant).map(([eleveId,st])=>({eleveId, present:st.present}));
+    const suivi = Object.entries(appelCourant).map(([eleveId,st])=>({eleveId, dispense:st.dispense, affairesOubliees:st.affairesOubliees}));
+    const activite = activiteCouranteFor(classe, dateISO);
+    const statusEl = $('#appelStatus');
+    statusEl.textContent = 'Enregistrement…'; statusEl.className='status';
+    try{
+      await apiPost('saveAppel', {date:dateISO, classe, appels});
+      if(activite){
+        await apiPost('saveSuivi', {date:dateISO, classe, activite: activite.activite, suivi});
+      }
+      statusEl.textContent = '✓ Appel enregistré'; statusEl.className='status ok';
+    }catch(e){
+      statusEl.textContent = '✗ '+e.message+' (vérifie la connexion dans Paramètres)'; statusEl.className='status err';
+    }
+  });
+
+  $('#btnSync').addEventListener('click', syncFromSheet);
+  $('#btnSettings').addEventListener('click', openModal);
+  $('#btnCloseModal').addEventListener('click', closeModal);
+  $('#btnAnnulerModal').addEventListener('click', closeModal);
+
+  $$('.tab').forEach(t=>t.addEventListener('click', ()=>switchTab(t.dataset.tab)));
+
+  $('#btnAjoutEleve').addEventListener('click', ajouterEleve);
+  $('#fileCsv').addEventListener('change', e=>{ if(e.target.files[0]) startImport(e.target.files[0]); e.target.value=''; });
+  $('#classeFormOk').addEventListener('click', validerFormClasse);
+  $('#classeFormCancel').addEventListener('click', ()=>{ formMode=null; renderElevesPanel(); });
+  $('#classeInput').addEventListener('keydown', e=>{
+    if(e.key==='Enter'){ e.preventDefault(); validerFormClasse(); }
+    if(e.key==='Escape'){ formMode=null; renderElevesPanel(); }
+  });
+  $('#btnRenameClasse').addEventListener('click', ()=>{
+    formMode='rename'; renderElevesPanel();
+    const i=$('#classeInput'); i.value=classeEdition; i.focus(); i.select();
+  });
+  $('#btnDelClasse').addEventListener('click', supprimerClasse);
+  $('#btnAjoutActivite').addEventListener('click', ajouterActivite);
+  $('#btnAjoutCreneau').addEventListener('click', ajouterCreneau);
+  $('#btnAjoutVacance').addEventListener('click', ajouterVacance);
+
+  $('#btnTestConnexion').addEventListener('click', async ()=>{
+    const el = $('#connexionStatus');
+    el.textContent='Test…'; el.className='status';
+    const urlBackup = state.config.appsScriptUrl;
+    state.config.appsScriptUrl = $('#inputUrl').value.trim();
+    try{
+      const data = await apiGet('getAll');
+      if(data.error) throw new Error(data.error);
+      el.textContent='✓ Connexion réussie'; el.className='status ok';
+    }catch(e){
+      el.textContent='✗ '+e.message; el.className='status err';
+    }
+    state.config.appsScriptUrl = urlBackup;
+  });
+
+  $('#btnTestAlbert').addEventListener('click', async ()=>{
+    const el = $('#albertTestStatus');
+    el.textContent='Test…'; el.className='status';
+    const urlBackup = state.config.appsScriptUrl;
+    state.config.appsScriptUrl = $('#inputUrl').value.trim() || urlBackup;
+    try{
+      const data = await apiGet('albertModels');
+      if(data.error) throw new Error(data.error);
+      el.textContent = '✓ Albert OK — modèle : '+(data.selected||'?'); el.className='status ok';
+    }catch(e){
+      el.textContent='✗ '+e.message; el.className='status err';
+    }
+    state.config.appsScriptUrl = urlBackup;
+  });
+
+  $('#btnRefreshVacances').addEventListener('click', async ()=>{
+    const el = $('#vacancesMajStatus');
+    el.textContent='Actualisation…';
+    try{
+      state.config.appsScriptUrl = $('#inputUrl').value.trim() || state.config.appsScriptUrl;
+      const data = await apiPost('refreshVacances', {});
+      if(data.error) throw new Error(data.error);
+      draft.vacances = data.vacances || [];
+      draft.vacancesMAJ = new Date().toISOString();
+      renderVacancesPanel();
+      updateVacancesMajLabel();
+    }catch(e){
+      el.textContent='✗ '+e.message;
+    }
+  });
+
+  $('#btnSauverModal').addEventListener('click', async ()=>{
+    draft.config.appsScriptUrl = $('#inputUrl').value.trim();
+    draft.config.semaine1Ref = $('#inputSemaine1Ref').value;
+    draft.config.moteurVocal = $('#selMoteurVocal').value;
+    // contrôles : pas de ligne vide, aucun élève sans classe
+    draft.eleves.forEach(e=>{ e.nom = (e.nom||'').trim(); e.prenom = (e.prenom||'').trim(); e.classe = cleanClasse(e.classe); });
+    draft.eleves = draft.eleves.filter(e=>e.nom || e.prenom);
+    if(elevesSansClasse().length){
+      switchTab('eleves'); classeEdition = SANS_CLASSE; renderElevesPanel();
+      setElevesMsg("Enregistrement bloqué : donne une classe à ces élèves (menu « ↪ choisir la classe… ») ou supprime-les.", 'err');
+      return;
+    }
+    state = draft;
+    saveState();
+    populateClasseSelect();
+    autoSelectClasse();
+    refreshHeaderBadges();
+    renderTableEleves();
+    closeModal();
+    if(state.config.appsScriptUrl){
+      const statusEl = $('#syncStatus');
+      statusEl.textContent='Envoi vers le Sheet…';
+      try{
+        await flushPendingDeletes();   // 1) effacer les classes supprimées
+        await pushAll();               // 2) puis envoyer l'état à jour
+        statusEl.textContent='✓ Synchronisé'; statusEl.className='status ok';
+      }catch(e){
+        statusEl.textContent='✗ '+e.message; statusEl.className='status err';
+      }
+    }
+  });
+}
+
+setupSpeech();
+init();
 </script>
 </body>
 </html>
