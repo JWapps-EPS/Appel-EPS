@@ -116,6 +116,17 @@
 </nav>
 
 <main>
+  <!-- ===================== BANDEAU NOUVEL APPAREIL ===================== -->
+  <div class="card" id="bannerConnexion" style="display:none;">
+    <b>👋 Nouvel appareil ?</b>
+    <div class="hint">Colle l'adresse de ton script Google (celle qui se termine par <code>/exec</code>, visible dans Paramètres → Connexion sur ton autre appareil). Tes classes, élèves, emploi du temps et activités sont récupérés depuis le Google Sheet.</div>
+    <div class="row">
+      <input type="url" id="bannerUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" style="flex:1;min-width:240px;">
+      <button class="btn primary" id="bannerOk">Connecter et récupérer mes données</button>
+    </div>
+    <div class="status" id="bannerStatus" style="margin-top:8px;"></div>
+  </div>
+
   <!-- ===================== VUE APPEL ===================== -->
   <div class="view" id="view-appel">
     <div class="card">
@@ -252,8 +263,10 @@
         <input type="url" id="inputUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec" style="width:100%;">
         <div class="row" style="margin-top:10px;">
           <button class="btn small" id="btnTestConnexion">Tester la connexion</button>
+          <button class="btn small" id="btnPullSheet">⬇ Récupérer depuis le Sheet</button>
           <span class="status" id="connexionStatus"></span>
         </div>
+        <div class="hint">« Récupérer » remplace les données de cet appareil par celles du Google Sheet (utile sur un nouvel appareil). Les modifications non enregistrées de cette fenêtre sont perdues.</div>
 
         <div class="hint" style="margin-top:18px;">Moteur de reconnaissance vocale pour l'appel à l'oral. <b>Albert</b> (IA de l'État) transcrit chaque phrase via ton Google Apps Script ; il faut y avoir ajouté ta clé (propriété de script <code>ALBERT_API_KEY</code>).</div>
         <div class="row">
@@ -299,6 +312,7 @@ function defaultState(){
     vacances: [],          // {nom, debut, fin}
     vacancesMAJ: null,
     pendingDeletes: [],     // classes supprimées, à effacer aussi du Google Sheet
+    dirty: false,           // true = modifications de cet appareil pas encore envoyées au Sheet
     config: { appsScriptUrl: '', semaine1Ref: '', zoneVacances: 'Zone C', moteurVocal: 'navigateur' }
   };
 }
@@ -411,6 +425,8 @@ function init(){
   autoSelectClasse();
   renderTableEleves();
   bindEvents();
+  majBandeauConnexion();
+  if(state.config.appsScriptUrl) syncFromSheet({silent:true});   // données à jour dès l'ouverture
 }
 
 function jourSemaineFR(date){
@@ -769,26 +785,101 @@ async function apiPost(action, payload={}){
   return resp.json();
 }
 
-async function syncFromSheet(){
+function resumeDonnees(o){
+  const eleves = o.eleves||[];
+  const nb = new Set(eleves.map(e=>keyClasse(e.classe)).filter(Boolean)).size;
+  return nb+' classe(s), '+eleves.length+' élève(s), '+(o.emploiDuTemps||[]).length+' créneau(x), '+(o.activites||[]).length+' activité(s)';
+}
+
+function majBandeauConnexion(){
+  $('#bannerConnexion').style.display = state.config.appsScriptUrl ? 'none' : 'block';
+}
+
+// Synchronisation : jamais de perte silencieuse.
+//  - modifications de cet appareil pas encore envoyées -> on les ENVOIE d'abord
+//  - Sheet vide mais appareil rempli -> on n'écrase rien, on propose d'ENVOYER
+//  - sinon -> on RÉCUPÈRE le contenu du Sheet
+let syncEnCours = null;   // promesse de la synchro en cours (une seule à la fois)
+let localRev = 0;         // +1 à chaque enregistrement des paramètres : une synchro plus ancienne ne doit rien écraser
+
+function syncFromSheet(opts){
+  if(syncEnCours) return syncEnCours;
+  syncEnCours = _syncFromSheet(opts).finally(()=>{ syncEnCours = null; });
+  return syncEnCours;
+}
+
+async function _syncFromSheet(opts){
+  opts = opts || {};
+  const rev0 = localRev;
+  const aInterrompu = ()=> rev0 !== localRev;
   const statusEl = $('#syncStatus');
-  statusEl.textContent = 'Synchronisation…'; statusEl.className='status';
+  const dire = (txt, cls)=>{ statusEl.textContent = txt; statusEl.className = 'status' + (cls? ' '+cls : ''); };
+  if(!state.config.appsScriptUrl){ dire("✗ Pas encore connecté : renseigne l'URL du script (Paramètres → Connexion)", 'err'); return false; }
+  dire('Synchronisation…');
   try{
     await flushPendingDeletes();   // sinon une classe supprimée reviendrait depuis le Sheet
+    if(aInterrompu()){ dire("Modifications en cours d'enregistrement : synchronisation reportée"); return false; }
+    if(state.dirty){               // ex : classes saisies avant la connexion, ou envoi précédent échoué
+      await pushAll();
+      state.dirty = false; saveState();
+    }
     const data = await apiGet('getAll');
     if(data.error) throw new Error(data.error);
+    if(aInterrompu() || state.dirty){ dire("Modifications en cours d'enregistrement : synchronisation reportée"); return false; }
+
+    const distantVide = !(data.eleves||[]).length;
+    if(distantVide && state.eleves.length && !opts.forcePull){
+      if(opts.silent){ dire("Le Google Sheet est vide : rien récupéré (clique sur 🔄 pour l'alimenter avec cet appareil)"); return false; }
+      if(confirm("Le Google Sheet ne contient AUCUN élève, alors que cet appareil en contient "+state.eleves.length+".\n\nOK = envoyer les données de cet appareil vers le Sheet.\nAnnuler = ne rien changer.")){
+        await pushAll();
+        dire('✓ Envoyé vers le Sheet : '+resumeDonnees(state), 'ok');
+        return true;
+      }
+      dire('Aucun changement (le Sheet est vide)');
+      return false;
+    }
+    if(distantVide && !state.eleves.length){
+      dire("Le Google Sheet est vide. Ajoute tes classes dans Paramètres → Élèves, puis Enregistrer."); return false;
+    }
+
     state.eleves = data.eleves || [];
     state.emploiDuTemps = data.emploiDuTemps || [];
     state.activites = data.activites || [];
     state.vacances = data.vacances || [];
     state.vacancesMAJ = data.vacancesMAJ || null;
+    // réglages enregistrés dans le Sheet (alternance semaine 1 / 2, zone de vacances)
+    const cfg = {}; (data.config||[]).forEach(r=>{ cfg[r.cle] = r.valeur; });
+    if(cfg.semaine1Ref) state.config.semaine1Ref = String(cfg.semaine1Ref).substring(0,10);
+    if(cfg.zoneVacances) state.config.zoneVacances = cfg.zoneVacances;
     saveState();
     populateClasseSelect();
     autoSelectClasse();
     refreshHeaderBadges();
     renderTableEleves();
-    statusEl.textContent = '✓ Synchronisé'; statusEl.className='status ok';
+    dire('✓ Récupéré depuis le Sheet : '+resumeDonnees(state), 'ok');
+    return true;
   }catch(e){
-    statusEl.textContent = '✗ '+e.message; statusEl.className='status err';
+    dire('✗ '+e.message, 'err');
+    return false;
+  }
+}
+
+// Connexion depuis le bandeau « nouvel appareil »
+async function connecterNouvelAppareil(){
+  const url = $('#bannerUrl').value.trim();
+  const st = $('#bannerStatus');
+  if(!/^https:\/\/script\.google\.com\/.+\/exec/.test(url)){
+    st.textContent = "✗ L'adresse doit ressembler à https://script.google.com/macros/s/…/exec"; st.className='status err'; return;
+  }
+  state.config.appsScriptUrl = url; saveState();
+  st.textContent = 'Connexion…'; st.className='status';
+  await syncFromSheet();
+  const msg = $('#syncStatus').textContent;
+  if(/^✗/.test(msg)){            // adresse incorrecte ou script non déployé : on la retire
+    state.config.appsScriptUrl = ''; saveState();
+    st.textContent = msg; st.className = 'status err';
+  } else {
+    majBandeauConnexion();
   }
 }
 
@@ -1402,7 +1493,7 @@ function bindEvents(){
     }
   });
 
-  $('#btnSync').addEventListener('click', syncFromSheet);
+  $('#btnSync').addEventListener('click', ()=>syncFromSheet());
   $('#btnSettings').addEventListener('click', openModal);
   $('#btnCloseModal').addEventListener('click', closeModal);
   $('#btnAnnulerModal').addEventListener('click', closeModal);
@@ -1434,7 +1525,10 @@ function bindEvents(){
     try{
       const data = await apiGet('getAll');
       if(data.error) throw new Error(data.error);
-      el.textContent='✓ Connexion réussie'; el.className='status ok';
+      el.textContent = (data.eleves||[]).length
+        ? '✓ Connexion réussie — le Sheet contient : '+resumeDonnees(data)
+        : '✓ Connexion réussie, mais le Sheet est vide (aucun élève enregistré)';
+      el.className='status ok';
     }catch(e){
       el.textContent='✗ '+e.message; el.className='status err';
     }
@@ -1456,6 +1550,16 @@ function bindEvents(){
     state.config.appsScriptUrl = urlBackup;
   });
 
+  $('#btnPullSheet').addEventListener('click', async ()=>{
+    const url = $('#inputUrl').value.trim();
+    if(!url){ const el=$('#connexionStatus'); el.textContent="✗ Colle d'abord l'URL du script"; el.className='status err'; return; }
+    if(state.eleves.length && !confirm("Remplacer les données de cet appareil par celles du Google Sheet ?")) return;
+    state.config.appsScriptUrl = url; state.dirty = false; saveState();
+    closeModal(); majBandeauConnexion();
+    await syncFromSheet({forcePull:true});
+  });
+  $('#bannerOk').addEventListener('click', connecterNouvelAppareil);
+  $('#bannerUrl').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); connecterNouvelAppareil(); } });
   $('#btnRefreshVacances').addEventListener('click', async ()=>{
     const el = $('#vacancesMajStatus');
     el.textContent='Actualisation…';
@@ -1485,7 +1589,10 @@ function bindEvents(){
       return;
     }
     state = draft;
+    localRev++;                    // toute synchro en cours devient caduque
+    state.dirty = true;            // effacé dès que l'envoi vers le Sheet a réussi
     saveState();
+    majBandeauConnexion();
     populateClasseSelect();
     autoSelectClasse();
     refreshHeaderBadges();
@@ -1495,9 +1602,11 @@ function bindEvents(){
       const statusEl = $('#syncStatus');
       statusEl.textContent='Envoi vers le Sheet…';
       try{
+        if(syncEnCours) await syncEnCours.catch(()=>{});   // laisser finir (ou abandonner) la synchro en cours
         await flushPendingDeletes();   // 1) effacer les classes supprimées
         await pushAll();               // 2) puis envoyer l'état à jour
-        statusEl.textContent='✓ Synchronisé'; statusEl.className='status ok';
+        state.dirty = false; saveState();
+        statusEl.textContent='✓ Envoyé vers le Sheet : '+resumeDonnees(state); statusEl.className='status ok';
       }catch(e){
         statusEl.textContent='✗ '+e.message; statusEl.className='status err';
       }
